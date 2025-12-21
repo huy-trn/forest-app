@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Input } from '../ui/input';
@@ -8,9 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 import { Badge } from '../ui/badge';
 import { Plus, Calendar, MessageSquare } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner'
 
-interface BuyerRequest {
+interface InvestorRequest {
   id: string;
   title: string;
   description: string;
@@ -21,7 +22,7 @@ interface BuyerRequest {
   response?: string;
 }
 
-const mockRequests: BuyerRequest[] = [
+const mockRequests: InvestorRequest[] = [
   {
     id: '1',
     title: 'Yêu cầu báo cáo tiến độ Q4',
@@ -47,8 +48,9 @@ const mockProjects = [
   { id: '1', name: 'Dự án Rừng Thông Miền Bắc' }
 ];
 
-export function BuyerRequestsView() {
-  const [requests, setRequests] = useState<BuyerRequest[]>(mockRequests);
+export function InvestorRequestsView() {
+  const { t } = useTranslation();
+  const [requests, setRequests] = useState<InvestorRequest[]>(mockRequests);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newRequest, setNewRequest] = useState({
     title: '',
@@ -60,7 +62,7 @@ export function BuyerRequestsView() {
     const project = mockProjects.find(p => p.id === newRequest.projectId);
     if (!project) return;
 
-    const request: BuyerRequest = {
+    const request: InvestorRequest = {
       id: Math.random().toString(36).substr(2, 9),
       ...newRequest,
       projectName: project.name,
@@ -86,10 +88,10 @@ export function BuyerRequestsView() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'pending': return 'Chờ xử lý';
-      case 'processing': return 'Đang xử lý';
-      case 'completed': return 'Hoàn thành';
-      case 'rejected': return 'Từ chối';
+      case 'pending': return t('investor.requests.pending');
+      case 'processing': return t('investor.requests.processing');
+      case 'completed': return t('investor.requests.completed');
+      case 'rejected': return t('investor.requests.rejected');
       default: return status;
     }
   };
@@ -100,27 +102,27 @@ export function BuyerRequestsView() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Yêu cầu của tôi</CardTitle>
-              <CardDescription>Gửi và theo dõi yêu cầu của bạn</CardDescription>
+              <CardTitle>{t('investor.requests.title')}</CardTitle>
+              <CardDescription>{t('investor.requests.desc')}</CardDescription>
             </div>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button>
                   <Plus className="w-4 h-4 mr-2" />
-                  Tạo yêu cầu mới
+                  {t('investor.requests.create')}
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl">
                 <DialogHeader>
-                  <DialogTitle>Tạo yêu cầu mới</DialogTitle>
-                  <DialogDescription>Gửi yêu cầu đến quản trị viên</DialogDescription>
+                  <DialogTitle>{t('investor.requests.create')}</DialogTitle>
+                  <DialogDescription>{t('investor.requests.createDesc')}</DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
-                    <Label htmlFor="request-project">Dự án</Label>
-                    <Select value={newRequest.projectId} onValueChange={(value) => setNewRequest({ ...newRequest, projectId: value })}>
+                    <Label htmlFor="request-project">{t('investor.requests.project')}</Label>
+                    <Select value={newRequest.projectId} onValueChange={(value: string) => setNewRequest({ ...newRequest, projectId: value })}>
                       <SelectTrigger id="request-project">
-                        <SelectValue placeholder="Chọn dự án" />
+                        <SelectValue placeholder={t('investor.requests.projectPlaceholder')} />
                       </SelectTrigger>
                       <SelectContent>
                         {mockProjects.map(project => (
@@ -131,28 +133,28 @@ export function BuyerRequestsView() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="request-title">Tiêu đề yêu cầu</Label>
+                    <Label htmlFor="request-title">{t('investor.requests.titleLabel')}</Label>
                     <Input
                       id="request-title"
                       value={newRequest.title}
                       onChange={(e) => setNewRequest({ ...newRequest, title: e.target.value })}
-                      placeholder="Nhập tiêu đề"
+                      placeholder={t('investor.requests.titlePlaceholder')}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="request-description">Nội dung chi tiết</Label>
+                    <Label htmlFor="request-description">{t('investor.requests.descLabel')}</Label>
                     <Textarea
                       id="request-description"
                       value={newRequest.description}
                       onChange={(e) => setNewRequest({ ...newRequest, description: e.target.value })}
-                      placeholder="Mô tả chi tiết yêu cầu của bạn"
+                      placeholder={t('investor.requests.descPlaceholder')}
                       rows={6}
                     />
                   </div>
 
                   <Button onClick={handleCreateRequest} className="w-full">
-                    Gửi yêu cầu
+                    {t('investor.requests.send')}
                   </Button>
                 </div>
               </DialogContent>
@@ -178,20 +180,20 @@ export function BuyerRequestsView() {
             </CardHeader>
             <CardContent className="space-y-3">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Nội dung yêu cầu:</p>
+                <p className="text-sm text-gray-600 mb-1">{t('investor.requests.content')}</p>
                 <p className="text-sm">{request.description}</p>
               </div>
               
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Calendar className="w-4 h-4" />
-                Ngày gửi: {request.createdDate}
+                {t('investor.requests.date')}: {request.createdDate}
               </div>
 
               {request.response && (
                 <div className="pt-3 border-t">
                   <div className="flex items-center gap-2 mb-2">
                     <MessageSquare className="w-4 h-4 text-green-600" />
-                    <p className="text-sm text-green-600">Đã có phản hồi:</p>
+                    <p className="text-sm text-green-600">{t('investor.requests.responded')}</p>
                   </div>
                   <p className="text-sm bg-green-50 p-3 rounded">{request.response}</p>
                 </div>

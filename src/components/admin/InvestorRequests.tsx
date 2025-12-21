@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
@@ -7,14 +8,14 @@ import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Calendar, User, MessageSquare, Link2 } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 
-interface BuyerRequest {
+interface InvestorRequest {
   id: string;
   title: string;
   description: string;
-  buyerId: string;
-  buyerName: string;
+  investorId: string;
+  investorName: string;
   projectId: string;
   projectName: string;
   status: 'pending' | 'processing' | 'completed' | 'rejected';
@@ -23,13 +24,13 @@ interface BuyerRequest {
   response?: string;
 }
 
-const mockRequests: BuyerRequest[] = [
+const mockRequests: InvestorRequest[] = [
   {
     id: '1',
     title: 'Yêu cầu báo cáo tiến độ Q4',
     description: 'Cần báo cáo chi tiết về tiến độ trồng cây quý 4/2024',
-    buyerId: '3',
-    buyerName: 'Lê Văn C',
+    investorId: '3',
+    investorName: 'Lê Văn C',
     projectId: '1',
     projectName: 'Dự án Rừng Thông Miền Bắc',
     status: 'processing',
@@ -40,8 +41,8 @@ const mockRequests: BuyerRequest[] = [
     id: '2',
     title: 'Yêu cầu kiểm tra chất lượng cây',
     description: 'Kiểm tra chất lượng và tình trạng phát triển của cây trồng khu vực A',
-    buyerId: '5',
-    buyerName: 'Hoàng Văn E',
+    investorId: '5',
+    investorName: 'Hoàng Văn E',
     projectId: '2',
     projectName: 'Phục hồi rừng Sồi',
     status: 'pending',
@@ -52,8 +53,8 @@ const mockRequests: BuyerRequest[] = [
     id: '3',
     title: 'Yêu cầu ảnh hiện trạng dự án',
     description: 'Cần ảnh chụp hiện trạng khu rừng đã trồng để báo cáo cho ban lãnh đạo',
-    buyerId: '3',
-    buyerName: 'Lê Văn C',
+    investorId: '3',
+    investorName: 'Lê Văn C',
     projectId: '1',
     projectName: 'Dự án Rừng Thông Miền Bắc',
     status: 'completed',
@@ -63,9 +64,10 @@ const mockRequests: BuyerRequest[] = [
   }
 ];
 
-export function BuyerRequests() {
-  const [requests, setRequests] = useState<BuyerRequest[]>(mockRequests);
-  const [selectedRequest, setSelectedRequest] = useState<BuyerRequest | null>(null);
+export function InvestorRequests() {
+  const { t } = useTranslation();
+  const [requests, setRequests] = useState<InvestorRequest[]>(mockRequests);
+  const [selectedRequest, setSelectedRequest] = useState<InvestorRequest | null>(null);
   const [response, setResponse] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
 
@@ -73,13 +75,13 @@ export function BuyerRequests() {
     ? requests 
     : requests.filter(r => r.status === filterStatus);
 
-  const handleUpdateStatus = (status: BuyerRequest['status']) => {
+  const handleUpdateStatus = (status: InvestorRequest['status']) => {
     if (!selectedRequest) return;
     
     const updated = { ...selectedRequest, status };
     setRequests(requests.map(r => r.id === updated.id ? updated : r));
     setSelectedRequest(updated);
-    toast.success('Đã cập nhật trạng thái');
+  toast.success(t('admin.investorRequests.statusUpdated'));
   };
 
   const handleSendResponse = () => {
@@ -89,7 +91,7 @@ export function BuyerRequests() {
     setRequests(requests.map(r => r.id === updated.id ? updated : r));
     setSelectedRequest(null);
     setResponse('');
-    toast.success('Đã gửi phản hồi thành công');
+  toast.success(t('admin.investorRequests.responseSent'));
   };
 
   const getStatusColor = (status: string) => {
@@ -104,10 +106,10 @@ export function BuyerRequests() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'pending': return 'Chờ xử lý';
-      case 'processing': return 'Đang xử lý';
-      case 'completed': return 'Hoàn thành';
-      case 'rejected': return 'Từ chối';
+      case 'pending': return t('admin.investorRequests.status.pending');
+      case 'processing': return t('admin.investorRequests.status.processing');
+      case 'completed': return t('admin.investorRequests.status.completed');
+      case 'rejected': return t('admin.investorRequests.status.rejected');
       default: return status;
     }
   };
@@ -116,8 +118,8 @@ export function BuyerRequests() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Yêu cầu từ Nhà đầu tư</CardTitle>
-          <CardDescription>Xem xét và phản hồi yêu cầu</CardDescription>
+          <CardTitle>{t('admin.investorRequests.title')}</CardTitle>
+          <CardDescription>{t('admin.investorRequests.desc')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex gap-2">
@@ -126,33 +128,32 @@ export function BuyerRequests() {
               onClick={() => setFilterStatus('all')}
               size="sm"
             >
-              Tất cả
+              {t('admin.investorRequests.all')}
             </Button>
             <Button 
               variant={filterStatus === 'pending' ? 'default' : 'outline'} 
               onClick={() => setFilterStatus('pending')}
               size="sm"
             >
-              Chờ xử lý
+              {t('admin.investorRequests.status.pending')}
             </Button>
             <Button 
               variant={filterStatus === 'processing' ? 'default' : 'outline'} 
               onClick={() => setFilterStatus('processing')}
               size="sm"
             >
-              Đang xử lý
+              {t('admin.investorRequests.status.processing')}
             </Button>
             <Button 
               variant={filterStatus === 'completed' ? 'default' : 'outline'} 
               onClick={() => setFilterStatus('completed')}
               size="sm"
             >
-              Hoàn thành
+              {t('admin.investorRequests.status.completed')}
             </Button>
           </div>
         </CardContent>
       </Card>
-
       {/* Requests List */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {filteredRequests.map((request) => (
@@ -170,27 +171,23 @@ export function BuyerRequests() {
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="text-sm text-gray-600">{request.description}</p>
-              
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <User className="w-4 h-4" />
-                {request.buyerName}
+                {request.investorName}
               </div>
-
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Calendar className="w-4 h-4" />
                 {request.createdDate}
               </div>
-
               {request.linkedTickets.length > 0 && (
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <Link2 className="w-4 h-4" />
-                  Liên kết {request.linkedTickets.length} nhiệm vụ
+                  {t('admin.investorRequests.linkedTickets', { count: request.linkedTickets.length })}
                 </div>
               )}
-
               {request.response && (
                 <div className="pt-3 border-t">
-                  <p className="text-sm text-gray-600 mb-1">Phản hồi:</p>
+                  <p className="text-sm text-gray-600 mb-1">{t('admin.investorRequests.responseLabel')}</p>
                   <p className="text-sm">{request.response}</p>
                 </div>
               )}
@@ -198,7 +195,6 @@ export function BuyerRequests() {
           </Card>
         ))}
       </div>
-
       {/* Request Details Dialog */}
       {selectedRequest && (
         <Dialog open={!!selectedRequest} onOpenChange={() => setSelectedRequest(null)}>
@@ -209,60 +205,57 @@ export function BuyerRequests() {
                   <DialogTitle>{selectedRequest.title}</DialogTitle>
                   <DialogDescription>{selectedRequest.projectName}</DialogDescription>
                 </div>
-                <Select value={selectedRequest.status} onValueChange={(value) => handleUpdateStatus(value as BuyerRequest['status'])}>
+                <Select value={selectedRequest.status} onValueChange={(value:string) => handleUpdateStatus(value as InvestorRequest['status'])}>
                   <SelectTrigger className="w-40">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="pending">Chờ xử lý</SelectItem>
-                    <SelectItem value="processing">Đang xử lý</SelectItem>
-                    <SelectItem value="completed">Hoàn thành</SelectItem>
-                    <SelectItem value="rejected">Từ chối</SelectItem>
+                    <SelectItem value="pending">{t('admin.investorRequests.status.pending')}</SelectItem>
+                    <SelectItem value="processing">{t('admin.investorRequests.status.processing')}</SelectItem>
+                    <SelectItem value="completed">{t('admin.investorRequests.status.completed')}</SelectItem>
+                    <SelectItem value="rejected">{t('admin.investorRequests.status.rejected')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </DialogHeader>
-
             <div className="space-y-4 py-4">
               <Card>
                 <CardContent className="pt-6 space-y-3">
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">Nội dung yêu cầu</p>
+                    <p className="text-sm text-gray-600 mb-1">{t('admin.investorRequests.requestContent')}</p>
                     <p>{selectedRequest.description}</p>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-600">
                     <User className="w-4 h-4" />
-                    Từ: {selectedRequest.buyerName}
+                    {t('admin.investorRequests.from')}: {selectedRequest.investorName}
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-600">
                     <Calendar className="w-4 h-4" />
-                    Ngày tạo: {selectedRequest.createdDate}
+                    {t('admin.investorRequests.createdDate')}: {selectedRequest.createdDate}
                   </div>
                 </CardContent>
               </Card>
-
               {selectedRequest.status !== 'completed' && (
                 <Card>
                   <CardContent className="pt-6 space-y-3">
-                    <Label>Phản hồi yêu cầu</Label>
+                    <Label>{t('admin.investorRequests.responseLabel')}</Label>
                     <Textarea
                       value={response}
                       onChange={(e) => setResponse(e.target.value)}
-                      placeholder="Nhập phản hồi cho nhà đầu tư..."
+                      placeholder={t('admin.investorRequests.responsePlaceholder')}
                       rows={4}
                     />
                     <Button onClick={handleSendResponse} className="w-full">
                       <MessageSquare className="w-4 h-4 mr-2" />
-                      Gửi phản hồi
+                      {t('admin.investorRequests.sendResponse')}
                     </Button>
                   </CardContent>
                 </Card>
               )}
-
               {selectedRequest.response && (
                 <Card>
                   <CardContent className="pt-6">
-                    <p className="text-sm text-gray-600 mb-2">Phản hồi đã gửi:</p>
+                    <p className="text-sm text-gray-600 mb-2">{t('admin.investorRequests.sentResponse')}</p>
                     <p>{selectedRequest.response}</p>
                   </CardContent>
                 </Card>

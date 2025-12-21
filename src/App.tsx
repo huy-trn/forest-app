@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Login } from './components/Login';
 import { AdminDashboard } from './components/AdminDashboard';
-import { FarmerDashboard } from './components/FarmerDashboard';
-import { BuyerDashboard } from './components/BuyerDashboard';
+import { PartnerDashboard } from './components/PartnerDashboard';
+import { InvestorDashboard } from './components/InvestorDashboard';
 
-export type UserRole = 'admin' | 'farmer' | 'buyer' | null;
+export type UserRole = 'admin' | 'partner' | 'investor' | null;
 
 export interface User {
   id: string;
@@ -40,11 +40,11 @@ function App() {
       {currentUser.role === 'admin' && (
         <AdminDashboard user={currentUser} onLogout={handleLogout} />
       )}
-      {currentUser.role === 'farmer' && (
-        <FarmerDashboard user={currentUser} onLogout={handleLogout} />
+      {currentUser.role === 'partner' && (
+        <PartnerDashboard user={currentUser} onLogout={handleLogout} />
       )}
-      {currentUser.role === 'buyer' && (
-        <BuyerDashboard user={currentUser} onLogout={handleLogout} />
+      {currentUser.role === 'investor' && (
+        <InvestorDashboard user={currentUser} onLogout={handleLogout} />
       )}
     </div>
   );

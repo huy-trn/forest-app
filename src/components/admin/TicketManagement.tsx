@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Input } from '../ui/input';
@@ -10,7 +11,7 @@ import { Badge } from '../ui/badge';
 import { Checkbox } from '../ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { TicketPlus, Calendar, Users, MessageSquare, Image, FileText } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 import { TicketDetails } from './TicketDetails';
 
 export interface Ticket {
@@ -36,7 +37,7 @@ const mockTickets: Ticket[] = [
     projectName: 'Dự án Rừng Thông Miền Bắc',
     status: 'in_progress',
     createdDate: '2025-11-10',
-    assignees: [{ id: '1', name: 'Nguyễn Văn A', role: 'farmer' }],
+    assignees: [{ id: '1', name: 'Nguyễn Văn A', role: 'partner' }],
     logs: [
       { id: '1', message: 'Đã trồng 200 cây thông', date: '2025-11-14', userId: '1', userName: 'Nguyễn Văn A' }
     ],
@@ -55,7 +56,7 @@ const mockTickets: Ticket[] = [
     projectName: 'Phục hồi rừng Sồi',
     status: 'open',
     createdDate: '2025-11-12',
-    assignees: [{ id: '2', name: 'Trần Thị B', role: 'farmer' }],
+    assignees: [{ id: '2', name: 'Trần Thị B', role: 'partner' }],
     logs: [],
     comments: [],
     attachments: []
@@ -68,12 +69,13 @@ const mockProjects = [
 ];
 
 const mockUsers = [
-  { id: '1', name: 'Nguyễn Văn A', role: 'farmer' },
-  { id: '2', name: 'Trần Thị B', role: 'farmer' },
-  { id: '3', name: 'Lê Văn C', role: 'buyer' },
+  { id: '1', name: 'Nguyễn Văn A', role: 'partner' },
+  { id: '2', name: 'Trần Thị B', role: 'partner' },
+  { id: '3', name: 'Lê Văn C', role: 'investor' },
 ];
 
 export function TicketManagement() {
+  const { t } = useTranslation();
   const [tickets, setTickets] = useState<Ticket[]>(mockTickets);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
@@ -98,7 +100,7 @@ export function TicketManagement() {
       ...newTicket,
       projectName: project.name,
       status: 'open',
-      createdDate: new Date().toISOString().split('T')[0],
+      createdDate: new Date().toISOString().split('admin.T')[0],
       assignees: mockUsers.filter(u => selectedAssignees.includes(u.id)),
       logs: [],
       comments: [],
@@ -108,7 +110,7 @@ export function TicketManagement() {
     setNewTicket({ title: '', description: '', projectId: '' });
     setSelectedAssignees([]);
     setIsCreateDialogOpen(false);
-    toast.success('Đã tạo nhiệm vụ thành công');
+    toast.success(t('admin.ticketManagement.created'));
   };
 
   const handleUpdateTicket = (updatedTicket: Ticket) => {
@@ -141,27 +143,27 @@ export function TicketManagement() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Quản lý nhiệm vụ</CardTitle>
-              <CardDescription>Tạo và theo dõi tiến độ các nhiệm vụ</CardDescription>
+              <CardTitle>{t('admin.ticketManagement.title')}</CardTitle>
+              <CardDescription>{t('admin.ticketManagement.desc')}</CardDescription>
             </div>
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
               <DialogTrigger asChild>
                 <Button>
                   <TicketPlus className="w-4 h-4 mr-2" />
-                  Tạo nhiệm vụ
+                  {t('admin.ticketManagement.create')}
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl">
                 <DialogHeader>
-                  <DialogTitle>Tạo nhiệm vụ mới</DialogTitle>
-                  <DialogDescription>Giao việc cho thành viên trong dự án</DialogDescription>
+                  <DialogTitle>{t('admin.ticketManagement.createTitle')}</DialogTitle>
+                  <DialogDescription>{t('admin.ticketManagement.createDesc')}</DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
-                    <Label htmlFor="ticket-project">Dự án</Label>
-                    <Select value={newTicket.projectId} onValueChange={(value) => setNewTicket({ ...newTicket, projectId: value })}>
+                    <Label htmlFor="ticket-project">{t('admin.ticketManagement.project')}</Label>
+                    <Select value={newTicket.projectId} onValueChange={(value: string) => setNewTicket({ ...newTicket, projectId: value })}>
                       <SelectTrigger id="ticket-project">
-                        <SelectValue placeholder="Chọn dự án" />
+                        <SelectValue placeholder={t('admin.ticketManagement.projectPlaceholder')} />
                       </SelectTrigger>
                       <SelectContent>
                         {mockProjects.map(project => (
@@ -172,35 +174,35 @@ export function TicketManagement() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="ticket-title">Tiêu đề nhiệm vụ</Label>
+                    <Label htmlFor="ticket-title">{t('admin.ticketManagement.titleLabel')}</Label>
                     <Input
                       id="ticket-title"
                       value={newTicket.title}
                       onChange={(e) => setNewTicket({ ...newTicket, title: e.target.value })}
-                      placeholder="Nhập tiêu đề"
+                      placeholder={t('admin.ticketManagement.titlePlaceholder')}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="ticket-description">Mô tả</Label>
+                    <Label htmlFor="ticket-description">{t('admin.ticketManagement.descLabel')}</Label>
                     <Textarea
                       id="ticket-description"
                       value={newTicket.description}
                       onChange={(e) => setNewTicket({ ...newTicket, description: e.target.value })}
-                      placeholder="Mô tả chi tiết nhiệm vụ"
+                      placeholder={t('admin.ticketManagement.descPlaceholder')}
                       rows={4}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Gán người thực hiện</Label>
+                    <Label>{t('admin.ticketManagement.assign')}</Label>
                     <div className="border rounded-lg p-4 max-h-48 overflow-y-auto space-y-3">
                       {mockUsers.map((user) => (
                         <div key={user.id} className="flex items-center space-x-2">
                           <Checkbox
                             id={`assignee-${user.id}`}
                             checked={selectedAssignees.includes(user.id)}
-                            onCheckedChange={(checked) => {
+                            onCheckedChange={(checked: boolean) => {
                               if (checked) {
                                 setSelectedAssignees([...selectedAssignees, user.id]);
                               } else {
@@ -209,14 +211,14 @@ export function TicketManagement() {
                             }}
                           />
                           <label htmlFor={`assignee-${user.id}`} className="flex-1 cursor-pointer">
-                            {user.name} <Badge variant="outline" className="ml-2">{user.role === 'farmer' ? 'Nông dân' : 'Nhà đầu tư'}</Badge>
+                            {user.name} <Badge variant="outline" className="ml-2">{user.role === 'partner' ? t('admin.ticketManagement.partner') : t('admin.ticketManagement.investor')}</Badge>
                           </label>
                         </div>
                       ))}
                     </div>
                   </div>
 
-                  <Button onClick={handleCreateTicket} className="w-full">Tạo nhiệm vụ</Button>
+                  <Button onClick={handleCreateTicket} className="w-full">{t('admin.ticketManagement.create')}</Button>
                 </div>
               </DialogContent>
             </Dialog>
@@ -229,28 +231,28 @@ export function TicketManagement() {
               onClick={() => setFilterStatus('all')}
               size="sm"
             >
-              Tất cả
+              {t('admin.ticketManagement.filters.all')}
             </Button>
             <Button 
               variant={filterStatus === 'open' ? 'default' : 'outline'} 
               onClick={() => setFilterStatus('open')}
               size="sm"
             >
-              Mở
+              {t('admin.ticketManagement.filters.open')}
             </Button>
             <Button 
               variant={filterStatus === 'in_progress' ? 'default' : 'outline'} 
               onClick={() => setFilterStatus('in_progress')}
               size="sm"
             >
-              Đang xử lý
+              {t('admin.ticketManagement.filters.in_progress')}
             </Button>
             <Button 
               variant={filterStatus === 'completed' ? 'default' : 'outline'} 
               onClick={() => setFilterStatus('completed')}
               size="sm"
             >
-              Hoàn thành
+              {t('admin.ticketManagement.filters.completed')}
             </Button>
           </div>
         </CardContent>
@@ -276,7 +278,7 @@ export function TicketManagement() {
               
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Calendar className="w-4 h-4" />
-                Tạo: {ticket.createdDate}
+                {t('admin.ticketManagement.created')}: {ticket.createdDate}
               </div>
 
               <div className="flex items-center gap-2">
@@ -293,15 +295,15 @@ export function TicketManagement() {
               <div className="flex gap-4 pt-2 border-t text-sm">
                 <div className="flex items-center gap-1">
                   <FileText className="w-4 h-4" />
-                  <span>{ticket.logs.length} logs</span>
+                  <span>{ticket.logs.length} {t('admin.ticketManagement.logs')}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <MessageSquare className="w-4 h-4" />
-                  <span>{ticket.comments.length} bình luận</span>
+                  <span>{ticket.comments.length} {t('admin.ticketManagement.comments')}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Image className="w-4 h-4" />
-                  <span>{ticket.attachments.length} file</span>
+                  <span>{ticket.attachments.length} {t('admin.ticketManagement.files')}</span>
                 </div>
               </div>
             </CardContent>

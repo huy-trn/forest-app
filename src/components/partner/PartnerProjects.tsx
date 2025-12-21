@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { useTranslation } from 'react-i18next';
 import { Badge } from '../ui/badge';
-import { Button } from '../ui/button';
 import { Progress } from '../ui/progress';
 import { MapPin, Calendar, TreeDeciduous, Users } from 'lucide-react';
 
@@ -19,8 +19,8 @@ const myProjects = [
     targetTrees: 15000,
     lastActivity: '2025-11-14',
     members: [
-      { id: '1', name: 'Nguyễn Văn A', role: 'farmer' },
-      { id: '3', name: 'Lê Văn C', role: 'buyer' }
+      { id: '1', name: 'Nguyễn Văn A', role: 'partner' },
+      { id: '3', name: 'Lê Văn C', role: 'investor' }
     ]
   },
   {
@@ -37,18 +37,19 @@ const myProjects = [
     targetTrees: 8700,
     lastActivity: '2025-11-12',
     members: [
-      { id: '2', name: 'Trần Thị B', role: 'farmer' }
+      { id: '2', name: 'Trần Thị B', role: 'partner' }
     ]
   }
 ];
+export function PartnerProjects() {
 
-export function FarmerProjects() {
+  const { t } = useTranslation();
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Dự án được gán</CardTitle>
-          <CardDescription>Các dự án bạn đang tham gia</CardDescription>
+          <CardTitle>{t('partner.projects.assigned')}</CardTitle>
+          <CardDescription>{t('partner.projects.desc')}</CardDescription>
         </CardHeader>
       </Card>
 
@@ -64,7 +65,7 @@ export function FarmerProjects() {
                     {project.province}, {project.country}
                   </div>
                 </div>
-                <Badge variant="default">{project.status === 'active' ? 'Đang hoạt động' : 'Hoàn thành'}</Badge>
+                <Badge variant="default">{project.status === 'active' ? t('partner.projects.active') : t('partner.projects.completed')}</Badge>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -72,11 +73,11 @@ export function FarmerProjects() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-600">Diện tích</p>
+                  <p className="text-sm text-gray-600">{t('partner.projects.area')}</p>
                   <p>{project.area}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Ngày bắt đầu</p>
+                  <p className="text-sm text-gray-600">{t('partner.projects.startDate')}</p>
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4" />
                     <p>{project.startDate}</p>
@@ -86,7 +87,7 @@ export function FarmerProjects() {
 
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm text-gray-600">Tiến độ</p>
+                  <p className="text-sm text-gray-600">{t('partner.projects.progress')}</p>
                   <p className="text-sm">{project.progress}%</p>
                 </div>
                 <Progress value={project.progress} />
@@ -95,7 +96,7 @@ export function FarmerProjects() {
               <div className="flex items-center gap-2">
                 <TreeDeciduous className="w-5 h-5 text-green-600" />
                 <div>
-                  <p className="text-sm text-gray-600">Cây đã trồng</p>
+                  <p className="text-sm text-gray-600">{t('partner.projects.treesPlanted')}</p>
                   <p>{project.treesPlanted.toLocaleString()} / {project.targetTrees.toLocaleString()}</p>
                 </div>
               </div>
@@ -103,7 +104,7 @@ export function FarmerProjects() {
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <Users className="w-4 h-4 text-gray-600" />
-                  <p className="text-sm text-gray-600">Thành viên ({project.members.length})</p>
+                  <p className="text-sm text-gray-600">{t('partner.projects.members', 'Thành viên', { count: project.members.length })} ({project.members.length})</p>
                 </div>
                 <div className="flex flex-wrap gap-1">
                   {project.members.map((member) => (
@@ -115,7 +116,7 @@ export function FarmerProjects() {
               </div>
 
               <div className="pt-3 border-t">
-                <p className="text-sm text-gray-600 mb-1">Hoạt động gần nhất</p>
+                <p className="text-sm text-gray-600 mb-1">{t('partner.projects.lastActivity')}</p>
                 <p className="text-sm">{project.lastActivity}</p>
               </div>
             </CardContent>

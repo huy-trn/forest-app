@@ -1,18 +1,20 @@
-import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { User } from '../App';
 import { Button } from './ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { BuyerProjects } from './buyer/BuyerProjects';
-import { BuyerRequestsView } from './buyer/BuyerRequestsView';
-import { PublicShowcase } from './buyer/PublicShowcase';
+import { InvestorProjects } from './investor/InvestorProjects';
+import { InvestorRequestsView } from './investor/InvestorRequestsView';
+import { PublicShowcase } from './investor/PublicShowcase';
 import { LogOut, Trees } from 'lucide-react';
+import { SelectLng } from './ui/select-lng';
 
-interface BuyerDashboardProps {
+interface InvestorDashboardProps {
   user: User;
   onLogout: () => void;
 }
 
-export function BuyerDashboard({ user, onLogout }: BuyerDashboardProps) {
+export function InvestorDashboard({ user, onLogout }: InvestorDashboardProps) {
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -23,18 +25,20 @@ export function BuyerDashboard({ user, onLogout }: BuyerDashboardProps) {
               <Trees className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1>Hệ Thống Quản Lý Rừng</h1>
-              <p className="text-sm text-gray-600">Nhà đầu tư</p>
+              <h1>{t('investor.dashboard.title')}</h1>
+              <p className="text-sm text-gray-600">{t('investor.dashboard.role')}</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
+            <SelectLng />
+
             <div className="text-right">
               <p>{user.name}</p>
               <p className="text-sm text-gray-600">{user.email}</p>
             </div>
             <Button variant="outline" onClick={onLogout}>
               <LogOut className="w-4 h-4 mr-2" />
-              Đăng xuất
+              {t('investor.dashboard.logout')}
             </Button>
           </div>
         </div>
@@ -44,9 +48,9 @@ export function BuyerDashboard({ user, onLogout }: BuyerDashboardProps) {
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="showcase" className="space-y-6">
           <TabsList>
-            <TabsTrigger value="showcase">Giới thiệu</TabsTrigger>
-            <TabsTrigger value="projects">Dự án của tôi</TabsTrigger>
-            <TabsTrigger value="requests">Yêu cầu</TabsTrigger>
+            <TabsTrigger value="showcase">{t('investor.dashboard.showcase')}</TabsTrigger>
+            <TabsTrigger value="projects">{t('investor.dashboard.projects')}</TabsTrigger>
+            <TabsTrigger value="requests">{t('investor.dashboard.requests')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="showcase">
@@ -54,11 +58,11 @@ export function BuyerDashboard({ user, onLogout }: BuyerDashboardProps) {
           </TabsContent>
 
           <TabsContent value="projects">
-            <BuyerProjects />
+            <InvestorProjects />
           </TabsContent>
 
           <TabsContent value="requests">
-            <BuyerRequestsView />
+            <InvestorRequestsView />
           </TabsContent>
         </Tabs>
       </main>

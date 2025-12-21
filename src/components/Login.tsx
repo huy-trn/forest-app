@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { UserRole } from "../App";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -6,7 +7,6 @@ import { Label } from "./ui/label";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "./ui/card";
@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "./ui/select";
 import { Trees } from "lucide-react";
+import { SelectLng } from "./ui/select-lng";
 
 interface LoginProps {
   onLogin: (
@@ -28,6 +29,7 @@ interface LoginProps {
 }
 
 export function Login({ onLogin }: LoginProps) {
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [role, setRole] = useState<UserRole>(null);
@@ -41,6 +43,9 @@ export function Login({ onLogin }: LoginProps) {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100">
+      <div className="absolute top-4 right-4">
+        <SelectLng/>
+      </div>
       <Card className="w-full max-w-md mx-4">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
@@ -48,57 +53,57 @@ export function Login({ onLogin }: LoginProps) {
               <Trees className="w-10 h-10 text-white" />
             </div>
           </div>
-          <CardTitle>Hệ thống quản lý rừng</CardTitle>
+          <CardTitle>{t('login.title')}</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name">{t('login.name')}</Label>
               <Input
                 id="name"
-                placeholder="Enter your name"
+                placeholder={t('login.namePlaceholder')}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t('login.email')}</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="Enter your email"
+                placeholder={t('login.emailPlaceholder')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="role">Role</Label>
+              <Label htmlFor="role">{t('login.role')}</Label>
               <Select
                 value={role || ""}
-                onValueChange={(value) =>
+                onValueChange={(value:string) =>
                   setRole(value as UserRole)
                 }
               >
                 <SelectTrigger id="role">
-                  <SelectValue placeholder="Select your role" />
+                  <SelectValue placeholder={t('login.rolePlaceholder')} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="admin">
-                    Quản trị viên
+                    {t('login.admin')}
                   </SelectItem>
-                  <SelectItem value="farmer">
-                    Cộng tác viên
+                  <SelectItem value="partner">
+                    {t('login.partner')}
                   </SelectItem>
-                  <SelectItem value="buyer">
-                    Nhà đầu tư
+                  <SelectItem value="investor">
+                    {t('login.investor')}
                   </SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <Button type="submit" className="w-full">
-              Sign In
+              {t('login.signIn')}
             </Button>
           </form>
         </CardContent>

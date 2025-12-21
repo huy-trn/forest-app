@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Button } from '../ui/button';
@@ -10,17 +11,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Card, CardContent } from '../ui/card';
 import { Ticket } from './TicketManagement';
 import { Calendar, User, Send, Paperclip } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 
 interface TicketDetailsProps {
   ticket: Ticket;
   isOpen: boolean;
   onClose: () => void;
   onUpdate: (ticket: Ticket) => void;
-  userRole: 'admin' | 'farmer';
+  userRole: 'admin' | 'partner';
 }
 
 export function TicketDetails({ ticket, isOpen, onClose, onUpdate, userRole }: TicketDetailsProps) {
+  const { t } = useTranslation();
   const [localTicket, setLocalTicket] = useState<Ticket>(ticket);
   const [newComment, setNewComment] = useState('');
   const [newLog, setNewLog] = useState('');
@@ -29,7 +31,7 @@ export function TicketDetails({ ticket, isOpen, onClose, onUpdate, userRole }: T
     const updated = { ...localTicket, status: status as Ticket['status'] };
     setLocalTicket(updated);
     onUpdate(updated);
-    toast.success('Đã cập nhật trạng thái');
+  toast.success(t('admin.ticketDetails.statusUpdated'));
   };
 
   const handleAddComment = () => {
@@ -38,8 +40,8 @@ export function TicketDetails({ ticket, isOpen, onClose, onUpdate, userRole }: T
     const comment = {
       id: Math.random().toString(36).substr(2, 9),
       message: newComment,
-      date: new Date().toISOString().split('T')[0],
-      userId: userRole === 'admin' ? 'admin1' : 'farmer1',
+      date: new Date().toISOString().split('admin.T')[0],
+      userId: userRole === 'admin' ? 'admin1' : 'partner1',
       userName: userRole === 'admin' ? 'Admin' : 'Nông dân',
       userRole: userRole
     };
@@ -51,8 +53,8 @@ export function TicketDetails({ ticket, isOpen, onClose, onUpdate, userRole }: T
     
     setLocalTicket(updated);
     onUpdate(updated);
-    setNewComment('');
-    toast.success('Đã thêm bình luận');
+    setNewComment('admin.');
+  toast.success(t('admin.ticketDetails.commentAdded'));
   };
 
   const handleAddLog = () => {
@@ -61,8 +63,8 @@ export function TicketDetails({ ticket, isOpen, onClose, onUpdate, userRole }: T
     const log = {
       id: Math.random().toString(36).substr(2, 9),
       message: newLog,
-      date: new Date().toISOString().split('T')[0],
-      userId: 'farmer1',
+      date: new Date().toISOString().split('admin.T')[0],
+      userId: 'partner1',
       userName: 'Nông dân'
     };
     
@@ -74,7 +76,7 @@ export function TicketDetails({ ticket, isOpen, onClose, onUpdate, userRole }: T
     setLocalTicket(updated);
     onUpdate(updated);
     setNewLog('');
-    toast.success('Đã thêm log công việc');
+  toast.success(t('admin.ticketDetails.logAdded'));
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -95,7 +97,7 @@ export function TicketDetails({ ticket, isOpen, onClose, onUpdate, userRole }: T
 
     setLocalTicket(updated);
     onUpdate(updated);
-    toast.success('Đã tải lên tệp đính kèm');
+  toast.success(t('admin.ticketDetails.attachmentUploaded'));
   };
 
   const getStatusColor = (status: string) => {
@@ -110,10 +112,10 @@ export function TicketDetails({ ticket, isOpen, onClose, onUpdate, userRole }: T
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'open': return 'Mở';
-      case 'in_progress': return 'Đang xử lý';
-      case 'completed': return 'Hoàn thành';
-      case 'closed': return 'Đã đóng';
+      case 'open': return t('admin.ticketDetails.status.open');
+      case 'in_progress': return t('admin.ticketDetails.status.in_progress');
+      case 'completed': return t('admin.ticketDetails.status.completed');
+      case 'closed': return t('admin.ticketDetails.status.closed');
       default: return status;
     }
   };
@@ -133,14 +135,14 @@ export function TicketDetails({ ticket, isOpen, onClose, onUpdate, userRole }: T
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="open">Mở</SelectItem>
-                  <SelectItem value="in_progress">Đang xử lý</SelectItem>
-                  <SelectItem value="completed">Hoàn thành</SelectItem>
-                  <SelectItem value="closed">Đã đóng</SelectItem>
+                  <SelectItem value="open">{t('admin.ticketDetails.status.open')}</SelectItem>
+                  <SelectItem value="in_progress">{t('admin.ticketDetails.status.in_progress')}</SelectItem>
+                  <SelectItem value="completed">{t('admin.ticketDetails.status.completed')}</SelectItem>
+                  <SelectItem value="closed">{t('admin.ticketDetails.status.closed')}</SelectItem>
                 </SelectContent>
               </Select>
             )}
-            {userRole === 'farmer' && (
+            {userRole === 'partner' && (
               <Badge className={getStatusColor(localTicket.status)}>
                 {getStatusText(localTicket.status)}
               </Badge>
@@ -153,12 +155,12 @@ export function TicketDetails({ ticket, isOpen, onClose, onUpdate, userRole }: T
           <Card>
             <CardContent className="pt-6 space-y-3">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Mô tả</p>
+                <p className="text-sm text-gray-600 mb-1">{t('admin.ticketDetails.description')}</p>
                 <p>{localTicket.description}</p>
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Calendar className="w-4 h-4" />
-                Tạo ngày: {localTicket.createdDate}
+                {t('admin.ticketDetails.createdDate')}: {localTicket.createdDate}
               </div>
               <div className="flex items-center gap-2">
                 <User className="w-4 h-4 text-gray-600" />
@@ -177,31 +179,31 @@ export function TicketDetails({ ticket, isOpen, onClose, onUpdate, userRole }: T
           <Tabs defaultValue="logs" className="w-full">
             <TabsList className="w-full">
               <TabsTrigger value="logs" className="flex-1">
-                Work Logs ({localTicket.logs.length})
+                {t('admin.ticketDetails.workLogs')} ({localTicket.logs.length})
               </TabsTrigger>
               <TabsTrigger value="comments" className="flex-1">
-                Bình luận ({localTicket.comments.length})
+                {t('admin.ticketDetails.comments')} ({localTicket.comments.length})
               </TabsTrigger>
               <TabsTrigger value="attachments" className="flex-1">
-                Tệp đính kèm ({localTicket.attachments.length})
+                {t('admin.ticketDetails.attachments')} ({localTicket.attachments.length})
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="logs" className="space-y-4">
-              {/* Add Log Form - Only for farmers */}
-              {userRole === 'farmer' && (
+              {/* Add Log Form - Only for partners */}
+              {userRole === 'partner' && (
                 <Card>
                   <CardContent className="pt-6 space-y-3">
-                    <Label>Thêm log công việc</Label>
+                    <Label>{t('admin.ticketDetails.addLog')}</Label>
                     <Textarea
                       value={newLog}
                       onChange={(e) => setNewLog(e.target.value)}
-                      placeholder="Mô tả công việc đã thực hiện..."
+                      placeholder={t('admin.ticketDetails.logPlaceholder')}
                       rows={3}
                     />
                     <Button onClick={handleAddLog} className="w-full">
                       <Send className="w-4 h-4 mr-2" />
-                      Thêm Log
+                      {t('admin.ticketDetails.addLogBtn')}
                     </Button>
                   </CardContent>
                 </Card>
@@ -224,7 +226,7 @@ export function TicketDetails({ ticket, isOpen, onClose, onUpdate, userRole }: T
                   </Card>
                 ))}
                 {localTicket.logs.length === 0 && (
-                  <p className="text-center text-gray-500 py-8">Chưa có log công việc</p>
+                  <p className="text-center text-gray-500 py-8">{t('admin.ticketDetails.noLogs')}</p>
                 )}
               </div>
             </TabsContent>
@@ -233,16 +235,16 @@ export function TicketDetails({ ticket, isOpen, onClose, onUpdate, userRole }: T
               {/* Add Comment Form */}
               <Card>
                 <CardContent className="pt-6 space-y-3">
-                  <Label>Thêm bình luận</Label>
+                  <Label>{t('admin.ticketDetails.addComment')}</Label>
                   <Textarea
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="Nhập bình luận..."
+                    placeholder={t('admin.ticketDetails.commentPlaceholder')}
                     rows={3}
                   />
                   <Button onClick={handleAddComment} className="w-full">
                     <Send className="w-4 h-4 mr-2" />
-                    Gửi bình luận
+                    {t('admin.ticketDetails.sendComment')}
                   </Button>
                 </CardContent>
               </Card>
@@ -267,14 +269,14 @@ export function TicketDetails({ ticket, isOpen, onClose, onUpdate, userRole }: T
                   </Card>
                 ))}
                 {localTicket.comments.length === 0 && (
-                  <p className="text-center text-gray-500 py-8">Chưa có bình luận</p>
+                  <p className="text-center text-gray-500 py-8">{t('admin.ticketDetails.noComments')}</p>
                 )}
               </div>
             </TabsContent>
 
             <TabsContent value="attachments" className="space-y-4">
-              {/* Upload Form - Only for farmers */}
-              {userRole === 'farmer' && (
+              {/* Upload Form - Only for partners */}
+              {userRole === 'partner' && (
                 <Card>
                   <CardContent className="pt-6">
                     <Label htmlFor="file-upload" className="cursor-pointer">
@@ -312,7 +314,7 @@ export function TicketDetails({ ticket, isOpen, onClose, onUpdate, userRole }: T
                   </Card>
                 ))}
                 {localTicket.attachments.length === 0 && (
-                  <p className="col-span-full text-center text-gray-500 py-8">Chưa có tệp đính kèm</p>
+                  <p className="col-span-full text-center text-gray-500 py-8">{t('admin.ticketDetails.noAttachments')}</p>
                 )}
               </div>
             </TabsContent>

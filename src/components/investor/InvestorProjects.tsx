@@ -1,4 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { useTranslation } from 'react-i18next';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Progress } from '../ui/progress';
@@ -19,8 +20,8 @@ const myProjects = [
     targetTrees: 15000,
     lastUpdate: '2025-11-14',
     members: [
-      { id: '1', name: 'Nguyễn Văn A', role: 'farmer' },
-      { id: '3', name: 'Lê Văn C', role: 'buyer' }
+      { id: '1', name: 'Nguyễn Văn A', role: 'partner' },
+      { id: '3', name: 'Lê Văn C', role: 'investor' }
     ],
     recentActivities: [
       { date: '2025-11-14', activity: 'Trồng 200 cây thông khu vực A-1' },
@@ -29,13 +30,14 @@ const myProjects = [
   }
 ];
 
-export function BuyerProjects() {
+export function InvestorProjects() {
+  const { t } = useTranslation();
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Dự án của tôi</CardTitle>
-          <CardDescription>Các dự án bạn đang tham gia đầu tư</CardDescription>
+          <CardTitle>{t('investor.projects.title')}</CardTitle>
+          <CardDescription>{t('investor.projects.desc')}</CardDescription>
         </CardHeader>
       </Card>
 
@@ -51,7 +53,7 @@ export function BuyerProjects() {
                     {project.province}, {project.country}
                   </div>
                 </div>
-                <Badge variant="default">{project.status === 'active' ? 'Đang hoạt động' : 'Hoàn thành'}</Badge>
+                <Badge variant="default">{project.status === 'active' ? t('investor.projects.active') : t('investor.projects.completed')}</Badge>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -59,32 +61,32 @@ export function BuyerProjects() {
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
-                  <p className="text-sm text-gray-600">Diện tích</p>
+                  <p className="text-sm text-gray-600">{t('investor.projects.area')}</p>
                   <p>{project.area}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Ngày bắt đầu</p>
+                  <p className="text-sm text-gray-600">{t('investor.projects.startDate')}</p>
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4" />
                     <p>{project.startDate}</p>
                   </div>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Cây đã trồng</p>
+                  <p className="text-sm text-gray-600">{t('investor.projects.treesPlanted')}</p>
                   <div className="flex items-center gap-2">
                     <TreeDeciduous className="w-4 h-4 text-green-600" />
                     <p>{project.treesPlanted.toLocaleString()}</p>
                   </div>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Mục tiêu</p>
-                  <p>{project.targetTrees.toLocaleString()} cây</p>
+                  <p className="text-sm text-gray-600">{t('investor.projects.target')}</p>
+                  <p>{project.targetTrees.toLocaleString()} {t('investor.projects.trees')}</p>
                 </div>
               </div>
 
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm text-gray-600">Tiến độ dự án</p>
+                  <p className="text-sm text-gray-600">{t('investor.projects.progress')}</p>
                   <p className="text-sm">{project.progress}%</p>
                 </div>
                 <Progress value={project.progress} />
@@ -93,19 +95,19 @@ export function BuyerProjects() {
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <Users className="w-4 h-4 text-gray-600" />
-                  <p className="text-sm text-gray-600">Thành viên ({project.members.length})</p>
+                  <p className="text-sm text-gray-600">{t('investor.projects.members', { count: project.members.length })} ({project.members.length})</p>
                 </div>
                 <div className="flex flex-wrap gap-1">
                   {project.members.map((member) => (
                     <Badge key={member.id} variant="outline" className="text-xs">
-                      {member.name} ({member.role === 'farmer' ? 'Nông dân' : 'Nhà đầu tư'})
+                      {member.name} ({member.role === 'partner' ? t('investor.projects.partner') : t('investor.projects.investor')})
                     </Badge>
                   ))}
                 </div>
               </div>
 
               <div className="pt-3 border-t">
-                <p className="text-sm text-gray-600 mb-2">Hoạt động gần đây</p>
+                <p className="text-sm text-gray-600 mb-2">{t('investor.projects.recent')}</p>
                 <div className="space-y-2">
                   {project.recentActivities.map((activity, idx) => (
                     <div key={idx} className="flex items-start gap-2 text-sm">
@@ -121,7 +123,7 @@ export function BuyerProjects() {
 
               <Button variant="outline" className="w-full">
                 <Eye className="w-4 h-4 mr-2" />
-                Xem chi tiết dự án
+                {t('investor.projects.detail')}
               </Button>
             </CardContent>
           </Card>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -15,7 +16,7 @@ const mockTickets: Ticket[] = [
     projectName: 'Dự án Rừng Thông Miền Bắc',
     status: 'in_progress',
     createdDate: '2025-11-10',
-    assignees: [{ id: '1', name: 'Nguyễn Văn A', role: 'farmer' }],
+    assignees: [{ id: '1', name: 'Nguyễn Văn A', role: 'partner' }],
     logs: [
       { id: '1', message: 'Đã trồng 200 cây thông', date: '2025-11-14', userId: '1', userName: 'Nguyễn Văn A' }
     ],
@@ -34,7 +35,7 @@ const mockTickets: Ticket[] = [
     projectName: 'Dự án Rừng Thông Miền Bắc',
     status: 'open',
     createdDate: '2025-11-12',
-    assignees: [{ id: '1', name: 'Nguyễn Văn A', role: 'farmer' }],
+    assignees: [{ id: '1', name: 'Nguyễn Văn A', role: 'partner' }],
     logs: [],
     comments: [],
     attachments: []
@@ -47,7 +48,7 @@ const mockTickets: Ticket[] = [
     projectName: 'Phục hồi rừng Sồi',
     status: 'completed',
     createdDate: '2025-11-05',
-    assignees: [{ id: '2', name: 'Trần Thị B', role: 'farmer' }],
+    assignees: [{ id: '2', name: 'Trần Thị B', role: 'partner' }],
     logs: [
       { id: '1', message: 'Đã hoàn thành thu hoạch', date: '2025-11-08', userId: '2', userName: 'Trần Thị B' }
     ],
@@ -56,7 +57,8 @@ const mockTickets: Ticket[] = [
   }
 ];
 
-export function FarmerTickets() {
+export function PartnerTickets() {
+  const { t } = useTranslation();
   const [tickets, setTickets] = useState<Ticket[]>(mockTickets);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -81,10 +83,10 @@ export function FarmerTickets() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'open': return 'Mở';
-      case 'in_progress': return 'Đang xử lý';
-      case 'completed': return 'Hoàn thành';
-      case 'closed': return 'Đã đóng';
+      case 'open': return t('partner.tickets.open');
+      case 'in_progress': return t('partner.tickets.in_progress');
+      case 'completed': return t('partner.tickets.completed');
+      case 'closed': return t('partner.tickets.closed');
       default: return status;
     }
   };
@@ -93,8 +95,8 @@ export function FarmerTickets() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Nhiệm vụ được gán</CardTitle>
-          <CardDescription>Xem và cập nhật tiến độ công việc</CardDescription>
+          <CardTitle>{t('partner.tickets.assigned')}</CardTitle>
+          <CardDescription>{t('partner.tickets.desc')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex gap-2">
@@ -103,28 +105,28 @@ export function FarmerTickets() {
               onClick={() => setFilterStatus('all')}
               size="sm"
             >
-              Tất cả
+              {t('partner.tickets.all')}
             </Button>
             <Button 
               variant={filterStatus === 'open' ? 'default' : 'outline'} 
               onClick={() => setFilterStatus('open')}
               size="sm"
             >
-              Mở
+              {t('partner.tickets.open')}
             </Button>
             <Button 
               variant={filterStatus === 'in_progress' ? 'default' : 'outline'} 
               onClick={() => setFilterStatus('in_progress')}
               size="sm"
             >
-              Đang xử lý
+              {t('partner.tickets.in_progress')}
             </Button>
             <Button 
               variant={filterStatus === 'completed' ? 'default' : 'outline'} 
               onClick={() => setFilterStatus('completed')}
               size="sm"
             >
-              Hoàn thành
+              {t('partner.tickets.completed')}
             </Button>
           </div>
         </CardContent>
@@ -150,29 +152,29 @@ export function FarmerTickets() {
               
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Calendar className="w-4 h-4" />
-                Tạo: {ticket.createdDate}
+                {t('partner.tickets.created')}: {ticket.createdDate}
               </div>
 
               <div className="flex gap-4 pt-2 border-t text-sm">
                 <div className="flex items-center gap-1">
                   <FileText className="w-4 h-4" />
-                  <span>{ticket.logs.length} logs</span>
+                  <span>{ticket.logs.length} {t('partner.tickets.logs')}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <MessageSquare className="w-4 h-4" />
-                  <span>{ticket.comments.length} bình luận</span>
+                  <span>{ticket.comments.length} {t('partner.tickets.comments')}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Image className="w-4 h-4" />
-                  <span>{ticket.attachments.length} file</span>
+                  <span>{ticket.attachments.length} {t('partner.tickets.files')}</span>
                 </div>
               </div>
 
-              <Button variant="outline" className="w-full" onClick={(e) => {
+              <Button variant="outline" className="w-full" onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                 e.stopPropagation();
                 setSelectedTicket(ticket);
               }}>
-                Cập nhật nhiệm vụ
+                {t('partner.tickets.update')}
               </Button>
             </CardContent>
           </Card>
@@ -186,7 +188,7 @@ export function FarmerTickets() {
           isOpen={!!selectedTicket}
           onClose={() => setSelectedTicket(null)}
           onUpdate={handleUpdateTicket}
-          userRole="farmer"
+          userRole="partner"
         />
       )}
     </div>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { User } from "../App";
 import { Button } from "./ui/button";
 import {
@@ -10,8 +10,9 @@ import {
 import { UserManagement } from "./admin/UserManagement";
 import { ProjectManagement } from "./admin/ProjectManagement";
 import { TicketManagement } from "./admin/TicketManagement";
-import { BuyerRequests } from "./admin/BuyerRequests";
+import { InvestorRequests } from "./admin/InvestorRequests";
 import { LogOut, Trees } from "lucide-react";
+import { SelectLng } from "./ui/select-lng";
 
 interface AdminDashboardProps {
   user: User;
@@ -22,6 +23,7 @@ export function AdminDashboard({
   user,
   onLogout,
 }: AdminDashboardProps) {
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -32,13 +34,14 @@ export function AdminDashboard({
               <Trees className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1>Hệ Thống Quản Lý Rừng</h1>
+              <h1>{t('admin.dashboard.title')}</h1>
               <p className="text-sm text-gray-600">
-                Quản trị viên
+                {t('admin.dashboard.role')}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-4">
+            <SelectLng />
             <div className="text-right">
               <p>{user.name}</p>
               <p className="text-sm text-gray-600">
@@ -47,7 +50,7 @@ export function AdminDashboard({
             </div>
             <Button variant="outline" onClick={onLogout}>
               <LogOut className="w-4 h-4 mr-2" />
-              Đăng xuất
+              {t('admin.dashboard.logout')}
             </Button>
           </div>
         </div>
@@ -57,10 +60,10 @@ export function AdminDashboard({
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="projects" className="space-y-6">
           <TabsList>
-            <TabsTrigger value="projects">Dự án</TabsTrigger>
-            <TabsTrigger value="tickets">Công việc</TabsTrigger>
-            <TabsTrigger value="requests">Yêu cầu</TabsTrigger>
-            <TabsTrigger value="users">Người dùng</TabsTrigger>
+            <TabsTrigger value="projects">{t('admin.dashboard.projects')}</TabsTrigger>
+            <TabsTrigger value="tickets">{t('admin.dashboard.tickets')}</TabsTrigger>
+            <TabsTrigger value="requests">{t('admin.dashboard.requests')}</TabsTrigger>
+            <TabsTrigger value="users">{t('admin.dashboard.users')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="projects">
@@ -72,7 +75,7 @@ export function AdminDashboard({
           </TabsContent>
 
           <TabsContent value="requests">
-            <BuyerRequests />
+            <InvestorRequests />
           </TabsContent>
 
           <TabsContent value="users">

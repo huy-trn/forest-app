@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { User } from "../App";
 import { Button } from "./ui/button";
 import {
@@ -7,20 +7,21 @@ import {
   TabsList,
   TabsTrigger,
 } from "./ui/tabs";
-import { FarmerProjects } from "./farmer/FarmerProjects";
-import { FarmerTickets } from "./farmer/FarmerTickets";
-import { ForestMapDrawer } from "./farmer/ForestMapDrawer";
+import { PartnerProjects } from "./partner/PartnerProjects";
+import { PartnerTickets } from "./partner/PartnerTickets";
 import { LogOut, Trees } from "lucide-react";
+import { SelectLng } from './ui/select-lng';
 
-interface FarmerDashboardProps {
+interface PartnerDashboardProps {
   user: User;
   onLogout: () => void;
 }
 
-export function FarmerDashboard({
+export function PartnerDashboard({
   user,
   onLogout,
-}: FarmerDashboardProps) {
+}: PartnerDashboardProps) {
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -31,13 +32,14 @@ export function FarmerDashboard({
               <Trees className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1>Hệ Thống Quản Lý Rừng</h1>
+              <h1>{t('partner.dashboard.title')}</h1>
               <p className="text-sm text-gray-600">
-                Cộng tác viên
+                {t('partner.dashboard.role')}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-4">
+            <SelectLng />
             <div className="text-right">
               <p>{user.name}</p>
               <p className="text-sm text-gray-600">
@@ -46,7 +48,7 @@ export function FarmerDashboard({
             </div>
             <Button variant="outline" onClick={onLogout}>
               <LogOut className="w-4 h-4 mr-2" />
-              Đăng xuất
+              {t('partner.dashboard.logout')}
             </Button>
           </div>
         </div>
@@ -56,21 +58,20 @@ export function FarmerDashboard({
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="tickets" className="space-y-6">
           <TabsList>
-            <TabsTrigger value="tickets">Nhiệm vụ</TabsTrigger>
-            <TabsTrigger value="projects">Dự án</TabsTrigger>
-            <TabsTrigger value="map">Bản đồ rừng</TabsTrigger>
+            <TabsTrigger value="tickets">{t('partner.dashboard.tickets')}</TabsTrigger>
+            <TabsTrigger value="projects">{t('partner.dashboard.projects')}</TabsTrigger>
+            <TabsTrigger value="map">{t('partner.dashboard.forestMap')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="tickets">
-            <FarmerTickets />
+            <PartnerTickets />
           </TabsContent>
 
           <TabsContent value="projects">
-            <FarmerProjects />
+            <PartnerProjects />
           </TabsContent>
 
           <TabsContent value="map">
-            <ForestMapDrawer />
           </TabsContent>
         </Tabs>
       </main>
