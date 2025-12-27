@@ -1,0 +1,69 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { Role } from "@prisma/client";
+
+export async function GET() {
+  const projects = await prisma.project.findMany({
+    include: {
+      members: { include: { user: true } },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return NextResponse.json(
+    projects.map((project) => ({
+      ...project,
+      members: project.members.map((m) => ({
+        id: m.user.id,
+        name: m.user.name,
+        role: m.role,
+      })),
+    }))
+  );
+}
+
+export async function POST(request: Request) {
+  const body = await request.json();
+  const { title, description, country, province, area, memberIds, memberRoles } = body as {
+    title?: string;
+    description?: string;
+    country?: string;
+    province?: string;
+    area?: string;
+    memberIds?: string[];
+    memberRoles?: Record<string, Role>;
+  };
+
+  if (!title) {
+    return NextResponse.json({ error: "Title is required" }, { status: 400 });
+  }
+
+  const project = await prisma.project.create({
+    data: {
+      title,
+      description,
+      country,
+      province,
+      area,
+      members: {
+        create: (memberIds || []).map((id) => ({
+          userId: id,
+          role: memberRoles?.[id] ?? Role.partner,
+        })),
+      },
+    },
+    include: { members: { include: { user: true } } },
+  });
+
+  return NextResponse.json(
+    {
+      ...project,
+      members: project.members.map((m) => ({
+        id: m.user.id,
+        name: m.user.name,
+        role: m.role,
+      })),
+    },
+    { status: 201 }
+  );
+}

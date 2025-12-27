@@ -1,0 +1,179 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_URL")
+}
+
+enum Role {
+  admin
+  partner
+  investor
+}
+
+enum ProjectStatus {
+  active
+  completed
+}
+
+enum TicketStatus {
+  open
+  in_progress
+  completed
+  closed
+}
+
+enum RequestStatus {
+  pending
+  processing
+  completed
+  rejected
+}
+
+model User {
+  id         String           @id @default(uuid())
+  name       String
+  email      String?          @unique
+  phone      String?
+  role       Role
+  status     String           @default("active")
+  joinDate   DateTime         @default(now())
+  emailVerified DateTime?
+  passwordHash  String?
+  projects   ProjectMember[]
+  ticketAssignees TicketAssignee[]
+  ticketLogs TicketLog[]
+  ticketComments TicketComment[]
+  investorRequests InvestorRequest[]
+  accounts   Account[]
+  sessions   Session[]
+}
+
+model Project {
+  id          String           @id @default(uuid())
+  title       String
+  description String?
+  status      ProjectStatus    @default(active)
+  country     String?
+  province    String?
+  area        String?
+  createdAt   DateTime         @default(now())
+  members     ProjectMember[]
+  tickets     Ticket[]
+}
+
+model ProjectMember {
+  id        String  @id @default(uuid())
+  role      Role
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+
+  @@unique([projectId, userId])
+}
+
+model Ticket {
+  id          String          @id @default(uuid())
+  title       String
+  description String?
+  project     Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId   String
+  status      TicketStatus    @default(open)
+  createdAt   DateTime        @default(now())
+  assignees   TicketAssignee[]
+  logs        TicketLog[]
+  comments    TicketComment[]
+  attachments TicketAttachment[]
+}
+
+model TicketAssignee {
+  id       String @id @default(uuid())
+  ticket   Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  ticketId String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   String
+
+  @@unique([ticketId, userId])
+}
+
+model TicketLog {
+  id        String   @id @default(uuid())
+  message   String
+  createdAt DateTime  @default(now())
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  ticketId  String
+  user      User?    @relation(fields: [userId], references: [id])
+  userId    String?
+}
+
+model TicketComment {
+  id        String   @id @default(uuid())
+  message   String
+  createdAt DateTime @default(now())
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  ticketId  String
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  userRole  Role
+}
+
+model TicketAttachment {
+  id       String @id @default(uuid())
+  name     String
+  type     String
+  url      String
+  ticket   Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  ticketId String
+}
+
+model InvestorRequest {
+  id        String        @id @default(uuid())
+  content   String?
+  status    RequestStatus @default(pending)
+  response  String?
+  createdAt DateTime      @default(now())
+  fromName  String?
+  fromEmail String?
+  projectId String?
+  investor  User?         @relation(fields: [investorId], references: [id])
+  investorId String?
+}
+
+model Account {
+  id                 String  @id @default(uuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?
+  access_token       String?
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?
+  session_state      String?
+  oauth_token_secret String?
+  oauth_token        String?
+  user               User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}

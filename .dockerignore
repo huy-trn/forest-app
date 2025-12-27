@@ -1,0 +1,12 @@
+.next
+node_modules
+npm-debug.log
+yarn.lock
+pnpm-lock.yaml
+dist
+build
+.git
+.gitignore
+Dockerfile
+docker-compose.yml
+*.md
