@@ -1,3 +1,5 @@
+ "use client";
+
 import { useTranslation } from 'react-i18next';
 import { User } from "@/types/user";
 import { Button } from './ui/button';
@@ -62,7 +64,7 @@ export function InvestorDashboard({ user, onLogout }: InvestorDashboardProps) {
           </TabsContent>
 
           <TabsContent value="requests">
-            <InvestorRequestsView />
+            <InvestorRequestsView user={user} />
           </TabsContent>
         </Tabs>
       </main>

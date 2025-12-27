@@ -7,22 +7,26 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Trees } from "lucide-react";
 import { SelectLng } from "./ui/select-lng";
 import { Alert, AlertDescription } from "./ui/alert";
+import { PhoneInput } from "./ui/phone-input";
 
 interface LoginProps {
-  onLogin: (email: string, password: string) => void;
+  onLogin: (identifier: string, password: string) => void;
   loading?: boolean;
   error?: string | null;
 }
 
 export function Login({ onLogin, loading, error }: LoginProps) {
   const { t } = useTranslation();
-  const [email, setEmail] = useState("");
+  const [mode, setMode] = useState<"email" | "phone">("email");
+  const [identifier, setIdentifier] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (email && password) {
-      onLogin(email, password);
+    const id = mode === "phone" ? phone.trim() : identifier.trim();
+    if (id && password) {
+      onLogin(id, password);
     }
   };
 
@@ -47,17 +51,47 @@ export function Login({ onLogin, loading, error }: LoginProps) {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             ) : null}
-            <div className="space-y-2">
-              <Label htmlFor="email">{t("login.email")}</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder={t("login.emailPlaceholder")}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
+            {mode === "email" ? (
+              <div className="space-y-2">
+                <Label htmlFor="identifier">{t("login.email")}</Label>
+                <Input
+                  id="identifier"
+                  type="text"
+                  placeholder={t("login.emailPlaceholder")}
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                />
+                <div className="w-full text-right">
+                  <Button
+                    type="button"
+                    variant="link"
+                    className="px-0 h-auto text-sm"
+                    onClick={() => setMode("phone")}
+                  >
+                    {t("login.loginWithPhone")}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <PhoneInput
+                  label={t("login.phone")}
+                  value={phone}
+                  onChange={setPhone}
+                  placeholder={t("login.phonePlaceholder")}
+                />
+                <div className="w-full text-right">
+                  <Button
+                    type="button"
+                    variant="link"
+                    className="px-0 h-auto text-sm"
+                    onClick={() => setMode("email")}
+                  >
+                    {t("login.loginWithEmail")}
+                  </Button>
+                </div>
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="password">{t("login.password") ?? "Password"}</Label>
               <Input

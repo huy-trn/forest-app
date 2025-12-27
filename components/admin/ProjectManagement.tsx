@@ -1,5 +1,7 @@
+'use client';
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "../ui/button";
 import {
   Card,
@@ -11,13 +13,6 @@ import {
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
 import {
   Dialog,
   DialogContent,
@@ -51,6 +46,7 @@ interface User {
 
 export function ProjectManagement() {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const [projects, setProjects] = useState<Project[]>([]);
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -65,76 +61,100 @@ export function ProjectManagement() {
   });
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
 
+  const projectsQuery = useQuery({
+    queryKey: ["projects"],
+    queryFn: async () => {
+      const res = await fetch("/api/projects");
+      if (!res.ok) throw new Error("Failed to load projects");
+      return res.json();
+    },
+  });
+
+  const usersQuery = useQuery({
+    queryKey: ["users"],
+    queryFn: async () => {
+      const res = await fetch("/api/users");
+      if (!res.ok) throw new Error("Failed to load users");
+      return res.json();
+    },
+  });
+
   useEffect(() => {
-    const load = async () => {
-      try {
-        const [projectsRes, usersRes] = await Promise.all([
-          fetch("/api/projects"),
-          fetch("/api/users"),
-        ]);
-        const projectsData: Project[] = await projectsRes.json();
-        const usersData: User[] = await usersRes.json();
-        setProjects(projectsData.map(p => ({ ...p, createdDate: p.createdAt ?? p.createdDate })));
-        setAllUsers(usersData);
-      } catch (err) {
-        console.error(err);
-        toast.error(t("common.error", { defaultValue: "Failed to load data" }));
-      }
-    };
-    load();
-  }, [t]);
+    if (projectsQuery.data) {
+      setProjects(
+        (projectsQuery.data as Project[]).map((p: any) => ({
+          ...p,
+          createdDate: p.createdAt ?? p.createdDate,
+        }))
+      );
+    }
+  }, [projectsQuery.data]);
+
+  useEffect(() => {
+    if (usersQuery.data) {
+      setAllUsers(usersQuery.data as User[]);
+    }
+  }, [usersQuery.data]);
+
+  const createProject = useMutation({
+    mutationFn: async () => {
+      const res = await fetch("/api/projects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...newProject,
+          memberIds: selectedMembers,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to create project");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      setNewProject({ title: "", description: "", country: "Việt Nam", province: "", area: "" });
+      setSelectedMembers([]);
+      setIsCreateDialogOpen(false);
+      toast.success(t("admin.projectManagement.createSuccess"));
+    },
+    onError: (err) => {
+      console.error(err);
+      toast.error(t("common.error", { defaultValue: "Failed to create project" }));
+    },
+  });
+
+  const updateProject = useMutation({
+    mutationFn: async (projectId: string) => {
+      const res = await fetch(`/api/projects/${projectId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...selectedProject,
+          memberIds: selectedMembers,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to update project");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      setIsEditDialogOpen(false);
+      setSelectedProject(null);
+      setSelectedMembers([]);
+      toast.success(t("admin.projectManagement.updateSuccess"));
+    },
+    onError: (err) => {
+      console.error(err);
+      toast.error(t("common.error", { defaultValue: "Failed to update project" }));
+    },
+  });
 
   const handleCreateProject = () => {
-    const run = async () => {
-      try {
-        const res = await fetch("/api/projects", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...newProject,
-            memberIds: selectedMembers,
-          }),
-        });
-        if (!res.ok) throw new Error("Failed to create project");
-        const project: any = await res.json();
-        setProjects([...projects, { ...project, createdDate: project.createdAt }]);
-        setNewProject({ title: "", description: "", country: "Việt Nam", province: "", area: "" });
-        setSelectedMembers([]);
-        setIsCreateDialogOpen(false);
-        toast.success(t("admin.projectManagement.createSuccess"));
-      } catch (err) {
-        console.error(err);
-        toast.error(t("common.error", { defaultValue: "Failed to create project" }));
-      }
-    };
-    run();
+    createProject.mutate();
   };
 
   const handleUpdateProject = () => {
     if (!selectedProject) return;
-    const run = async () => {
-      try {
-        const res = await fetch(`/api/projects/${selectedProject.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...selectedProject,
-            memberIds: selectedMembers,
-          }),
-        });
-        if (!res.ok) throw new Error("Failed to update project");
-        const project: any = await res.json();
-        setProjects(projects.map((p) => (p.id === project.id ? { ...project, createdDate: project.createdAt } : p)));
-        setIsEditDialogOpen(false);
-        setSelectedProject(null);
-        setSelectedMembers([]);
-        toast.success(t("admin.projectManagement.updateSuccess"));
-      } catch (err) {
-        console.error(err);
-        toast.error(t("common.error", { defaultValue: "Failed to update project" }));
-      }
-    };
-    run();
+    updateProject.mutate(selectedProject.id);
   };
 
   const openEditDialog = (project: Project) => {
@@ -298,7 +318,7 @@ export function ProjectManagement() {
               <div className="space-y-2">
                 <Label>{t('admin.projectManagement.assignLabel')}</Label>
                 <div className="border rounded-lg p-4 max-h-48 overflow-y-auto space-y-3">
-                  {mockUsers.map((user) => (
+                  {allUsers.map((user) => (
                     <div key={user.id} className="flex items-center space-x-2">
                       <Checkbox
                         id={`edit-user-${user.id}`}

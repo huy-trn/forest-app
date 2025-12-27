@@ -6,6 +6,7 @@ export async function GET() {
   const requests = await prisma.investorRequest.findMany({
     include: {
       investor: true,
+      project: true,
     },
     orderBy: { createdAt: "desc" },
   });
@@ -19,18 +20,23 @@ export async function GET() {
       createdDate: req.createdAt.toISOString(),
       from: req.fromName ?? req.investor?.name ?? "Unknown",
       fromEmail: req.fromEmail ?? req.investor?.email,
+      investorId: req.investorId,
+      projectId: req.projectId,
+      projectName: req.project?.title ?? "",
     }))
   );
 }
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const { content, fromName, fromEmail, status, response } = body as {
+  const { content, fromName, fromEmail, status, response, investorId, projectId } = body as {
     content?: string;
     fromName?: string;
     fromEmail?: string;
     status?: RequestStatus;
     response?: string;
+    investorId?: string;
+    projectId?: string;
   };
 
   const created = await prisma.investorRequest.create({
@@ -40,6 +46,8 @@ export async function POST(request: Request) {
       fromEmail,
       status: status ?? RequestStatus.pending,
       response,
+      investorId,
+      projectId,
     },
   });
 

@@ -1,5 +1,7 @@
+'use client';
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "../ui/button";
 import {
   Card,
@@ -38,6 +40,7 @@ interface InvestorRequest {
 
 export function InvestorRequests() {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const [requests, setRequests] = useState<InvestorRequest[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<InvestorRequest | null>(null);
   const [response, setResponse] = useState('');
@@ -47,77 +50,101 @@ export function InvestorRequests() {
     ? requests 
     : requests.filter(r => r.status === filterStatus);
 
+  const requestsQuery = useQuery({
+    queryKey: ["investor-requests"],
+    queryFn: async () => {
+      const res = await fetch("/api/investor-requests");
+      if (!res.ok) throw new Error("Failed to load requests");
+      return res.json();
+    },
+  });
+
   useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await fetch("/api/investor-requests");
-        const data: any[] = await res.json();
-        setRequests(
-          data.map((r) => ({
-            id: r.id,
-            title: r.title ?? r.content ?? "Request",
-            description: r.content ?? "",
-            investorId: r.investorId ?? "",
-            investorName: r.from ?? "Investor",
-            projectId: r.projectId ?? "",
-            projectName: r.projectName ?? "",
-            status: r.status,
-            createdDate: r.createdDate ?? r.createdAt,
-            linkedTickets: r.linkedTickets ?? [],
-            response: r.response,
-          }))
-        );
-      } catch (err) {
-        console.error(err);
-        toast.error(t("common.error", { defaultValue: "Failed to load requests" }));
-      }
-    };
-    load();
-  }, [t]);
+    if (requestsQuery.data) {
+      const data: any[] = requestsQuery.data;
+      setRequests(
+        data.map((r) => ({
+          id: r.id,
+          title: r.title ?? r.content ?? "Request",
+          description: r.content ?? "",
+          investorId: r.investorId ?? "",
+          investorName: r.from ?? "Investor",
+          projectId: r.projectId ?? "",
+          projectName: r.projectName ?? "",
+          status: r.status,
+          createdDate: r.createdDate ?? r.createdAt,
+          linkedTickets: r.linkedTickets ?? [],
+          response: r.response,
+        }))
+      );
+    }
+  }, [requestsQuery.data]);
+
+  useEffect(() => {
+    if (requestsQuery.error) {
+      toast.error(t("common.error", { defaultValue: "Failed to load requests" }));
+    }
+  }, [requestsQuery.error, t]);
+
+  const updateStatusMutation = useMutation({
+    mutationFn: async (status: InvestorRequest["status"]) => {
+      if (!selectedRequest) throw new Error("No request selected");
+      const res = await fetch(`/api/investor-requests/${selectedRequest.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      if (!res.ok) throw new Error("Failed to update status");
+      return res.json();
+    },
+    onSuccess: (_data, status) => {
+      if (!selectedRequest) return;
+      const updated = { ...selectedRequest, status };
+      setRequests(requests.map(r => r.id === updated.id ? updated : r));
+      setSelectedRequest(updated);
+      toast.success(t('admin.investorRequests.statusUpdated'));
+      queryClient.invalidateQueries({ queryKey: ["investor-requests"] });
+    },
+    onError: (err) => {
+      console.error(err);
+      toast.error(t("common.error", { defaultValue: "Failed to update status" }));
+    },
+  });
+
+  const responseMutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedRequest) throw new Error("No request selected");
+      const res = await fetch(`/api/investor-requests/${selectedRequest.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ response, status: 'completed' }),
+      });
+      if (!res.ok) throw new Error("Failed to send response");
+      return res.json();
+    },
+    onSuccess: () => {
+      if (!selectedRequest) return;
+      const updated = { ...selectedRequest, response, status: 'completed' as const };
+      setRequests(requests.map(r => r.id === updated.id ? updated : r));
+      setSelectedRequest(null);
+      setResponse('');
+      toast.success(t('admin.investorRequests.responseSent'));
+      queryClient.invalidateQueries({ queryKey: ["investor-requests"] });
+    },
+    onError: (err) => {
+      console.error(err);
+      toast.error(t("common.error", { defaultValue: "Failed to send response" }));
+    },
+  });
 
   const handleUpdateStatus = (status: InvestorRequest['status']) => {
     if (!selectedRequest) return;
-    const run = async () => {
-      try {
-        const res = await fetch(`/api/investor-requests/${selectedRequest.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status }),
-        });
-        if (!res.ok) throw new Error("Failed to update status");
-        const updated = { ...selectedRequest, status };
-        setRequests(requests.map(r => r.id === updated.id ? updated : r));
-        setSelectedRequest(updated);
-        toast.success(t('admin.investorRequests.statusUpdated'));
-      } catch (err) {
-        console.error(err);
-        toast.error(t("common.error", { defaultValue: "Failed to update status" }));
-      }
-    };
-    run();
+    updateStatusMutation.mutate(status);
   };
 
   const handleSendResponse = () => {
     if (!selectedRequest || !response.trim()) return;
-    const run = async () => {
-      try {
-        const res = await fetch(`/api/investor-requests/${selectedRequest.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ response, status: 'completed' }),
-        });
-        if (!res.ok) throw new Error("Failed to send response");
-        const updated = { ...selectedRequest, response, status: 'completed' as const };
-        setRequests(requests.map(r => r.id === updated.id ? updated : r));
-        setSelectedRequest(null);
-        setResponse('');
-        toast.success(t('admin.investorRequests.responseSent'));
-      } catch (err) {
-        console.error(err);
-        toast.error(t("common.error", { defaultValue: "Failed to send response" }));
-      }
-    };
-    run();
+    responseMutation.mutate();
   };
 
   const getStatusColor = (status: string) => {

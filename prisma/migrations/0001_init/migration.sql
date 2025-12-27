@@ -1,16 +1,10 @@
--- CreateEnum
+-- Enums
 CREATE TYPE "Role" AS ENUM ('admin', 'partner', 'investor');
-
--- CreateEnum
 CREATE TYPE "ProjectStatus" AS ENUM ('active', 'completed');
-
--- CreateEnum
 CREATE TYPE "TicketStatus" AS ENUM ('open', 'in_progress', 'completed', 'closed');
-
--- CreateEnum
 CREATE TYPE "RequestStatus" AS ENUM ('pending', 'processing', 'completed', 'rejected');
 
--- CreateTable
+-- Core tables
 CREATE TABLE "User" (
     "id" TEXT PRIMARY KEY,
     "name" TEXT NOT NULL,
@@ -18,10 +12,13 @@ CREATE TABLE "User" (
     "phone" TEXT,
     "role" "Role" NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'active',
-    "joinDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+    "joinDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "emailVerified" TIMESTAMP(3),
+    "passwordHash" TEXT
 );
 
--- CreateTable
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
 CREATE TABLE "Project" (
     "id" TEXT PRIMARY KEY,
     "title" TEXT NOT NULL,
@@ -33,7 +30,6 @@ CREATE TABLE "Project" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- CreateTable
 CREATE TABLE "ProjectMember" (
     "id" TEXT PRIMARY KEY,
     "role" "Role" NOT NULL,
@@ -43,7 +39,8 @@ CREATE TABLE "ProjectMember" (
     CONSTRAINT "ProjectMember_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
--- CreateTable
+CREATE UNIQUE INDEX "ProjectMember_projectId_userId_key" ON "ProjectMember"("projectId", "userId");
+
 CREATE TABLE "Ticket" (
     "id" TEXT PRIMARY KEY,
     "title" TEXT NOT NULL,
@@ -54,7 +51,6 @@ CREATE TABLE "Ticket" (
     CONSTRAINT "Ticket_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "Project" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
--- CreateTable
 CREATE TABLE "TicketAssignee" (
     "id" TEXT PRIMARY KEY,
     "ticketId" TEXT NOT NULL,
@@ -63,7 +59,8 @@ CREATE TABLE "TicketAssignee" (
     CONSTRAINT "TicketAssignee_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
--- CreateTable
+CREATE UNIQUE INDEX "TicketAssignee_ticketId_userId_key" ON "TicketAssignee"("ticketId", "userId");
+
 CREATE TABLE "TicketLog" (
     "id" TEXT PRIMARY KEY,
     "message" TEXT NOT NULL,
@@ -74,7 +71,6 @@ CREATE TABLE "TicketLog" (
     CONSTRAINT "TicketLog_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE SET NULL ON UPDATE CASCADE
 );
 
--- CreateTable
 CREATE TABLE "TicketComment" (
     "id" TEXT PRIMARY KEY,
     "message" TEXT NOT NULL,
@@ -86,7 +82,6 @@ CREATE TABLE "TicketComment" (
     CONSTRAINT "TicketComment_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
--- CreateTable
 CREATE TABLE "TicketAttachment" (
     "id" TEXT PRIMARY KEY,
     "name" TEXT NOT NULL,
@@ -96,7 +91,6 @@ CREATE TABLE "TicketAttachment" (
     CONSTRAINT "TicketAttachment_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "Ticket" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
--- CreateTable
 CREATE TABLE "InvestorRequest" (
     "id" TEXT PRIMARY KEY,
     "content" TEXT,
@@ -110,6 +104,41 @@ CREATE TABLE "InvestorRequest" (
     CONSTRAINT "InvestorRequest_investorId_fkey" FOREIGN KEY ("investorId") REFERENCES "User" ("id") ON DELETE SET NULL ON UPDATE CASCADE
 );
 
--- Indexes
-CREATE UNIQUE INDEX "ProjectMember_projectId_userId_key" ON "ProjectMember"("projectId", "userId");
-CREATE UNIQUE INDEX "TicketAssignee_ticketId_userId_key" ON "TicketAssignee"("ticketId", "userId");
+-- NextAuth tables
+CREATE TABLE "Account" (
+    "id" TEXT PRIMARY KEY,
+    "userId" TEXT NOT NULL,
+    "type" TEXT NOT NULL,
+    "provider" TEXT NOT NULL,
+    "providerAccountId" TEXT NOT NULL,
+    "refresh_token" TEXT,
+    "access_token" TEXT,
+    "expires_at" INTEGER,
+    "token_type" TEXT,
+    "scope" TEXT,
+    "id_token" TEXT,
+    "session_state" TEXT,
+    "oauth_token_secret" TEXT,
+    "oauth_token" TEXT,
+    CONSTRAINT "Account_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE UNIQUE INDEX "Account_provider_providerAccountId_key" ON "Account"("provider", "providerAccountId");
+
+CREATE TABLE "Session" (
+    "id" TEXT PRIMARY KEY,
+    "sessionToken" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "expires" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "Session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE UNIQUE INDEX "Session_sessionToken_key" ON "Session"("sessionToken");
+
+CREATE TABLE "VerificationToken" (
+    "identifier" TEXT NOT NULL,
+    "token" TEXT NOT NULL,
+    "expires" TIMESTAMP(3) NOT NULL
+);
+
+CREATE UNIQUE INDEX "VerificationToken_identifier_token_key" ON "VerificationToken"("identifier", "token");

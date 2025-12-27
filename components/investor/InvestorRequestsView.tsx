@@ -1,15 +1,17 @@
-import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Button } from '../ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Textarea } from '../ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
-import { Badge } from '../ui/badge';
-import { Plus, Calendar, MessageSquare } from 'lucide-react';
-import { toast } from 'sonner'
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Button } from "../ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { Textarea } from "../ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
+import { Badge } from "../ui/badge";
+import { Plus, Calendar, MessageSquare } from "lucide-react";
+import { toast } from "sonner";
+import type { User } from "@/types/user";
 
 interface InvestorRequest {
   id: string;
@@ -20,37 +22,19 @@ interface InvestorRequest {
   status: 'pending' | 'processing' | 'completed' | 'rejected';
   createdDate: string;
   response?: string;
+  investorId?: string;
 }
 
-const mockRequests: InvestorRequest[] = [
-  {
-    id: '1',
-    title: 'Yêu cầu báo cáo tiến độ Q4',
-    description: 'Cần báo cáo chi tiết về tiến độ trồng cây quý 4/2024',
-    projectId: '1',
-    projectName: 'Dự án Rừng Thông Miền Bắc',
-    status: 'processing',
-    createdDate: '2025-11-10'
-  },
-  {
-    id: '3',
-    title: 'Yêu cầu ảnh hiện trạng dự án',
-    description: 'Cần ảnh chụp hiện trạng khu rừng đã trồng để báo cáo cho ban lãnh đạo',
-    projectId: '1',
-    projectName: 'Dự án Rừng Thông Miền Bắc',
-    status: 'completed',
-    createdDate: '2025-11-05',
-    response: 'Đã gửi bộ ảnh và báo cáo chi tiết qua email'
-  }
-];
+interface ProjectOption {
+  id: string;
+  name: string;
+}
 
-const mockProjects = [
-  { id: '1', name: 'Dự án Rừng Thông Miền Bắc' }
-];
-
-export function InvestorRequestsView() {
+export function InvestorRequestsView({ user }: { user: User }) {
   const { t } = useTranslation();
-  const [requests, setRequests] = useState<InvestorRequest[]>(mockRequests);
+  const queryClient = useQueryClient();
+  const [requests, setRequests] = useState<InvestorRequest[]>([]);
+  const [projects, setProjects] = useState<ProjectOption[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newRequest, setNewRequest] = useState({
     title: '',
@@ -58,22 +42,102 @@ export function InvestorRequestsView() {
     projectId: ''
   });
 
-  const handleCreateRequest = () => {
-    const project = mockProjects.find(p => p.id === newRequest.projectId);
-    if (!project) return;
+  const requestsQuery = useQuery({
+    queryKey: ["investor-requests", user.id],
+    queryFn: async () => {
+      const res = await fetch("/api/investor-requests");
+      if (!res.ok) throw new Error("Failed to load requests");
+      return res.json();
+    },
+  });
 
-    const request: InvestorRequest = {
-      id: Math.random().toString(36).substr(2, 9),
-      ...newRequest,
-      projectName: project.name,
-      status: 'pending',
-      createdDate: new Date().toISOString().split('T')[0]
-    };
-    
-    setRequests([request, ...requests]);
-    setNewRequest({ title: '', description: '', projectId: '' });
-    setIsDialogOpen(false);
-    toast.success('Đã gửi yêu cầu thành công');
+  const projectsQuery = useQuery({
+    queryKey: ["projects"],
+    queryFn: async () => {
+      const res = await fetch("/api/projects");
+      if (!res.ok) throw new Error("Failed to load projects");
+      return res.json();
+    },
+  });
+
+  useEffect(() => {
+    if (requestsQuery.data) {
+      const reqData: any[] = requestsQuery.data;
+      setRequests(
+        reqData
+          .filter((r) => !r.investorId || r.investorId === user.id)
+          .map((r) => ({
+            id: r.id,
+            title: r.title ?? r.content ?? t("investor.requests.title"),
+            description: r.content ?? "",
+            projectId: r.projectId ?? "",
+            projectName: r.projectName ?? "",
+            status: r.status,
+            createdDate: r.createdDate ?? r.createdAt ?? "",
+            response: r.response,
+            investorId: r.investorId,
+          }))
+      );
+    }
+  }, [requestsQuery.data, t, user.id]);
+
+  useEffect(() => {
+    if (projectsQuery.data) {
+      const projData: any[] = projectsQuery.data;
+      setProjects(projData.map((p) => ({ id: p.id, name: p.title })));
+    }
+  }, [projectsQuery.data]);
+
+  useEffect(() => {
+    if (requestsQuery.error || projectsQuery.error) {
+      toast.error(t("common.error", { defaultValue: "Failed to load data" }));
+    }
+  }, [requestsQuery.error, projectsQuery.error, t]);
+
+  const createRequest = useMutation({
+    mutationFn: async () => {
+      const res = await fetch("/api/investor-requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: newRequest.description,
+          fromName: user.name,
+          fromEmail: user.email,
+          projectId: newRequest.projectId,
+          investorId: user.id,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to create request");
+      return res.json();
+    },
+    onSuccess: (created: any) => {
+      const project = projects.find((p) => p.id === newRequest.projectId);
+      const request: InvestorRequest = {
+        id: created.id,
+        title: newRequest.title || t("investor.requests.title"),
+        description: newRequest.description,
+        projectId: newRequest.projectId,
+        projectName: project?.name ?? "",
+        status: created.status ?? "pending",
+        createdDate: created.createdAt ?? new Date().toISOString().split("T")[0],
+        investorId: user.id,
+      };
+      setRequests((prev) => [request, ...prev]);
+      setNewRequest({ title: "", description: "", projectId: "" });
+      setIsDialogOpen(false);
+      toast.success(t("admin.investorRequests.responseSent", { defaultValue: "Request sent" }));
+      queryClient.invalidateQueries({ queryKey: ["investor-requests", user.id] });
+    },
+    onError: (err) => {
+      console.error(err);
+      toast.error(t("common.error", { defaultValue: "Failed to create request" }));
+    },
+  });
+
+  const handleCreateRequest = () => {
+    const project = projects.find(p => p.id === newRequest.projectId);
+    if (!project) return;
+    createRequest.mutate();
   };
 
   const getStatusColor = (status: string) => {
@@ -125,7 +189,7 @@ export function InvestorRequestsView() {
                         <SelectValue placeholder={t('investor.requests.projectPlaceholder')} />
                       </SelectTrigger>
                       <SelectContent>
-                        {mockProjects.map(project => (
+                        {projects.map(project => (
                           <SelectItem key={project.id} value={project.id}>{project.name}</SelectItem>
                         ))}
                       </SelectContent>

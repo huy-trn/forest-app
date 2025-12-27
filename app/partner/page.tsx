@@ -1,8 +1,7 @@
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
-import { PartnerDashboard } from "@/components/PartnerDashboard";
 import { authOptions } from "@/lib/auth";
-import "@/i18n";
+import { PartnerDashboardClient } from "./client";
 
 export default async function PartnerPage() {
   const session = await getServerSession(authOptions);
@@ -10,7 +9,7 @@ export default async function PartnerPage() {
   if (session.user.role !== "partner" && session.user.role !== "admin") redirect("/");
 
   return (
-    <PartnerDashboard
+    <PartnerDashboardClient
       user={{
         id: session.user.id,
         name: session.user.name ?? "Partner",
@@ -18,7 +17,6 @@ export default async function PartnerPage() {
         phone: session.user.phone ?? "",
         role: "partner",
       }}
-      onLogout={() => {}}
     />
   );
 }

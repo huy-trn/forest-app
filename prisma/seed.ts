@@ -6,8 +6,19 @@ const prisma = new PrismaClient();
 async function main() {
   const existing = await prisma.user.count();
   if (existing > 0) {
-    console.log("Seed skipped: data already present");
-    return;
+    // Reset tables to ensure a clean seed.
+    await prisma.account.deleteMany();
+    await prisma.session.deleteMany();
+    await prisma.verificationToken.deleteMany();
+    await prisma.ticketAttachment.deleteMany();
+    await prisma.ticketComment.deleteMany();
+    await prisma.ticketLog.deleteMany();
+    await prisma.ticketAssignee.deleteMany();
+    await prisma.ticket.deleteMany();
+    await prisma.projectMember.deleteMany();
+    await prisma.project.deleteMany();
+    await prisma.investorRequest.deleteMany();
+    await prisma.user.deleteMany();
   }
 
   // Create users

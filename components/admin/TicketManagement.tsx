@@ -1,5 +1,7 @@
+'use client';
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "../ui/button";
 import {
   Card,
@@ -60,6 +62,7 @@ interface ProjectOption {
 
 export function TicketManagement() {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [projects, setProjects] = useState<ProjectOption[]>([]);
   const [users, setUsers] = useState<UserOption[]>([]);
@@ -73,32 +76,82 @@ export function TicketManagement() {
   });
   const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
 
+  const ticketsQuery = useQuery({
+    queryKey: ["tickets"],
+    queryFn: async () => {
+      const res = await fetch("/api/tickets");
+      if (!res.ok) throw new Error("Failed to load tickets");
+      return res.json();
+    },
+  });
+
+  const projectsQuery = useQuery({
+    queryKey: ["projects"],
+    queryFn: async () => {
+      const res = await fetch("/api/projects");
+      if (!res.ok) throw new Error("Failed to load projects");
+      return res.json();
+    },
+  });
+
+  const usersQuery = useQuery({
+    queryKey: ["users"],
+    queryFn: async () => {
+      const res = await fetch("/api/users");
+      if (!res.ok) throw new Error("Failed to load users");
+      return res.json();
+    },
+  });
+
   useEffect(() => {
-    const load = async () => {
-      try {
-        const [ticketRes, projectRes, userRes] = await Promise.all([
-          fetch("/api/tickets"),
-          fetch("/api/projects"),
-          fetch("/api/users"),
-        ]);
-        const ticketsData: Ticket[] = await ticketRes.json();
-        const projectsData: any[] = await projectRes.json();
-        const usersData: UserOption[] = await userRes.json();
-        setTickets(
-          ticketsData.map((t) => ({
-            ...t,
-            createdDate: (t as any).createdAt ?? t.createdDate,
-          }))
-        );
-        setProjects(projectsData.map((p) => ({ id: p.id, name: p.title })));
-        setUsers(usersData);
-      } catch (err) {
-        console.error(err);
-        toast.error(t("common.error", { defaultValue: "Failed to load tickets" }));
-      }
-    };
-    load();
-  }, [t]);
+    if (ticketsQuery.data) {
+      setTickets(
+        (ticketsQuery.data as Ticket[]).map((t: any) => ({
+          ...t,
+          createdDate: t.createdAt ?? t.createdDate,
+        }))
+      );
+    }
+  }, [ticketsQuery.data]);
+
+  useEffect(() => {
+    if (projectsQuery.data) {
+      setProjects((projectsQuery.data as any[]).map((p: any) => ({ id: p.id, name: p.title })));
+    }
+  }, [projectsQuery.data]);
+
+  useEffect(() => {
+    if (usersQuery.data) {
+      setUsers(usersQuery.data as UserOption[]);
+    }
+  }, [usersQuery.data]);
+
+  const createTicket = useMutation({
+    mutationFn: async () => {
+      const res = await fetch("/api/tickets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...newTicket,
+          assigneeIds: selectedAssignees,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to create ticket");
+      return res.json();
+    },
+    onSuccess: (ticket: any) => {
+      queryClient.invalidateQueries({ queryKey: ["tickets"] });
+      setNewTicket({ title: "", description: "", projectId: "" });
+      setSelectedAssignees([]);
+      setIsCreateDialogOpen(false);
+      setTickets((prev) => [...prev, { ...ticket, createdDate: ticket.createdAt }]);
+      toast.success(t("admin.ticketManagement.created"));
+    },
+    onError: (err) => {
+      console.error(err);
+      toast.error(t("common.error", { defaultValue: "Failed to create ticket" }));
+    },
+  });
 
   const filteredTickets = filterStatus === 'all' 
     ? tickets 
@@ -107,30 +160,7 @@ export function TicketManagement() {
   const handleCreateTicket = () => {
     const project = projects.find(p => p.id === newTicket.projectId);
     if (!project) return;
-
-    const run = async () => {
-      try {
-        const res = await fetch("/api/tickets", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...newTicket,
-            assigneeIds: selectedAssignees,
-          }),
-        });
-        if (!res.ok) throw new Error("Failed to create ticket");
-        const ticket: any = await res.json();
-        setTickets([...tickets, { ...ticket, createdDate: ticket.createdAt }]);
-        setNewTicket({ title: "", description: "", projectId: "" });
-        setSelectedAssignees([]);
-        setIsCreateDialogOpen(false);
-        toast.success(t("admin.ticketManagement.created"));
-      } catch (err) {
-        console.error(err);
-        toast.error(t("common.error", { defaultValue: "Failed to create ticket" }));
-      }
-    };
-    run();
+    createTicket.mutate();
   };
 
   const handleUpdateTicket = (updatedTicket: Ticket) => {

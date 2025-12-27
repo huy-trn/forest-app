@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { Role } from "@prisma/client";
+import { Prisma, Role } from "@prisma/client";
+import { hash } from "bcryptjs";
+import { sendEmail } from "@/lib/email";
+import { sendSms } from "@/lib/sms";
+import crypto from "node:crypto";
 
 export async function GET() {
   const users = await prisma.user.findMany({
@@ -11,26 +15,95 @@ export async function GET() {
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const { name, email, phone, role } = body as {
+  const { name, email, phone, role, password } = body as {
     name?: string;
     email?: string;
     phone?: string;
     role?: Role;
+    password?: string;
   };
 
-  if (!name || !role) {
+  const emailValue = email?.trim() || null;
+  const phoneValue = phone?.trim() || null;
+
+  if (!name || !role || (!emailValue && !phoneValue)) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
-  const user = await prisma.user.create({
-    data: {
-      name,
-      email,
-      phone,
-      role,
-      status: "pending",
-    },
-  });
+  if (emailValue) {
+    const existingEmail = await prisma.user.findFirst({ where: { email: emailValue } });
+    if (existingEmail) {
+      return NextResponse.json({ error: "User with this email already exists" }, { status: 409 });
+    }
+  }
+
+  if (phoneValue) {
+    const existingPhone = await prisma.user.findFirst({ where: { phone: phoneValue } });
+    if (existingPhone) {
+      return NextResponse.json({ error: "User with this phone already exists" }, { status: 409 });
+    }
+  }
+
+  const rawPassword = password || "";
+  const passwordHash = rawPassword ? await hash(rawPassword, 10) : null;
+  const token = crypto.randomBytes(32).toString("hex");
+  const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+  let user;
+  try {
+    user = await prisma.user.create({
+      data: {
+        name,
+        ...(emailValue ? { email: emailValue } : {}),
+        ...(phoneValue ? { phone: phoneValue } : {}),
+        role,
+        status: "pending",
+        passwordHash,
+      },
+    });
+
+    await prisma.verificationToken.create({
+      data: {
+        identifier: emailValue ?? phoneValue ?? "",
+        token,
+        expires,
+      },
+    });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return NextResponse.json({ error: "User with this email/phone already exists" }, { status: 409 });
+    }
+    console.error("Failed to create user", error);
+    return NextResponse.json({ error: "Failed to create user" }, { status: 500 });
+  }
+
+  const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+  const identifier = emailValue ?? phoneValue ?? "";
+  const resetLink = `${baseUrl}/onboarding?token=${token}&identifier=${encodeURIComponent(identifier)}`;
+
+  if (emailValue) {
+    await sendEmail({
+      to: emailValue,
+      subject: "Complete your account setup",
+      text: `Hello ${name},\n\nSet your password and profile using this one-time link (expires in 24 hours):\n${resetLink}\n\nYour account stays pending until you finish onboarding.\n`,
+    });
+  }
+
+  if (phoneValue) {
+    await sendSms(
+      phoneValue,
+      `Hello ${name}, set your password with this link (24h): ${resetLink}`
+    );
+  }
 
   return NextResponse.json(user, { status: 201 });
+}
+
+export async function DELETE(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get("id");
+  if (!id) return NextResponse.json({ error: "Missing user id" }, { status: 400 });
+
+  await prisma.user.delete({ where: { id } });
+  return NextResponse.json({ success: true });
 }

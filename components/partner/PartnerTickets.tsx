@@ -1,67 +1,52 @@
-import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
-import { Calendar, MessageSquare, Image, FileText } from 'lucide-react';
-import { Ticket } from '../admin/TicketManagement';
-import { TicketDetails } from '../admin/TicketDetails';
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useQuery } from "@tanstack/react-query";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
+import { Button } from "../ui/button";
+import { Badge } from "../ui/badge";
+import { Calendar, MessageSquare, Image, FileText } from "lucide-react";
+import { Ticket } from "../admin/TicketManagement";
+import { TicketDetails } from "../admin/TicketDetails";
+import type { User } from "@/types/user";
+import { toast } from "sonner";
 
-const mockTickets: Ticket[] = [
-  {
-    id: '1',
-    title: 'Trồng cây khu vực A-1',
-    description: 'Trồng 500 cây thông tại khu vực A-1',
-    projectId: '1',
-    projectName: 'Dự án Rừng Thông Miền Bắc',
-    status: 'in_progress',
-    createdDate: '2025-11-10',
-    assignees: [{ id: '1', name: 'Nguyễn Văn A', role: 'partner' }],
-    logs: [
-      { id: '1', message: 'Đã trồng 200 cây thông', date: '2025-11-14', userId: '1', userName: 'Nguyễn Văn A' }
-    ],
-    comments: [
-      { id: '1', message: 'Tiến độ tốt, tiếp tục theo dõi', date: '2025-11-14', userId: 'admin1', userName: 'Admin', userRole: 'admin' }
-    ],
-    attachments: [
-      { id: '1', name: 'photo1.jpg', type: 'image', url: '#' }
-    ]
-  },
-  {
-    id: '2',
-    title: 'Kiểm tra và bảo dưỡng khu B-2',
-    description: 'Kiểm tra tình trạng cây và làm cỏ khu vực B-2',
-    projectId: '1',
-    projectName: 'Dự án Rừng Thông Miền Bắc',
-    status: 'open',
-    createdDate: '2025-11-12',
-    assignees: [{ id: '1', name: 'Nguyễn Văn A', role: 'partner' }],
-    logs: [],
-    comments: [],
-    attachments: []
-  },
-  {
-    id: '3',
-    title: 'Thu hoạch và đánh giá chất lượng',
-    description: 'Thu hoạch mẫu và đánh giá chất lượng cây trồng khu vực C',
-    projectId: '2',
-    projectName: 'Phục hồi rừng Sồi',
-    status: 'completed',
-    createdDate: '2025-11-05',
-    assignees: [{ id: '2', name: 'Trần Thị B', role: 'partner' }],
-    logs: [
-      { id: '1', message: 'Đã hoàn thành thu hoạch', date: '2025-11-08', userId: '2', userName: 'Trần Thị B' }
-    ],
-    comments: [],
-    attachments: []
-  }
-];
+interface PartnerTicketsProps {
+  user: User;
+}
 
-export function PartnerTickets() {
+export function PartnerTickets({ user }: PartnerTicketsProps) {
   const { t } = useTranslation();
-  const [tickets, setTickets] = useState<Ticket[]>(mockTickets);
+  const [tickets, setTickets] = useState<Ticket[]>([]);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
-  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+
+  const ticketsQuery = useQuery({
+    queryKey: ["tickets"],
+    queryFn: async () => {
+      const res = await fetch("/api/tickets");
+      if (!res.ok) throw new Error("Failed to load tickets");
+      return res.json();
+    },
+  });
+
+  useEffect(() => {
+    if (ticketsQuery.data) {
+      const data: Ticket[] = ticketsQuery.data;
+      const assigned = data.filter((t) => t.assignees.some((a) => a.id === user.id));
+      setTickets(
+        assigned.map((t: any) => ({
+          ...t,
+          createdDate: t.createdAt ?? t.createdDate,
+        }))
+      );
+    }
+  }, [ticketsQuery.data, user.id]);
+
+  useEffect(() => {
+    if (ticketsQuery.error) {
+      toast.error(t("common.error", { defaultValue: "Failed to load tickets" }));
+    }
+  }, [ticketsQuery.error, t]);
 
   const filteredTickets = filterStatus === 'all' 
     ? tickets 

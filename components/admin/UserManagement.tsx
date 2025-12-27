@@ -1,5 +1,7 @@
+'use client';
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "../ui/button";
 import {
   Card,
@@ -29,6 +31,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import { Badge } from "../ui/badge";
 import { UserPlus, Search, Mail, MessageSquare, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { PhoneInput } from "../ui/phone-input";
 
 interface UserData {
   id: string;
@@ -42,6 +45,7 @@ interface UserData {
 
 export function UserManagement() {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const [users, setUsers] = useState<UserData[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -59,64 +63,88 @@ export function UserManagement() {
     user.phone.includes(searchTerm)
   );
 
+  const usersQuery = useQuery({
+    queryKey: ["users"],
+    queryFn: async () => {
+      const res = await fetch("/api/users");
+      if (!res.ok) throw new Error("Failed to load users");
+      return res.json();
+    },
+  });
+
   useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await fetch("/api/users");
-        const data: any[] = await res.json();
-        setUsers(
-          data.map((u) => ({
-            id: u.id,
-            name: u.name,
-            email: u.email ?? "",
-            phone: u.phone ?? "",
-            role: u.role,
-            status: u.status,
-            joinDate: u.joinDate,
-          }))
-        );
-      } catch (err) {
-        console.error(err);
-        toast.error(t("common.error", { defaultValue: "Failed to load users" }));
-      }
-    };
-    load();
-  }, [t]);
+    if (usersQuery.data) {
+      const data: any[] = usersQuery.data;
+      setUsers(
+        data.map((u) => ({
+          id: u.id,
+          name: u.name,
+          email: u.email ?? "",
+          phone: u.phone ?? "",
+          role: u.role,
+          status: u.status,
+          joinDate: u.joinDate,
+        }))
+      );
+    }
+  }, [usersQuery.data]);
+
+  const createUser = useMutation({
+    mutationFn: async () => {
+      const res = await fetch("/api/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...newUser,
+          role: newUser.role,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to create user");
+      return res.json();
+    },
+    onSuccess: (user: any) => {
+      const mapped: UserData = {
+        id: user.id,
+        name: user.name,
+        email: user.email ?? "",
+        phone: user.phone ?? "",
+        role: user.role,
+        status: user.status ?? "pending",
+        joinDate: user.joinDate,
+      };
+      setUsers((prev) => [...prev, mapped]);
+      const method = inviteMethod === 'email' ? t('admin.userManagement.email') : t('admin.userManagement.sms');
+      toast.success(t('admin.userManagement.inviteSent', { method, value: inviteMethod === 'email' ? newUser.email : newUser.phone }));
+      setNewUser({ name: '', email: '', phone: '', role: 'partner' });
+      setIsDialogOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+    },
+    onError: (err) => {
+      console.error(err);
+      toast.error(t("common.error", { defaultValue: "Failed to invite user" }));
+    },
+  });
 
   const handleInviteUser = () => {
-    const run = async () => {
-      try {
-        const res = await fetch("/api/users", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...newUser,
-            role: newUser.role,
-          }),
-        });
-        if (!res.ok) throw new Error("Failed to create user");
-        const user: any = await res.json();
-        const mapped: UserData = {
-          id: user.id,
-          name: user.name,
-          email: user.email ?? "",
-          phone: user.phone ?? "",
-          role: user.role,
-          status: user.status ?? "pending",
-          joinDate: user.joinDate,
-        };
-        setUsers([...users, mapped]);
-        const method = inviteMethod === 'email' ? t('admin.userManagement.email') : t('admin.userManagement.sms');
-        toast.success(t('admin.userManagement.inviteSent', { method, value: inviteMethod === 'email' ? newUser.email : newUser.phone }));
-        setNewUser({ name: '', email: '', phone: '', role: 'partner' });
-        setIsDialogOpen(false);
-      } catch (err) {
-        console.error(err);
-        toast.error(t("common.error", { defaultValue: "Failed to invite user" }));
-      }
-    };
-    run();
+    createUser.mutate();
   };
+
+  const deleteUser = useMutation({
+    mutationFn: async (userId: string) => {
+      const res = await fetch(`/api/users?id=${userId}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete user");
+      return res.json();
+    },
+    onSuccess: (_data, userId) => {
+      setUsers((prev) => prev.filter((u) => u.id !== userId));
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.success(t("admin.userManagement.deleted", { defaultValue: "User removed" }));
+    },
+    onError: (err) => {
+      console.error(err);
+      toast.error(t("common.error", { defaultValue: "Failed to delete user" }));
+    },
+  });
 
   return (
     <Card>
@@ -185,11 +213,10 @@ export function UserManagement() {
                 )}
                 {inviteMethod === 'sms' && (
                   <div className="space-y-2">
-                    <Label htmlFor="user-phone">{t('admin.userManagement.phone')}</Label>
-                    <Input
-                      id="user-phone"
+                    <PhoneInput
+                      label={t('admin.userManagement.phone')}
                       value={newUser.phone}
-                      onChange={(e) => setNewUser({ ...newUser, phone: e.target.value })}
+                      onChange={(val) => setNewUser({ ...newUser, phone: val })}
                       placeholder="+84 912 345 678"
                     />
                   </div>
@@ -255,18 +282,18 @@ export function UserManagement() {
                         {user.status === 'active' ? t('admin.userManagement.active') : t('admin.userManagement.pending')}
                       </Badge>
                     </TableCell>
-                    <TableCell>{user.joinDate}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button variant="ghost" size="sm">
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm">
-                          <Trash2 className="w-4 h-4 text-red-600" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                  <TableCell>{user.joinDate}</TableCell>
+                  <TableCell>
+                    <div className="flex gap-2">
+                      <Button variant="ghost" size="sm" disabled>
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => deleteUser.mutate(user.id)}>
+                        <Trash2 className="w-4 h-4 text-red-600" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
                 ))}
               </TableBody>
             </Table>

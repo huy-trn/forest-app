@@ -1,3 +1,5 @@
+ "use client";
+
 import { useTranslation } from "react-i18next";
 import { User } from "@/types/user";
 import { Button } from "./ui/button";

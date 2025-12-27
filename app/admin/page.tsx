@@ -1,8 +1,7 @@
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
-import { AdminDashboard } from "@/components/AdminDashboard";
 import { authOptions } from "@/lib/auth";
-import "@/i18n";
+import { AdminDashboardClient } from "./client";
 
 export default async function AdminPage() {
   const session = await getServerSession(authOptions);
@@ -10,7 +9,7 @@ export default async function AdminPage() {
   if (session.user.role !== "admin") redirect("/");
 
   return (
-    <AdminDashboard
+    <AdminDashboardClient
       user={{
         id: session.user.id,
         name: session.user.name ?? "Admin",
@@ -18,7 +17,6 @@ export default async function AdminPage() {
         phone: session.user.phone ?? "",
         role: "admin",
       }}
-      onLogout={() => {}}
     />
   );
 }

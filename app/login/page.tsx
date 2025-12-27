@@ -2,33 +2,34 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { useTranslation } from "react-i18next";
+import { signIn, getSession } from "next-auth/react";
 import { Login } from "@/components/Login";
 import "@/i18n";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleLogin = async (email: string, password: string) => {
+  const handleLogin = async (identifier: string, password: string) => {
     setLoading(true);
     setError(null);
     const res = await signIn("credentials", {
-      email,
+      email: identifier,
       password,
       redirect: false,
     });
     setLoading(false);
 
     if (res?.error) {
-      setError("Invalid credentials");
+      setError(res.error === "PASSWORD_RESET_REQUIRED" ? t("login.resetRequired", { defaultValue: "Complete onboarding first." }) : t("login.invalid", { defaultValue: "Invalid credentials" }));
       return;
     }
 
-    // Fetch session to decide where to go
-    const sessionRes = await fetch("/api/auth/session");
-    const session = await sessionRes.json();
+    // Read session to decide where to go
+    const session = await getSession();
     const role = session?.user?.role;
     if (role === "admin") router.replace("/admin");
     else if (role === "partner") router.replace("/partner");

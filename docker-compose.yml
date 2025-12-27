@@ -21,6 +21,7 @@ services:
       PORT: 3000
       POSTGRES_URL: postgres://postgres:postgres@db:5432/forest_db
       NEXT_TELEMETRY_DISABLED: "1"
+      NEXTAUTH_URL: http://localhost:3000
     ports:
       - "3000:3000"
     command: ["sh", "-c", "npx prisma migrate deploy && npx prisma db seed && npm run start"]

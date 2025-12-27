@@ -253,15 +253,32 @@ export const vi:TextMap = {
     },
     login: {
         title: "Hệ thống quản lý rừng",
-        name: "Tên",
-        namePlaceholder: "Nhập tên của bạn",
         email: "Email",
-        emailPlaceholder: "Nhập email của bạn",
-        role: "Vai trò",
-        rolePlaceholder: "Chọn vai trò",
-        admin: "Quản trị viên",
-        partner: "Đối tác",
-        investor: "Nhà đầu tư",
-        signIn: "Đăng nhập"
+        emailPlaceholder: "Nhập email",
+        phone: "Số điện thoại",
+        phonePlaceholder: "Nhập số điện thoại",
+        loginWithPhone: "Đăng nhập bằng số điện thoại",
+        loginWithEmail: "Đăng nhập bằng email",
+        password: "Mật khẩu",
+        loading: "Đang đăng nhập...",
+        signIn: "Đăng nhập",
+        resetRequired: "Vui lòng hoàn tất onboarding trước.",
+        invalid: "Thông tin không hợp lệ"
+    },
+    common: {
+        error: "Có lỗi xảy ra"
+    },
+    onboarding: {
+        title: "Hoàn tất tài khoản",
+        email: "Email",
+        name: "Họ và tên",
+        phone: "Số điện thoại",
+        password: "Mật khẩu mới",
+        confirm: "Xác nhận mật khẩu",
+        submit: "Lưu và kích hoạt",
+        success: "Đã đặt mật khẩu. Đang chuyển đến đăng nhập...",
+        missing: "Thiếu token hoặc email",
+        mismatch: "Mật khẩu không khớp",
+        failed: "Không thể hoàn tất"
     }
 };

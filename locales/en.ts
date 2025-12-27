@@ -253,15 +253,32 @@ export const en = {
     },
     login: {
         title: "Forest Management System",
-        name: "Name",
-        namePlaceholder: "Enter your name",
         email: "Email",
         emailPlaceholder: "Enter your email",
-        role: "Role",
-        rolePlaceholder: "Select your role",
-        admin: "Admin",
-        partner: "Partner",
-        investor: "Investor",
-        signIn: "Sign In"
+        phone: "Phone",
+        phonePlaceholder: "Enter your phone",
+        loginWithPhone: "Login with phone number",
+        loginWithEmail: "Login with email",
+        password: "Password",
+        loading: "Signing in...",
+        signIn: "Sign In",
+        resetRequired: "Complete onboarding first.",
+        invalid: "Invalid credentials"
+    },
+    common: {
+        error: "Something went wrong"
+    },
+    onboarding: {
+        title: "Complete Your Account",
+        email: "Email",
+        name: "Full Name",
+        phone: "Phone",
+        password: "New Password",
+        confirm: "Confirm Password",
+        submit: "Save and Activate",
+        success: "Password set. Redirecting to login...",
+        missing: "Missing token or email",
+        mismatch: "Passwords do not match",
+        failed: "Failed to complete onboarding"
     }
 };
