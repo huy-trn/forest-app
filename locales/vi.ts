@@ -205,6 +205,21 @@ export const vi:TextMap = {
             tickets: "Công việc",
             forestMap: "Bản đồ rừng"
         },
+        map: {
+            title: "Ghim vị trí rừng",
+            description: "Ghim vị trí khu rừng để đội ngũ dễ dàng tìm đến.",
+            lat: "Vĩ độ",
+            lng: "Kinh độ",
+            hint: "Dán tọa độ từ Google Maps hoặc dùng vị trí thiết bị.",
+            save: "Lưu vị trí",
+            clear: "Xóa",
+            useLocation: "Dùng vị trí của tôi",
+            openExternal: "Mở trên Google Maps",
+            saved: "Đã lưu vị trí trên thiết bị.",
+            required: "Cần nhập vĩ độ và kinh độ.",
+            noGeo: "Thiết bị không hỗ trợ định vị.",
+            setFromDevice: "Đã lấy vị trí từ thiết bị."
+        },
         projects: {
             assigned: "Dự án được phân công",
             desc: "Các dự án bạn đang tham gia",

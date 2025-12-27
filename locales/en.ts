@@ -205,6 +205,21 @@ export const en = {
             tickets: "Tickets",
             forestMap: "Forest Map"
         },
+        map: {
+            title: "Forest map pin",
+            description: "Pin the forest location so the team can find it easily.",
+            lat: "Latitude",
+            lng: "Longitude",
+            hint: "Paste coordinates from Google Maps or use your device location.",
+            save: "Save pin",
+            clear: "Clear",
+            useLocation: "Use my location",
+            openExternal: "Open in Google Maps",
+            saved: "Location saved locally.",
+            required: "Latitude and longitude are required.",
+            noGeo: "Geolocation is not available on this device.",
+            setFromDevice: "Location set from your device."
+        },
         projects: {
             assigned: "Assigned Projects",
             desc: "Projects you are participating in",

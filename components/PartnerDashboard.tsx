@@ -13,6 +13,7 @@ import { PartnerProjects } from "./partner/PartnerProjects";
 import { PartnerTickets } from "./partner/PartnerTickets";
 import { LogOut, Trees } from "lucide-react";
 import { SelectLng } from './ui/select-lng';
+import { PartnerMap } from "./partner/PartnerMap";
 
 interface PartnerDashboardProps {
   user: User;
@@ -74,6 +75,7 @@ export function PartnerDashboard({
           </TabsContent>
 
           <TabsContent value="map">
+            <PartnerMap />
           </TabsContent>
         </Tabs>
       </main>
