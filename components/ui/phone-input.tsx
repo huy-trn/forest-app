@@ -22,7 +22,6 @@ export function PhoneInput({
   const normalized = value || "";
 
   const handleChange = (val: string | undefined) => {
-    getCountryCallingCode
     onChange(val || "");
   };
 

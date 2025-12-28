@@ -8,7 +8,6 @@ import { InvestorProjects } from './investor/InvestorProjects';
 import { InvestorRequestsView } from './investor/InvestorRequestsView';
 import { PublicShowcase } from './investor/PublicShowcase';
 import { LogOut, Trees } from 'lucide-react';
-import { SelectLng } from './ui/select-lng';
 
 interface InvestorDashboardProps {
   user: User;
@@ -32,8 +31,6 @@ export function InvestorDashboard({ user, onLogout }: InvestorDashboardProps) {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <SelectLng />
-
             <div className="text-right">
               <p>{user.name}</p>
               <p className="text-sm text-gray-600">{user.email}</p>

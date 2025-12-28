@@ -51,6 +51,7 @@ export const en = {
             assign: "Assign Members",
             partner: "Farmer",
             investor: "Investor",
+            users: "Assignees",
             filters: {
                 all: "All",
                 open: "Open",
@@ -61,6 +62,43 @@ export const en = {
             logs: "logs",
             comments: "comments",
             files: "files"
+        },
+        ticketDetails: {
+            description: "Description",
+            createdDate: "Created",
+            statusUpdated: "Status updated",
+            commentAdded: "Comment added",
+            logAdded: "Log added",
+            attachmentUploaded: "Attachment uploaded",
+            uploadFailed: "Upload failed, please try again",
+            uploading: "Uploading attachment...",
+            status: {
+                open: "Open",
+                in_progress: "In Progress",
+                completed: "Completed",
+                closed: "Closed"
+            },
+            workLogs: "Work logs",
+            comments: "Comments",
+            attachments: "Attachments",
+            addLog: "Add work log",
+            logPlaceholder: "Describe the work done...",
+            addLogBtn: "Add log",
+            noLogs: "No logs yet",
+            addComment: "Add comment",
+            commentPlaceholder: "Share an update or request...",
+            sendComment: "Send comment",
+            noComments: "No comments yet",
+            noAttachments: "No attachments yet",
+            uploadPrompt: "Click to upload attachments",
+            uploadHint: "Supported: Images, PDF, DOC, XLS",
+            attachFiles: "Attach files",
+            removeFile: "Remove",
+            preview: "Preview (Markdown supported)",
+            roles: {
+                admin: "Admin",
+                partner: "Farmer"
+            }
         },
         userManagement: {
             title: "User Management",
@@ -117,6 +155,11 @@ export const en = {
             created: "Created",
             members: "Members"
         },
+    },
+    common: {
+        error: "Something went wrong",
+        close: "Close",
+        back: "Back"
     },
     investor: {
         dashboard:{
@@ -215,6 +258,12 @@ export const en = {
             clear: "Clear",
             useLocation: "Use my location",
             openExternal: "Open in Google Maps",
+            tapHint: "Click the map to drop a pin.",
+            clearShape: "Clear border",
+            startDraw: "Draw border",
+            drawHint: "Use the draw button, then click on the map to outline the forest boundary.",
+            pointAdded: "Shape added/updated.",
+            drawStarted: "Drawing mode enabled. Click on the map to add points.",
             saved: "Location saved locally.",
             required: "Latitude and longitude are required.",
             noGeo: "Geolocation is not available on this device.",

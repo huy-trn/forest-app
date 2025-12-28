@@ -14,7 +14,6 @@ import { ProjectManagement } from "./admin/ProjectManagement";
 import { TicketManagement } from "./admin/TicketManagement";
 import { InvestorRequests } from "./admin/InvestorRequests";
 import { LogOut, Trees } from "lucide-react";
-import { SelectLng } from "./ui/select-lng";
 
 interface AdminDashboardProps {
   user: User;
@@ -43,7 +42,6 @@ export function AdminDashboard({
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <SelectLng />
             <div className="text-right">
               <p>{user.name}</p>
               <p className="text-sm text-gray-600">
@@ -73,7 +71,7 @@ export function AdminDashboard({
           </TabsContent>
 
           <TabsContent value="tickets">
-            <TicketManagement />
+            <TicketManagement currentUser={user} />
           </TabsContent>
 
           <TabsContent value="requests">

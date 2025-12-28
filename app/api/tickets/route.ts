@@ -1,54 +1,23 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { TicketStatus } from "@prisma/client";
+import { serializeTicket, ticketInclude, notifyTicketUpdated } from "./shared";
+import { getUserFromRequest } from "@/lib/auth-helpers";
 
 export async function GET() {
   const tickets = await prisma.ticket.findMany({
-    include: {
-      project: true,
-      assignees: { include: { user: true } },
-      logs: true,
-      comments: { include: { user: true } },
-      attachments: true,
-    },
+    include: ticketInclude,
     orderBy: { createdAt: "desc" },
   });
 
-  return NextResponse.json(
-    tickets.map((ticket) => ({
-      ...ticket,
-      projectName: ticket.project.title,
-      assignees: ticket.assignees.map((a) => ({
-        id: a.user.id,
-        name: a.user.name,
-        role: a.user.role,
-      })),
-      logs: ticket.logs.map((l) => ({
-        id: l.id,
-        message: l.message,
-        date: l.createdAt.toISOString(),
-        userId: l.userId ?? "",
-        userName: "",
-      })),
-      comments: ticket.comments.map((c) => ({
-        id: c.id,
-        message: c.message,
-        date: c.createdAt.toISOString(),
-        userId: c.userId,
-        userName: c.user.name,
-        userRole: c.userRole,
-      })),
-      attachments: ticket.attachments.map((a) => ({
-        id: a.id,
-        name: a.name,
-        type: a.type,
-        url: a.url,
-      })),
-    }))
-  );
+  const result = await Promise.all(tickets.map((ticket) => serializeTicket(ticket as any)));
+  return NextResponse.json(result);
 }
 
 export async function POST(request: Request) {
+  const user = await getUserFromRequest(request);
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const body = await request.json();
   const { title, description, projectId, assigneeIds } = body as {
     title?: string;
@@ -71,28 +40,10 @@ export async function POST(request: Request) {
         create: (assigneeIds || []).map((id) => ({ userId: id })),
       },
     },
-    include: {
-      project: true,
-      assignees: { include: { user: true } },
-      logs: true,
-      comments: { include: { user: true } },
-      attachments: true,
-    },
+    include: ticketInclude,
   });
 
-  return NextResponse.json(
-    {
-      ...ticket,
-      projectName: ticket.project.title,
-      assignees: ticket.assignees.map((a) => ({
-        id: a.user.id,
-        name: a.user.name,
-        role: a.user.role,
-      })),
-      logs: [],
-      comments: [],
-      attachments: [],
-    },
-    { status: 201 }
-  );
+  const serialized = await serializeTicket(ticket as any);
+  notifyTicketUpdated(ticket.id);
+  return NextResponse.json(serialized, { status: 201 });
 }

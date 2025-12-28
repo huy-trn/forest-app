@@ -12,7 +12,6 @@ import {
 import { PartnerProjects } from "./partner/PartnerProjects";
 import { PartnerTickets } from "./partner/PartnerTickets";
 import { LogOut, Trees } from "lucide-react";
-import { SelectLng } from './ui/select-lng';
 import { PartnerMap } from "./partner/PartnerMap";
 
 interface PartnerDashboardProps {
@@ -42,7 +41,6 @@ export function PartnerDashboard({
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <SelectLng />
             <div className="text-right">
               <p>{user.name}</p>
               <p className="text-sm text-gray-600">

@@ -9,6 +9,7 @@ import { Ticket } from "../admin/TicketManagement";
 import { TicketDetails } from "../admin/TicketDetails";
 import type { User } from "@/types/user";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface PartnerTicketsProps {
   user: User;
@@ -19,6 +20,7 @@ export function PartnerTickets({ user }: PartnerTicketsProps) {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const queryClient = useQueryClient();
 
   const ticketsQuery = useQuery({
     queryKey: ["tickets"],
@@ -48,6 +50,24 @@ export function PartnerTickets({ user }: PartnerTicketsProps) {
     }
   }, [ticketsQuery.error, t]);
 
+  useEffect(() => {
+    const es = new EventSource("/api/events");
+    es.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data?.type === "ticket:update") {
+          queryClient.invalidateQueries({ queryKey: ["tickets"] });
+        }
+      } catch {
+        // ignore
+      }
+    };
+    es.onerror = () => {
+      es.close();
+    };
+    return () => es.close();
+  }, [queryClient]);
+
   const filteredTickets = filterStatus === 'all' 
     ? tickets 
     : tickets.filter(t => t.status === filterStatus);
@@ -75,6 +95,20 @@ export function PartnerTickets({ user }: PartnerTicketsProps) {
       default: return status;
     }
   };
+
+  if (selectedTicket) {
+    return (
+      <div className="space-y-4">
+        <TicketDetails 
+          ticket={selectedTicket} 
+          onClose={() => setSelectedTicket(null)}
+          onUpdate={handleUpdateTicket}
+          userRole="partner"
+          currentUser={user}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -165,17 +199,6 @@ export function PartnerTickets({ user }: PartnerTicketsProps) {
           </Card>
         ))}
       </div>
-
-      {/* Ticket Details Dialog */}
-      {selectedTicket && (
-        <TicketDetails 
-          ticket={selectedTicket} 
-          isOpen={!!selectedTicket}
-          onClose={() => setSelectedTicket(null)}
-          onUpdate={handleUpdateTicket}
-          userRole="partner"
-        />
-      )}
     </div>
   );
 }

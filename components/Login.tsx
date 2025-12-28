@@ -5,7 +5,6 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Trees } from "lucide-react";
-import { SelectLng } from "./ui/select-lng";
 import { Alert, AlertDescription } from "./ui/alert";
 import { PhoneInput } from "./ui/phone-input";
 
@@ -32,9 +31,6 @@ export function Login({ onLogin, loading, error }: LoginProps) {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100">
-      <div className="absolute top-4 right-4">
-        <SelectLng />
-      </div>
       <Card className="w-full max-w-md mx-4">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
@@ -53,14 +49,14 @@ export function Login({ onLogin, loading, error }: LoginProps) {
             ) : null}
             {mode === "email" ? (
               <div className="space-y-2">
-                <Label htmlFor="identifier">{t("login.email")}</Label>
-                <Input
-                  id="identifier"
-                  type="text"
-                  placeholder={t("login.emailPlaceholder")}
-                  value={identifier}
-                  onChange={(e) => setIdentifier(e.target.value)}
-                />
+              <Label htmlFor="identifier">{t("login.email")}</Label>
+              <Input
+                id="identifier"
+                type="text"
+                placeholder={t("login.emailPlaceholder")}
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
+              />
                 <div className="w-full text-right">
                   <Button
                     type="button"

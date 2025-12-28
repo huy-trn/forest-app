@@ -51,6 +51,7 @@ export const vi:TextMap = {
             assign: "Phân công thành viên",
             partner: "Nông hộ",
             investor: "Nhà đầu tư",
+            users: "Người phụ trách",
             filters: {
                 all: "Tất cả",
                 open: "Mở",
@@ -61,6 +62,43 @@ export const vi:TextMap = {
             logs: "nhật ký",
             comments: "bình luận",
             files: "tệp"
+        },
+        ticketDetails: {
+            description: "Mô tả",
+            createdDate: "Ngày tạo",
+            statusUpdated: "Đã cập nhật trạng thái",
+            commentAdded: "Đã thêm bình luận",
+            logAdded: "Đã thêm nhật ký",
+            attachmentUploaded: "Đã tải lên tệp đính kèm",
+            uploadFailed: "Tải lên thất bại, vui lòng thử lại",
+            uploading: "Đang tải lên tệp...",
+            status: {
+                open: "Mở",
+                in_progress: "Đang thực hiện",
+                completed: "Hoàn thành",
+                closed: "Đã đóng"
+            },
+            workLogs: "Nhật ký công việc",
+            comments: "Bình luận",
+            attachments: "Tệp đính kèm",
+            addLog: "Thêm nhật ký",
+            logPlaceholder: "Mô tả công việc đã làm...",
+            addLogBtn: "Thêm nhật ký",
+            noLogs: "Chưa có nhật ký",
+            addComment: "Thêm bình luận",
+            commentPlaceholder: "Chia sẻ cập nhật hoặc yêu cầu...",
+            sendComment: "Gửi bình luận",
+            noComments: "Chưa có bình luận",
+            noAttachments: "Chưa có tệp đính kèm",
+            uploadPrompt: "Nhấp để tải lên tệp đính kèm",
+            uploadHint: "Hỗ trợ: Ảnh, PDF, DOC, XLS",
+            attachFiles: "Đính kèm tệp",
+            removeFile: "Xóa",
+            preview: "Xem trước (hỗ trợ Markdown)",
+            roles: {
+                admin: "Quản trị",
+                partner: "Nông dân"
+            }
         },
         userManagement: {
             title: "Quản lý người dùng",
@@ -215,6 +253,12 @@ export const vi:TextMap = {
             clear: "Xóa",
             useLocation: "Dùng vị trí của tôi",
             openExternal: "Mở trên Google Maps",
+            tapHint: "Bấm lên bản đồ để thả ghim.",
+            clearShape: "Xóa ranh giới",
+            startDraw: "Vẽ ranh giới",
+            drawHint: "Nhấn nút vẽ rồi bấm lên bản đồ để phác ranh giới khu rừng.",
+            pointAdded: "Đã cập nhật đường bao.",
+            drawStarted: "Đang ở chế độ vẽ. Bấm lên bản đồ để thêm điểm.",
             saved: "Đã lưu vị trí trên thiết bị.",
             required: "Cần nhập vĩ độ và kinh độ.",
             noGeo: "Thiết bị không hỗ trợ định vị.",
@@ -281,7 +325,9 @@ export const vi:TextMap = {
         invalid: "Thông tin không hợp lệ"
     },
     common: {
-        error: "Có lỗi xảy ra"
+        error: "Có lỗi xảy ra",
+        close: "Đóng",
+        back: "Quay lại"
     },
     onboarding: {
         title: "Hoàn tất tài khoản",

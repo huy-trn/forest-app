@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "../ui/button";
@@ -34,6 +34,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { TicketPlus, Calendar, Users, MessageSquare, Image, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { TicketDetails } from "./TicketDetails";
+import { useEffect } from "react";
 
 export interface Ticket {
   id: string;
@@ -60,7 +61,7 @@ interface ProjectOption {
   name: string;
 }
 
-export function TicketManagement() {
+export function TicketManagement({ currentUser }: { currentUser?: { id: string; name: string; role: string } }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -144,7 +145,13 @@ export function TicketManagement() {
       setNewTicket({ title: "", description: "", projectId: "" });
       setSelectedAssignees([]);
       setIsCreateDialogOpen(false);
-      setTickets((prev) => [...prev, { ...ticket, createdDate: ticket.createdAt }]);
+      setTickets((prev) => [
+        ...prev,
+        {
+          ...ticket,
+          createdDate: ticket.createdDate ?? ticket.createdAt ?? new Date().toISOString(),
+        },
+      ]);
       toast.success(t("admin.ticketManagement.created"));
     },
     onError: (err) => {
@@ -186,6 +193,54 @@ export function TicketManagement() {
       default: return status;
     }
   };
+
+  // Server push to invalidate tickets
+  useEffect(() => {
+    let es: EventSource | null = null;
+
+    const connect = () => {
+      if (es) {
+        es.close();
+        es = null;
+      }
+      es = new EventSource("/api/events");
+      es.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data?.type === "ticket:update") {
+            queryClient.invalidateQueries({ queryKey: ["tickets"] });
+          }
+        } catch {
+          // ignore parse errors
+        }
+      };
+      es.onerror = () => {
+        es?.close();
+        es = null;
+        setTimeout(connect, 2000);
+      };
+    };
+
+    connect();
+    return () => {
+      es?.close();
+      es = null;
+    };
+  }, [queryClient]);
+
+  if (selectedTicket) {
+    return (
+      <div className="space-y-4">
+        <TicketDetails
+          ticket={selectedTicket}
+          onClose={() => setSelectedTicket(null)}
+          onUpdate={handleUpdateTicket}
+          userRole="admin"
+          currentUser={currentUser}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -360,17 +415,6 @@ export function TicketManagement() {
           </Card>
         ))}
       </div>
-
-      {/* Ticket Details Dialog */}
-      {selectedTicket && (
-        <TicketDetails 
-          ticket={selectedTicket} 
-          isOpen={!!selectedTicket}
-          onClose={() => setSelectedTicket(null)}
-          onUpdate={handleUpdateTicket}
-          userRole="admin"
-        />
-      )}
     </div>
   );
 }

@@ -8,13 +8,13 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { SelectLng } from "@/components/ui/select-lng";
 import { PhoneInput } from "@/components/ui/phone-input";
 
-export default function OnboardingPage() {
+export default function OnboardingPage({ params }: { params: { locale: string } }) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { t } = useTranslation();
+  const locale = params.locale || "en";
   const token = searchParams.get("token") || "";
   const identifier = searchParams.get("identifier") || "";
   const isPhone = identifier.startsWith("+") || /^\d+$/.test(identifier);
@@ -50,14 +50,11 @@ export default function OnboardingPage() {
       return;
     }
     setSuccess(true);
-    setTimeout(() => router.replace("/login"), 1200);
+    setTimeout(() => router.replace(`/${locale}/login`), 1200);
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 relative">
-      <div className="absolute top-4 right-4">
-        <SelectLng />
-      </div>
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>{t("onboarding.title")}</CardTitle>

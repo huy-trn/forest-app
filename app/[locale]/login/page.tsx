@@ -1,0 +1,42 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Login } from "@/components/Login";
+import "@/i18n";
+
+export default function LoginPage({ params }: { params: { locale: string } }) {
+  const router = useRouter();
+  const { t } = useTranslation();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const locale = params.locale || "en";
+  const localePrefix = `/${locale}`;
+
+  const handleLogin = async (identifier: string, password: string) => {
+    setLoading(true);
+    setError(null);
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: identifier, password }),
+    });
+    setLoading(false);
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setError(data.error || t("login.invalid", { defaultValue: "Invalid credentials" }));
+      return;
+    }
+
+    const data = await res.json();
+    const role = data?.user?.role;
+    if (role === "admin") router.replace(`${localePrefix}/admin`);
+    else if (role === "partner") router.replace(`${localePrefix}/partner`);
+    else if (role === "investor") router.replace(`${localePrefix}/investor`);
+    else router.replace(localePrefix);
+  };
+
+  return <Login onLogin={handleLogin} loading={loading} error={error} />;
+}
