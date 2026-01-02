@@ -177,3 +177,28 @@ model VerificationToken {
 
   @@unique([identifier, token])
 }
+
+model Post {
+  id        String   @id @default(uuid())
+  title     String
+  body      String
+  imageUrl  String?
+  locale    String?
+  createdAt DateTime @default(now())
+}
+
+model ShowcaseHero {
+  id          String   @id @default(uuid())
+  locale      String   @unique
+  title       String?
+  description String?
+  updatedAt   DateTime @updatedAt
+}
+
+model Showcase {
+  id        String   @id @default(uuid())
+  locale    String   @unique
+  content   Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

@@ -14,6 +14,7 @@ export const vi:TextMap = {
             projects: "Dự án",
             requests: "Yêu cầu",
             users: "Người dùng",
+            showcase: "Giới thiệu",
         },
         investorRequests: {
             title: "Yêu cầu từ nhà đầu tư",
@@ -95,6 +96,7 @@ export const vi:TextMap = {
             attachFiles: "Đính kèm tệp",
             removeFile: "Xóa",
             preview: "Xem trước (hỗ trợ Markdown)",
+            editorHint: "Hỗ trợ markdown. Dán hoặc đính kèm ảnh.",
             roles: {
                 admin: "Quản trị",
                 partner: "Nông dân"
@@ -124,7 +126,8 @@ export const vi:TextMap = {
             pending: "Chờ tham gia",
             joinDate: "Ngày tham gia",
             actions: "Hành động",
-            inviteSent: "Đã gửi lời mời qua {{method}} tới {{value}}"
+            inviteSent: "Đã gửi lời mời qua {{method}} tới {{value}}",
+            deleted: "Đã xóa người dùng"
         },
         projectManagement: {
             title: "Quản lý dự án",
@@ -155,6 +158,61 @@ export const vi:TextMap = {
             created: "Đã tạo",
             members: "Thành viên"
         },
+        showcaseManagement: {
+            title: "Trang giới thiệu",
+            description: "Chỉnh sửa nội dung trang giới thiệu công khai.",
+            save: "Lưu trang giới thiệu",
+            saving: "Đang lưu...",
+            saved: "Đã cập nhật trang giới thiệu",
+            hero: "Phần đầu trang",
+            heroTitle: "Tiêu đề",
+            heroDescription: "Mô tả",
+            features: "Tính năng nổi bật",
+            featureTitle: "Tiêu đề tính năng {{index}}",
+            featureDesc: "Mô tả tính năng {{index}}",
+            addFeature: "Thêm tính năng",
+            icon: "Biểu tượng",
+            projects: "Dự án nổi bật",
+            projectTitle: "Tiêu đề dự án {{index}}",
+            projectDesc: "Mô tả dự án {{index}}",
+            projectLocation: "Địa điểm",
+            projectBadge: "Nhãn trạng thái",
+            imageUrl: "Link ảnh",
+            addProject: "Thêm dự án",
+            impact: "Chỉ số tác động",
+            impactLabel: "Nhãn chỉ số {{index}}",
+            impactValue: "Giá trị",
+            addImpact: "Thêm chỉ số",
+            posts: "Bài viết",
+            postTitle: "Tiêu đề bài {{index}}",
+            postBody: "Nội dung bài {{index}}",
+            addPost: "Thêm bài viết",
+        },
+        posts: {
+            tab: "Bài viết",
+            title: "Tạo bài viết",
+            locale: "Ngôn ngữ",
+            postTitle: "Tiêu đề",
+            content: "Nội dung",
+            contentPlaceholder: "Viết bài của bạn...",
+            uploading: "Đang tải lên...",
+            hint: "Hỗ trợ markdown. Dán hoặc đính kèm ảnh.",
+            image: "URL ảnh (tùy chọn)",
+            saving: "Đang lưu...",
+            save: "Lưu bài",
+            created: "Đã tạo bài viết",
+            deleted: "Đã xóa",
+            delete: "Xóa",
+            list: "Bài viết hiện có",
+            loading: "Đang tải...",
+            empty: "Chưa có bài viết.",
+            heroTitle: "Tiêu đề hero",
+            heroDescription: "Mô tả hero",
+            heroLocale: "Ngôn ngữ hero",
+            saveHero: "Lưu hero",
+            heroSaved: "Đã cập nhật hero",
+            heroHint: "Thiết lập tiêu đề hiển thị trên trang giới thiệu công khai cho ngôn ngữ này."
+        }
     },
     investor: {
         dashboard:{
@@ -231,7 +289,13 @@ export const vi:TextMap = {
             impactTrees: "Cây đã trồng",
             impactArea: "Hecta rừng",
             impactMembers: "Thành viên",
-            impactProjects: "Dự án đang hoạt động"
+            impactProjects: "Dự án đang hoạt động",
+            postsTitle: "Bản tin nổi bật",
+            postsDesc: "Điểm nhấn từ các dự án và đội ngũ trên hiện trường.",
+            post1Title: "Tiêu điểm dự án",
+            post1Body: "Xem cách đối tác và nhà đầu tư đang thúc đẩy trồng rừng.",
+            postsArchive: "Bản tin cũ hơn",
+            noArchive: "Chưa có bản tin cũ."
         },
     },
     partner: {
@@ -324,10 +388,18 @@ export const vi:TextMap = {
         resetRequired: "Vui lòng hoàn tất onboarding trước.",
         invalid: "Thông tin không hợp lệ"
     },
+    blog: {
+        title: "Blog",
+        empty: "Chưa có bài viết.",
+        back: "Quay lại blog",
+        notFound: "Không tìm thấy bài viết"
+    },
     common: {
         error: "Có lỗi xảy ra",
         close: "Đóng",
-        back: "Quay lại"
+        back: "Quay lại",
+        next: "Tiếp",
+        home: "Trang chủ"
     },
     onboarding: {
         title: "Hoàn tất tài khoản",
@@ -340,6 +412,7 @@ export const vi:TextMap = {
         success: "Đã đặt mật khẩu. Đang chuyển đến đăng nhập...",
         missing: "Thiếu token hoặc email",
         mismatch: "Mật khẩu không khớp",
-        failed: "Không thể hoàn tất"
+        failed: "Không thể hoàn tất",
+        loading: "Đang lưu..."
     }
 };

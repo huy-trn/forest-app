@@ -4,7 +4,7 @@ import { ReactNode, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { Button } from "../ui/button";
-import { Trees, LogOut } from "lucide-react";
+import { Trees, LogOut, Home } from "lucide-react";
 
 type Props = {
   title: ReactNode;
@@ -45,7 +45,7 @@ export function DashboardHeader({
         document.documentElement.lang = locale;
       }
     }
-  }, [locale])
+  }, [locale]);
 
   return (
     <header className="bg-white border-b sticky top-0 z-50">
@@ -60,6 +60,10 @@ export function DashboardHeader({
           </div>
         </div>
         <div className="flex items-center gap-4">
+          <Button variant="ghost" onClick={() => router.push(`/${locale}`)} className="flex items-center gap-2">
+            <Home className="w-4 h-4" />
+            {i18n.t("common.home", { defaultValue: "Home" })}
+          </Button>
           <div>
             <label className="sr-only" htmlFor="locale-select">Language</label>
             <select

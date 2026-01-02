@@ -278,6 +278,152 @@ async function main() {
     ],
   });
 
+  // Showcase content
+  await prisma.showcaseHero.deleteMany();
+  await prisma.post.deleteMany();
+
+  await prisma.showcaseHero.createMany({
+    data: [
+      {
+        locale: "en",
+        title: "Forest Management Web App",
+        description: "Role-based dashboards for admins, partners, and investors to collaborate on forest projects.",
+      },
+      {
+        locale: "vi",
+        title: "Hệ thống quản lý rừng",
+        description: "Bảng điều khiển cho quản trị, đối tác và nhà đầu tư hợp tác trên dự án trồng rừng.",
+      },
+    ],
+  });
+  await prisma.post.createMany({
+    data: [
+      // English posts
+      {
+        title: "Project spotlight",
+        body: "See how partners and investors are accelerating reforestation across Northern Vietnam.",
+        imageUrl: "https://images.unsplash.com/photo-1523978591478-c753949ff840?auto=format&fit=crop&w=1200&q=80",
+        locale: "en",
+      },
+      {
+        title: "Monitoring via satellites",
+        body: "Remote sensing plus on-the-ground logs keep progress transparent for every stakeholder.",
+        imageUrl: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80",
+        locale: "en",
+      },
+      {
+        title: "Community impact first",
+        body: "Training and fair-pay programs help local farmers thrive alongside new forests.",
+        imageUrl: "https://images.unsplash.com/photo-1506765515384-028b60a970df?auto=format&fit=crop&w=1200&q=80",
+        locale: "en",
+      },
+      {
+        title: "Mangrove recovery",
+        body: "Weekly salinity readings and photo logs track the health of restored mangroves.",
+        imageUrl: "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1200&q=80",
+        locale: "en",
+      },
+      {
+        title: "New partner onboarding",
+        body: "Field teams in Nghe An completed 50% of community workshops for soil care.",
+        imageUrl: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80",
+        locale: "en",
+      },
+      {
+        title: "Drone monitoring",
+        body: "Weekly drone imagery highlights canopy growth and soil moisture.",
+        imageUrl: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80",
+        locale: "en",
+      },
+      {
+        title: "Farmer workshops",
+        body: "Half of local households joined training on seedling care and organic fertilization.",
+        imageUrl: "https://images.unsplash.com/photo-1506765515384-028b60a970df?auto=format&fit=crop&w=1200&q=80",
+        locale: "en",
+      },
+      {
+        title: "ESG reporting",
+        body: "Environmental and social indicators are being compiled for investors.",
+        imageUrl: "https://images.unsplash.com/photo-1506765515384-028b60a970df?auto=format&fit=crop&w=1200&q=80",
+        locale: "en",
+      },
+      {
+        title: "Value-chain planning",
+        body: "Roadmap for timber, resin, and bamboo product sales by region.",
+        imageUrl: "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1200&q=80",
+        locale: "en",
+      },
+      {
+        title: "Fresh satellite imagery",
+        body: "This month’s satellite pass shows an 8% canopy density increase.",
+        imageUrl: "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1200&q=80",
+        locale: "en",
+      },
+
+      // Vietnamese posts
+      {
+        title: "Tiêu điểm dự án",
+        body: "Đối tác và nhà đầu tư đang đẩy nhanh tiến độ trồng rừng tại miền Bắc.",
+        imageUrl: "https://images.unsplash.com/photo-1523978591478-c753949ff840?auto=format&fit=crop&w=1200&q=80",
+        locale: "vi",
+      },
+      {
+        title: "Giám sát vệ tinh",
+        body: "Kết hợp ảnh vệ tinh và nhật ký hiện trường để minh bạch tiến độ.",
+        imageUrl: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80",
+        locale: "vi",
+      },
+      {
+        title: "Tác động cộng đồng",
+        body: "Các khóa tập huấn và chương trình thu nhập công bằng giúp nông hộ phát triển.",
+        imageUrl: "https://images.unsplash.com/photo-1506765515384-028b60a970df?auto=format&fit=crop&w=1200&q=80",
+        locale: "vi",
+      },
+      {
+        title: "Phục hồi rừng ngập mặn",
+        body: "Ghi nhận độ mặn và ảnh hiện trường hàng tuần để theo dõi sức khỏe rừng.",
+        imageUrl: "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1200&q=80",
+        locale: "vi",
+      },
+      {
+        title: "Theo dõi rừng bằng drone",
+        body: "Ảnh flycam giúp giám sát tốc độ sinh trưởng theo từng tuần.",
+        imageUrl: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80",
+        locale: "vi",
+      },
+      {
+        title: "Hội thảo nông hộ",
+        body: "50% hộ dân đã tham gia tập huấn kỹ thuật ươm giống và bón phân hữu cơ.",
+        imageUrl: "https://images.unsplash.com/photo-1506765515384-028b60a970df?auto=format&fit=crop&w=1200&q=80",
+        locale: "vi",
+      },
+      {
+        title: "Báo cáo ESG",
+        body: "Các chỉ số môi trường và xã hội đang được tổng hợp cho nhà đầu tư.",
+        imageUrl: "https://images.unsplash.com/photo-1506765515384-028b60a970df?auto=format&fit=crop&w=1200&q=80",
+        locale: "vi",
+      },
+      {
+        title: "Kết nối chuỗi giá trị",
+        body: "Lập kế hoạch bán gỗ, nhựa thông và sản phẩm tre theo vùng.",
+        imageUrl: "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1200&q=80",
+        locale: "vi",
+      },
+      {
+        title: "Thử nghiệm giống mới",
+        body: "Ba giống keo lai được trồng thử tại Quảng Ngãi để đánh giá sinh trưởng.",
+        imageUrl: "https://images.unsplash.com/photo-1523978591478-c753949ff840?auto=format&fit=crop&w=1200&q=80",
+        locale: "vi",
+      },
+      {
+        title: "Bảo vệ rừng cộng đồng",
+        body: "Tổ chức tuần tra định kỳ và ghi nhận hiện trạng bằng ứng dụng di động.",
+        imageUrl: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80",
+        locale: "vi",
+      },
+    ],
+  });
+
   console.log("Seed completed");
 }
 

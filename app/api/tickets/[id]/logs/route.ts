@@ -9,6 +9,8 @@ export async function POST(
 ) {
   const user = await getUserFromRequest(request);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const dbUser = await prisma.user.findUnique({ where: { id: user.sub } });
+  if (!dbUser) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { message, attachments } = await request.json().catch(() => ({}));
   if (!message) return NextResponse.json({ error: "Message is required" }, { status: 400 });
@@ -19,7 +21,7 @@ export async function POST(
       logs: {
         create: {
           message,
-          userId: user.sub,
+          userId: dbUser.id,
         },
       },
       attachments: attachments?.length

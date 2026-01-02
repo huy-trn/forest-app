@@ -8,6 +8,7 @@ import { ProjectManagement } from "./admin/ProjectManagement";
 import { TicketManagement } from "./admin/TicketManagement";
 import { InvestorRequests } from "./admin/InvestorRequests";
 import { DashboardHeader } from "./dashboard/DashboardHeader";
+import { PostManagement } from "./admin/PostManagement";
 
 interface AdminDashboardProps {
   user: User;
@@ -39,6 +40,7 @@ export function AdminDashboard({
             <TabsTrigger value="tickets">{t('admin.dashboard.tickets')}</TabsTrigger>
             <TabsTrigger value="requests">{t('admin.dashboard.requests')}</TabsTrigger>
             <TabsTrigger value="users">{t('admin.dashboard.users')}</TabsTrigger>
+            <TabsTrigger value="posts">{t('admin.posts.tab', { defaultValue: 'Blog posts' })}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="projects">
@@ -55,6 +57,10 @@ export function AdminDashboard({
 
           <TabsContent value="users">
             <UserManagement />
+          </TabsContent>
+
+          <TabsContent value="posts">
+            <PostManagement locale={locale} />
           </TabsContent>
         </Tabs>
       </main>

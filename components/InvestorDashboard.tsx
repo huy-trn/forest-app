@@ -36,7 +36,7 @@ export function InvestorDashboard({ user, locale, onLogout }: InvestorDashboardP
           </TabsList>
 
           <TabsContent value="showcase">
-            <PublicShowcase />
+            <PublicShowcase locale={locale} />
           </TabsContent>
 
           <TabsContent value="projects">

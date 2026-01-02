@@ -6,7 +6,6 @@ export async function GET() {
   const requests = await prisma.investorRequest.findMany({
     include: {
       investor: true,
-      project: true,
     },
     orderBy: { createdAt: "desc" },
   });
@@ -22,7 +21,7 @@ export async function GET() {
       fromEmail: req.fromEmail ?? req.investor?.email,
       investorId: req.investorId,
       projectId: req.projectId,
-      projectName: req.project?.title ?? "",
+      projectName: "",
     }))
   );
 }

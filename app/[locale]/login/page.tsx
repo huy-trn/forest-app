@@ -30,12 +30,8 @@ export default function LoginPage({ params }: { params: { locale: string } }) {
       return;
     }
 
-    const data = await res.json();
-    const role = data?.user?.role;
-    if (role === "admin") router.replace(`${localePrefix}/admin`);
-    else if (role === "partner") router.replace(`${localePrefix}/partner`);
-    else if (role === "investor") router.replace(`${localePrefix}/investor`);
-    else router.replace(localePrefix);
+    await res.json();
+    router.replace(localePrefix);
   };
 
   return <Login onLogin={handleLogin} loading={loading} error={error} />;

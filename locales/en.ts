@@ -14,6 +14,7 @@ export const en = {
             projects: "Projects",
             requests: "Requests",
             users: "Users",
+            showcase: "Showcase",
         },
         investorRequests: {
             title: "Investor Requests",
@@ -95,6 +96,7 @@ export const en = {
             attachFiles: "Attach files",
             removeFile: "Remove",
             preview: "Preview (Markdown supported)",
+            editorHint: "Supports markdown. Paste or attach images.",
             roles: {
                 admin: "Admin",
                 partner: "Farmer"
@@ -124,7 +126,8 @@ export const en = {
             pending: "Pending",
             joinDate: "Join Date",
             actions: "Actions",
-            inviteSent: "Invitation sent via {{method}} to {{value}}"
+            inviteSent: "Invitation sent via {{method}} to {{value}}",
+            deleted: "User removed"
         },
         projectManagement: {
             title: "Project Management",
@@ -155,11 +158,61 @@ export const en = {
             created: "Created",
             members: "Members"
         },
-    },
-    common: {
-        error: "Something went wrong",
-        close: "Close",
-        back: "Back"
+        showcaseManagement: {
+            title: "Public Showcase",
+            description: "Edit the public landing content shown to all users.",
+            save: "Save showcase",
+            saving: "Saving...",
+            saved: "Showcase updated",
+            hero: "Hero",
+            heroTitle: "Hero title",
+            heroDescription: "Hero description",
+            features: "Key features",
+            featureTitle: "Feature {{index}} title",
+            featureDesc: "Feature {{index}} description",
+            addFeature: "Add feature",
+            icon: "Icon",
+            projects: "Featured projects",
+            projectTitle: "Project {{index}} title",
+            projectDesc: "Project {{index}} description",
+            projectLocation: "Location",
+            projectBadge: "Badge",
+            imageUrl: "Image URL",
+            addProject: "Add project",
+            impact: "Impact stats",
+            impactLabel: "Impact {{index}} label",
+            impactValue: "Value",
+            addImpact: "Add stat",
+            posts: "Posts",
+            postTitle: "Post {{index}} title",
+            postBody: "Post {{index}} body",
+            addPost: "Add post",
+        },
+        posts: {
+            tab: "Blog posts",
+            title: "Create post",
+            locale: "Locale",
+            postTitle: "Title",
+            content: "Content",
+            contentPlaceholder: "Write your post...",
+            uploading: "Uploading...",
+            hint: "Supports markdown. Paste or attach images.",
+            image: "Image URL (optional)",
+            saving: "Saving...",
+            save: "Save post",
+            created: "Post created",
+            deleted: "Deleted",
+            delete: "Delete",
+            list: "Existing posts",
+            loading: "Loading...",
+            empty: "No posts yet.",
+            heroTitle: "Hero text",
+            heroDescription: "Hero description",
+            heroLocale: "Hero locale",
+            saveHero: "Save hero",
+            heroSaved: "Hero updated",
+            heroHint: "Set the headline shown on the public showcase for this locale."
+        }
     },
     investor: {
         dashboard:{
@@ -236,7 +289,13 @@ export const en = {
             impactTrees: "Trees planted",
             impactArea: "Forest hectares",
             impactMembers: "Members",
-            impactProjects: "Active projects"
+            impactProjects: "Active projects",
+            postsTitle: "Latest stories",
+            postsDesc: "Updates for admins, partners, and investors.",
+            post1Title: "Project spotlight",
+            post1Body: "See how partners and investors are accelerating reforestation.",
+            postsArchive: "Older updates",
+            noArchive: "No older posts yet."
         },
     },
     partner: {
@@ -329,8 +388,18 @@ export const en = {
         resetRequired: "Complete onboarding first.",
         invalid: "Invalid credentials"
     },
+    blog: {
+        title: "Blog",
+        empty: "No posts yet.",
+        back: "Back to blog",
+        notFound: "Post not found"
+    },
     common: {
-        error: "Something went wrong"
+        error: "Something went wrong",
+        close: "Close",
+        back: "Back",
+        next: "Next",
+        home: "Home"
     },
     onboarding: {
         title: "Complete Your Account",
@@ -343,6 +412,7 @@ export const en = {
         success: "Password set. Redirecting to login...",
         missing: "Missing token or email",
         mismatch: "Passwords do not match",
-        failed: "Failed to complete onboarding"
+        failed: "Failed to complete onboarding",
+        loading: "Saving..."
     }
 };
