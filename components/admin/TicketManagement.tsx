@@ -199,7 +199,6 @@ export function TicketManagement({ currentUser }: { currentUser?: { id: string; 
           ticket={selectedTicket}
           onClose={() => setSelectedTicket(null)}
           userRole="admin"
-          currentUser={currentUser}
         />
       </div>
     );

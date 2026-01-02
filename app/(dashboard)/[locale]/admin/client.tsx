@@ -7,6 +7,7 @@ export function AdminDashboardClient({ user, locale }: { user: User; locale: str
   return (
     <AdminDashboard
       user={user}
+      locale={locale}
       onLogout={async () => {
         await fetch("/api/auth/logout", { method: "POST" });
         window.location.href = `/${locale}/login`;

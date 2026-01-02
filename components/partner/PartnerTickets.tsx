@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
@@ -20,8 +20,6 @@ export function PartnerTickets({ user }: PartnerTicketsProps) {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>("all");
-  const queryClient = useQueryClient();
-  useTicketListSse(() => queryClient.invalidateQueries({ queryKey: ["tickets"] }));
 
   const ticketsQuery = useQuery({
     queryKey: ["tickets"],
@@ -31,6 +29,7 @@ export function PartnerTickets({ user }: PartnerTicketsProps) {
       return res.json();
     },
   });
+  useTicketListSse(() => ticketsQuery.refetch());
 
   useEffect(() => {
     if (ticketsQuery.data) {
@@ -82,7 +81,6 @@ export function PartnerTickets({ user }: PartnerTicketsProps) {
           ticket={selectedTicket}
           onClose={() => setSelectedTicket(null)}
           userRole="partner"
-          currentUser={user}
         />
       </div>
     );

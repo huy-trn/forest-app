@@ -1,12 +1,13 @@
 "use client";
 
-import { PartnerDashboard } from "@/components/PartnerDashboard";
+import { InvestorDashboard } from "@/components/InvestorDashboard";
 import type { User } from "@/types/user";
 
-export function PartnerDashboardClient({ user, locale }: { user: User; locale: string }) {
+export function InvestorDashboardClient({ user, locale }: { user: User; locale: string }) {
   return (
-    <PartnerDashboard
+    <InvestorDashboard
       user={user}
+      locale={locale}
       onLogout={async () => {
         await fetch("/api/auth/logout", { method: "POST" });
         window.location.href = `/${locale}/login`;

@@ -18,10 +18,9 @@ interface TicketDetailsProps {
   ticket: Ticket;
   onClose: () => void;
   userRole: 'admin' | 'partner';
-  currentUser?: { id: string; name: string; role: string };
 }
 
-export function TicketDetails({ ticket, onClose, userRole, currentUser }: TicketDetailsProps) {
+export function TicketDetails({ ticket, onClose, userRole }: TicketDetailsProps) {
   const { t } = useTranslation();
   const [localTicket, setLocalTicket] = useState<Ticket>(ticket);
   const [newComment, setNewComment] = useState('');
@@ -68,10 +67,6 @@ export function TicketDetails({ ticket, onClose, userRole, currentUser }: Ticket
       const optimistic = { ...localTicket, status: status as Ticket['status'] };
       setLocalTicket(optimistic);
       return { previous };
-    },
-    onError: (_err, _status, ctx) => {
-      if (ctx?.previous) setLocalTicket(ctx.previous);
-      toast.error(t('common.error', { defaultValue: 'Failed to update status' }));
     },
     onSuccess: (updated) => {
       setLocalTicket(updated);
@@ -355,39 +350,59 @@ export function TicketDetails({ ticket, onClose, userRole, currentUser }: Ticket
                 </div>
                 {(userRole === 'partner' || userRole === 'admin') && (
                   <Card>
-                    <CardContent className="pt-6 space-y-3">
-                      <Label>{t('admin.ticketDetails.addLog')}</Label>
-                      <RichTextEditor
-                        value={newLog}
-                        onChange={setNewLog}
-                        placeholder={t('admin.ticketDetails.logPlaceholder')}
-                        onAttachUpload={async (files) => {
-                          setLogFiles(files);
-                          const uploads = await Promise.all(files.map(uploadAndSaveAttachment));
-                          return uploads.map((u) => ({ src: u.inlineUrl || u.url }));
-                        }}
-                      />
-                      {logFiles.length ? (
-                        <div className="flex flex-wrap gap-2">
-                          {logFiles.map((file) => (
-                            <Badge key={file.name} variant="outline" className="flex items-center gap-2">
-                              <span className="truncate max-w-[140px]">{file.name}</span>
-                              <button
-                                type="button"
-                                className="text-xs text-gray-600"
-                                onClick={() => setLogFiles((prev) => prev.filter((f) => f.name !== file.name))}
-                              >
-                                {t('admin.ticketDetails.removeFile')}
-                              </button>
-                            </Badge>
-                          ))}
+                    <CardContent className="pt-6 space-y-4">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-800">{t('admin.ticketDetails.addLog')}</p>
+                          <p className="text-xs text-gray-500">{t('admin.ticketDetails.logPlaceholder')}</p>
                         </div>
-                      ) : null}
-
-                      <Button onClick={handleAddLog} className="w-full">
-                        <Send className="w-4 h-4 mr-2" />
-                        {t('admin.ticketDetails.addLogBtn')}
-                      </Button>
+                        {logFiles.length > 0 && (
+                          <Badge variant="outline" className="text-xs">
+                            {logFiles.length} {t('admin.ticketDetails.files') ?? 'files'}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="rounded-lg border bg-gray-50 p-3 space-y-3">
+                        <RichTextEditor
+                          value={newLog}
+                          onChange={setNewLog}
+                          placeholder={t('admin.ticketDetails.logPlaceholder')}
+                          onAttachUpload={async (files) => {
+                            setLogFiles(files);
+                            const uploads = await Promise.all(files.map(uploadAndSaveAttachment));
+                            return uploads.map((u) => ({ src: u.inlineUrl || u.url }));
+                          }}
+                        />
+                        {logFiles.length ? (
+                          <div className="flex flex-wrap gap-2">
+                            {logFiles.map((file) => (
+                              <Badge key={file.name} variant="outline" className="flex items-center gap-2">
+                                <Paperclip className="w-3 h-3" />
+                                <span className="truncate max-w-[140px]">{file.name}</span>
+                                <button
+                                  type="button"
+                                  className="text-xs text-gray-600"
+                                  onClick={() => setLogFiles((prev) => prev.filter((f) => f.name !== file.name))}
+                                >
+                                  {t('admin.ticketDetails.removeFile')}
+                                </button>
+                              </Badge>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-xs text-gray-500">{t('admin.ticketDetails.uploadHint')}</p>
+                        )}
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs text-gray-500">{t('admin.ticketDetails.editorHint') ?? 'Supports markdown, paste images.'}</p>
+                          <Button
+                            onClick={handleAddLog}
+                            disabled={uploading || logMutation.isPending}
+                          >
+                            <Send className="w-4 h-4 mr-2" />
+                            {t('admin.ticketDetails.addLogBtn')}
+                          </Button>
+                        </div>
+                      </div>
                     </CardContent>
                   </Card>
                 )}
@@ -418,38 +433,59 @@ export function TicketDetails({ ticket, onClose, userRole, currentUser }: Ticket
                 </div>
 
                 <Card>
-                  <CardContent className="pt-6 space-y-3">
-                    <Label>{t('admin.ticketDetails.addComment')}</Label>
-                    <RichTextEditor
-                      value={newComment}
-                      onChange={setNewComment}
-                      placeholder={t('admin.ticketDetails.commentPlaceholder')}
-                      onAttachUpload={async (files) => {
-                        setCommentFiles(files);
-                        const uploads = await Promise.all(files.map(uploadAndSaveAttachment));
-                        return uploads.map((u) => ({ src: u.inlineUrl || u.url }));
-                      }}
-                    />
-                    {commentFiles.length ? (
-                      <div className="flex flex-wrap gap-2">
-                        {commentFiles.map((file) => (
-                          <Badge key={file.name} variant="outline" className="flex items-center gap-2">
-                            <span className="truncate max-w-[140px]">{file.name}</span>
-                            <button
-                              type="button"
-                              className="text-xs text-gray-600"
-                              onClick={() => setCommentFiles((prev) => prev.filter((f) => f.name !== file.name))}
-                            >
-                              {t('admin.ticketDetails.removeFile')}
-                            </button>
-                          </Badge>
-                        ))}
+                  <CardContent className="pt-6 space-y-4">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-800">{t('admin.ticketDetails.addComment')}</p>
+                        <p className="text-xs text-gray-500">{t('admin.ticketDetails.commentPlaceholder')}</p>
                       </div>
-                    ) : null}
-                    <Button onClick={handleAddComment} className="w-full">
-                      <Send className="w-4 h-4 mr-2" />
-                      {t('admin.ticketDetails.sendComment')}
-                    </Button>
+                      {commentFiles.length > 0 && (
+                        <Badge variant="outline" className="text-xs">
+                          {commentFiles.length} {t('admin.ticketDetails.files') ?? 'files'}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="rounded-lg border bg-gray-50 p-3 space-y-3">
+                      <RichTextEditor
+                        value={newComment}
+                        onChange={setNewComment}
+                        placeholder={t('admin.ticketDetails.commentPlaceholder')}
+                        onAttachUpload={async (files) => {
+                          setCommentFiles(files);
+                          const uploads = await Promise.all(files.map(uploadAndSaveAttachment));
+                          return uploads.map((u) => ({ src: u.inlineUrl || u.url }));
+                        }}
+                      />
+                      {commentFiles.length ? (
+                        <div className="flex flex-wrap gap-2">
+                          {commentFiles.map((file) => (
+                            <Badge key={file.name} variant="outline" className="flex items-center gap-2">
+                              <Paperclip className="w-3 h-3" />
+                              <span className="truncate max-w-[140px]">{file.name}</span>
+                              <button
+                                type="button"
+                                className="text-xs text-gray-600"
+                                onClick={() => setCommentFiles((prev) => prev.filter((f) => f.name !== file.name))}
+                              >
+                                {t('admin.ticketDetails.removeFile')}
+                              </button>
+                            </Badge>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-gray-500">{t('admin.ticketDetails.uploadHint')}</p>
+                      )}
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs text-gray-500">{t('admin.ticketDetails.editorHint') ?? 'Supports markdown, paste images.'}</p>
+                        <Button
+                          onClick={handleAddComment}
+                          disabled={uploading || commentMutation.isPending}
+                        >
+                          <Send className="w-4 h-4 mr-2" />
+                          {t('admin.ticketDetails.sendComment')}
+                        </Button>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>
