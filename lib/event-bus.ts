@@ -12,8 +12,12 @@ if (!g.__appEventBus) {
 
 export const eventBus = g.__appEventBus;
 
-export type TicketEvent = { type: "ticket:update"; id: string; ts: number };
+export type TicketEvent =
+  | { type: "ticket:list"; ts: number; userIds?: string[] }
+  | { type: "ticket:detail"; id: string; ts: number; userIds?: string[] };
 
-export function publishTicketUpdated(id: string) {
-  eventBus.emit("ticket:update", { type: "ticket:update", id, ts: Date.now() } satisfies TicketEvent);
+export function publishTicketUpdated(id: string, userIds?: string[]) {
+  const ts = Date.now();
+  eventBus.emit("ticket:list", { type: "ticket:list", ts, userIds } satisfies TicketEvent);
+  eventBus.emit("ticket:detail", { type: "ticket:detail", id, ts, userIds } satisfies TicketEvent);
 }

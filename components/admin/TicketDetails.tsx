@@ -11,16 +11,17 @@ import { Ticket } from './TicketManagement';
 import { Calendar, User, Send, Paperclip, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { RichTextEditor } from '../ui/rich-text-editor';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { useTicketSse } from '@/lib/use-ticket-sse';
 
 interface TicketDetailsProps {
   ticket: Ticket;
   onClose: () => void;
-  onUpdate: (ticket: Ticket) => void;
   userRole: 'admin' | 'partner';
   currentUser?: { id: string; name: string; role: string };
 }
 
-export function TicketDetails({ ticket, onClose, onUpdate, userRole, currentUser }: TicketDetailsProps) {
+export function TicketDetails({ ticket, onClose, userRole, currentUser }: TicketDetailsProps) {
   const { t } = useTranslation();
   const [localTicket, setLocalTicket] = useState<Ticket>(ticket);
   const [newComment, setNewComment] = useState('');
@@ -31,9 +32,100 @@ export function TicketDetails({ ticket, onClose, onUpdate, userRole, currentUser
   const logListRef = useRef<HTMLDivElement | null>(null);
   const commentListRef = useRef<HTMLDivElement | null>(null);
 
+  const { data, refetch } = useQuery({
+    queryKey: ["ticket", ticket.id],
+    queryFn: async () => {
+      const res = await fetch(`/api/tickets/${ticket.id}`);
+      if (!res.ok) throw new Error("Failed to load ticket");
+      const json = await res.json();
+      return {
+        ...json,
+        logs: json.logs ?? [],
+        comments: json.comments ?? [],
+        attachments: json.attachments ?? [],
+      } as Ticket;
+    },
+    initialData: ticket,
+    staleTime: 0,
+  });
+
+  useTicketSse(ticket.id, () => {
+    refetch();
+  });
+
+  const statusMutation = useMutation<Ticket, Error, string>({
+    mutationFn: async (status: string) => {
+      const res = await fetch(`/api/tickets/${ticket.id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+      if (!res.ok) throw new Error('status_failed');
+      return res.json();
+    },
+    onMutate: async (status) => {
+      const previous = localTicket;
+      const optimistic = { ...localTicket, status: status as Ticket['status'] };
+      setLocalTicket(optimistic);
+      return { previous };
+    },
+    onError: (_err, _status, ctx) => {
+      if (ctx?.previous) setLocalTicket(ctx.previous);
+      toast.error(t('common.error', { defaultValue: 'Failed to update status' }));
+    },
+    onSuccess: (updated) => {
+      setLocalTicket(updated);
+      toast.success(t('admin.ticketDetails.statusUpdated'));
+    },
+  });
+
+  const commentMutation = useMutation<Ticket, Error, { message: string; attachments: Array<{ name: string; type: string; url: string }> }>({
+    mutationFn: async (payload) => {
+      const res = await fetch(`/api/tickets/${ticket.id}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error('comment_failed');
+      return res.json();
+    },
+    onSuccess: (updated) => {
+      setLocalTicket(updated);
+      setNewComment('');
+      setCommentFiles([]);
+      toast.success(t('admin.ticketDetails.commentAdded'));
+    },
+    onError: () => {
+      toast.error(t('common.error', { defaultValue: 'Failed to add comment' }));
+    },
+  });
+
+  const logMutation = useMutation<Ticket, Error, { message: string; attachments: Array<{ name: string; type: string; url: string }> }>({
+    mutationFn: async (payload) => {
+      const res = await fetch(`/api/tickets/${ticket.id}/logs`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error('log_failed');
+      return res.json();
+    },
+    onSuccess: (updated) => {
+      setLocalTicket(updated);
+      setNewLog('');
+      setLogFiles([]);
+      toast.success(t('admin.ticketDetails.logAdded'));
+    },
+    onError: () => {
+      toast.error(t('common.error', { defaultValue: 'Failed to add log' }));
+    },
+  });
+
   useEffect(() => {
-    setLocalTicket(ticket);
-  }, [ticket]);
+    if (data) {
+      setLocalTicket(data);
+    }
+  }, [data]);
 
   const scrollToBottom = (ref: React.RefObject<HTMLDivElement>) => {
     const el = ref.current;
@@ -51,27 +143,7 @@ export function TicketDetails({ ticket, onClose, onUpdate, userRole, currentUser
   }, [localTicket.comments.length]);
 
   const handleStatusChange = async (status: string) => {
-    const previous = localTicket;
-    const optimistic = { ...localTicket, status: status as Ticket['status'] };
-    setLocalTicket(optimistic);
-    onUpdate(optimistic);
-
-    const res = await fetch(`/api/tickets/${localTicket.id}/status`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status }),
-    });
-
-    if (!res.ok) {
-      setLocalTicket(previous);
-      onUpdate(previous);
-      toast.error(t('common.error', { defaultValue: 'Failed to update status' }));
-      return;
-    }
-    const updated = await res.json();
-    setLocalTicket(updated);
-    onUpdate(updated);
-    toast.success(t('admin.ticketDetails.statusUpdated'));
+    await statusMutation.mutateAsync(status);
   };
 
   const handleAddComment = async () => {
@@ -92,23 +164,7 @@ export function TicketDetails({ ticket, onClose, onUpdate, userRole, currentUser
       }
     }
 
-    const res = await fetch(`/api/tickets/${localTicket.id}/comments`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: newComment, attachments: uploadedAttachments }),
-    });
-
-    if (!res.ok) {
-      toast.error(t('common.error', { defaultValue: 'Failed to add comment' }));
-      return;
-    }
-
-    const updated = await res.json();
-    setLocalTicket(updated);
-    onUpdate(updated);
-    setNewComment('');
-    setCommentFiles([]);
-    toast.success(t('admin.ticketDetails.commentAdded'));
+    await commentMutation.mutateAsync({ message: newComment, attachments: uploadedAttachments });
   };
 
   const handleAddLog = async () => {
@@ -129,23 +185,7 @@ export function TicketDetails({ ticket, onClose, onUpdate, userRole, currentUser
       }
     }
 
-    const res = await fetch(`/api/tickets/${localTicket.id}/logs`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: newLog, attachments: uploadedAttachments }),
-    });
-
-    if (!res.ok) {
-      toast.error(t('common.error', { defaultValue: 'Failed to add log' }));
-      return;
-    }
-
-    const updated = await res.json();
-    setLocalTicket(updated);
-    onUpdate(updated);
-    setNewLog('');
-    setLogFiles([]);
-    toast.success(t('admin.ticketDetails.logAdded'));
+    await logMutation.mutateAsync({ message: newLog, attachments: uploadedAttachments });
   };
 
   const uploadToS3 = async (file: File) => {
@@ -179,8 +219,7 @@ export function TicketDetails({ ticket, onClose, onUpdate, userRole, currentUser
     if (!saveRes.ok) throw new Error('save_failed');
     const updated = await saveRes.json();
     setLocalTicket(updated);
-    onUpdate(updated);
-    return uploaded;
+        return uploaded;
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -322,7 +361,6 @@ export function TicketDetails({ ticket, onClose, onUpdate, userRole, currentUser
                         value={newLog}
                         onChange={setNewLog}
                         placeholder={t('admin.ticketDetails.logPlaceholder')}
-                        onAttach={(files) => setLogFiles(files)}
                         onAttachUpload={async (files) => {
                           setLogFiles(files);
                           const uploads = await Promise.all(files.map(uploadAndSaveAttachment));

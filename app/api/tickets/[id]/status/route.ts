@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { TicketStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { serializeTicket, ticketInclude, notifyTicketUpdated } from "../../shared";
+import { serializeTicket, ticketDetailInclude, notifyTicketUpdated } from "../../shared";
 import { getUserFromRequest } from "@/lib/auth-helpers";
 
 export async function PATCH(
@@ -19,9 +19,9 @@ export async function PATCH(
   const ticket = await prisma.ticket.update({
     where: { id: params.id },
     data: { status },
-    include: ticketInclude,
+    include: ticketDetailInclude,
   });
 
-  notifyTicketUpdated(ticket.id);
+  await notifyTicketUpdated(ticket.id);
   return NextResponse.json(await serializeTicket(ticket as any));
 }

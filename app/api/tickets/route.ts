@@ -1,22 +1,25 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { TicketStatus } from "@prisma/client";
-import { serializeTicket, ticketInclude, notifyTicketUpdated } from "./shared";
-import { getUserFromRequest } from "@/lib/auth-helpers";
+import { serializeTicket, ticketListInclude, notifyTicketUpdated } from "./shared";
+import { requireUser } from "@/lib/api-auth";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const { response } = await requireUser(request);
+  if (response) return response;
+
   const tickets = await prisma.ticket.findMany({
-    include: ticketInclude,
+    include: ticketListInclude,
     orderBy: { createdAt: "desc" },
   });
 
-  const result = await Promise.all(tickets.map((ticket) => serializeTicket(ticket as any)));
+  const result = await Promise.all(tickets.map((ticket) => serializeTicket(ticket as any, { withThreads: false })));
   return NextResponse.json(result);
 }
 
 export async function POST(request: Request) {
-  const user = await getUserFromRequest(request);
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { user, response } = await requireUser(request);
+  if (!user || response) return response!;
 
   const body = await request.json();
   const { title, description, projectId, assigneeIds } = body as {
@@ -40,10 +43,10 @@ export async function POST(request: Request) {
         create: (assigneeIds || []).map((id) => ({ userId: id })),
       },
     },
-    include: ticketInclude,
+    include: ticketListInclude,
   });
 
-  const serialized = await serializeTicket(ticket as any);
-  notifyTicketUpdated(ticket.id);
+  const serialized = await serializeTicket(ticket as any, { withThreads: false });
+  await notifyTicketUpdated(ticket.id);
   return NextResponse.json(serialized, { status: 201 });
 }

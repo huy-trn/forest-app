@@ -35,6 +35,7 @@ import { TicketPlus, Calendar, Users, MessageSquare, Image, FileText } from "luc
 import { toast } from "sonner";
 import { TicketDetails } from "./TicketDetails";
 import { useEffect } from "react";
+import { useTicketListSse } from "@/lib/use-ticket-list-sse";
 
 export interface Ticket {
   id: string;
@@ -76,6 +77,7 @@ export function TicketManagement({ currentUser }: { currentUser?: { id: string; 
     projectId: ''
   });
   const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
+  useTicketListSse(() => queryClient.invalidateQueries({ queryKey: ["tickets"] }));
 
   const ticketsQuery = useQuery({
     queryKey: ["tickets"],
@@ -170,10 +172,6 @@ export function TicketManagement({ currentUser }: { currentUser?: { id: string; 
     createTicket.mutate();
   };
 
-  const handleUpdateTicket = (updatedTicket: Ticket) => {
-    setTickets(tickets.map(t => t.id === updatedTicket.id ? updatedTicket : t));
-  };
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'open': return 'bg-blue-100 text-blue-800';
@@ -194,47 +192,12 @@ export function TicketManagement({ currentUser }: { currentUser?: { id: string; 
     }
   };
 
-  // Server push to invalidate tickets
-  useEffect(() => {
-    let es: EventSource | null = null;
-
-    const connect = () => {
-      if (es) {
-        es.close();
-        es = null;
-      }
-      es = new EventSource("/api/events");
-      es.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          if (data?.type === "ticket:update") {
-            queryClient.invalidateQueries({ queryKey: ["tickets"] });
-          }
-        } catch {
-          // ignore parse errors
-        }
-      };
-      es.onerror = () => {
-        es?.close();
-        es = null;
-        setTimeout(connect, 2000);
-      };
-    };
-
-    connect();
-    return () => {
-      es?.close();
-      es = null;
-    };
-  }, [queryClient]);
-
   if (selectedTicket) {
     return (
       <div className="space-y-4">
         <TicketDetails
           ticket={selectedTicket}
           onClose={() => setSelectedTicket(null)}
-          onUpdate={handleUpdateTicket}
           userRole="admin"
           currentUser={currentUser}
         />

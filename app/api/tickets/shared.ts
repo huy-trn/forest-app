@@ -3,12 +3,13 @@ import type { Ticket, Project, TicketAssignee, TicketLog, TicketComment, TicketA
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { publishTicketUpdated } from "@/lib/event-bus";
+import { prisma } from "@/lib/prisma";
 
 const bucket = process.env.S3_BUCKET;
 const region = process.env.AWS_REGION;
 const s3 = bucket && region ? new S3Client({ region }) : null;
 
-export const ticketInclude = {
+export const ticketDetailInclude = {
   project: true,
   assignees: { include: { user: true } },
   logs: { include: { user: true } },
@@ -16,11 +17,17 @@ export const ticketInclude = {
   attachments: true,
 };
 
+export const ticketListInclude = {
+  project: true,
+  assignees: { include: { user: true } },
+  attachments: true,
+};
+
 type PrismaTicket = Ticket & {
   project: Project;
   assignees: Array<TicketAssignee & { user: User }>;
-  logs: Array<TicketLog & { user: User | null }>;
-  comments: Array<TicketComment & { user: User }>;
+  logs?: Array<TicketLog & { user: User | null }>;
+  comments?: Array<TicketComment & { user: User }>;
   attachments: TicketAttachment[];
 };
 
@@ -37,7 +44,8 @@ async function signUrl(keyOrUrl: string) {
   }
 }
 
-export async function serializeTicket(ticket: PrismaTicket) {
+export async function serializeTicket(ticket: PrismaTicket, opts: { withThreads?: boolean } = {}) {
+  const { withThreads = true } = opts;
   const attachments = await Promise.all(
     ticket.attachments.map(async (a) => ({
       id: a.id,
@@ -60,25 +68,35 @@ export async function serializeTicket(ticket: PrismaTicket) {
       name: a.user.name,
       role: a.user.role,
     })),
-    logs: ticket.logs.map((l) => ({
-      id: l.id,
-      message: l.message,
-      date: l.createdAt.toISOString(),
-      userId: l.userId ?? "",
-      userName: l.user?.name ?? "",
-    })),
-    comments: ticket.comments.map((c) => ({
-      id: c.id,
-      message: c.message,
-      date: c.createdAt.toISOString(),
-      userId: c.userId,
-      userName: c.user.name,
-      userRole: c.userRole,
-    })),
+    logs: withThreads
+      ? (ticket.logs ?? []).map((l) => ({
+          id: l.id,
+          message: l.message,
+          date: l.createdAt.toISOString(),
+          userId: l.userId ?? "",
+          userName: l.user?.name ?? "",
+        }))
+      : [],
+    comments: withThreads
+      ? (ticket.comments ?? []).map((c) => ({
+          id: c.id,
+          message: c.message,
+          date: c.createdAt.toISOString(),
+          userId: c.userId,
+          userName: c.user.name,
+          userRole: c.userRole,
+        }))
+      : [],
     attachments,
   };
 }
 
-export function notifyTicketUpdated(id: string) {
-  publishTicketUpdated(id);
+export async function notifyTicketUpdated(id: string) {
+  // target assignees for user-scoped events
+  const assignees = await prisma.ticketAssignee.findMany({
+    where: { ticketId: id },
+    select: { userId: true },
+  });
+  const userIds = assignees.map((a) => a.userId);
+  publishTicketUpdated(id, userIds);
 }

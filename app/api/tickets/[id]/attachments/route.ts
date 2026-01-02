@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { serializeTicket, ticketInclude, notifyTicketUpdated } from "../../shared";
+import { serializeTicket, ticketDetailInclude, notifyTicketUpdated } from "../../shared";
 import { getUserFromRequest } from "@/lib/auth-helpers";
 
 export async function POST(
@@ -22,9 +22,9 @@ export async function POST(
         create: { name, type, url: key || url },
       },
     },
-    include: ticketInclude,
+    include: ticketDetailInclude,
   });
 
-  notifyTicketUpdated(ticket.id);
+  await notifyTicketUpdated(ticket.id);
   return NextResponse.json(await serializeTicket(ticket as any));
 }

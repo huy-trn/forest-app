@@ -1,10 +1,26 @@
 import { NextResponse } from "next/server";
 import { eventBus } from "@/lib/event-bus";
+import { getUserFromRequest } from "@/lib/auth-helpers";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-export async function GET(request: Request) {
+export async function GET(request: Request, { params }: { params: { id: string } }) {
+  const user = await getUserFromRequest(request);
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const ticketId = params.id;
+  if (!ticketId) return NextResponse.json({ error: "Missing ticket id" }, { status: 400 });
+
+  // authorize: admin can watch any, others must be assignees
+  if (user.role !== "admin") {
+    const isAssignee = await prisma.ticketAssignee.findFirst({
+      where: { ticketId, userId: user.sub },
+      select: { ticketId: true },
+    });
+    if (!isAssignee) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const encoder = new TextEncoder();
   let closed = false;
   let keepAlive: NodeJS.Timeout | null = null;
@@ -17,11 +33,11 @@ export async function GET(request: Request) {
       clearInterval(keepAlive);
       keepAlive = null;
     }
-    eventBus.off("ticket:update", onTicketUpdate);
+    eventBus.off("ticket:detail", onTicketUpdate);
     try {
       controllerRef?.close();
     } catch {
-      // ignore double-close
+      // ignore double close
     }
     controllerRef = null;
   };
@@ -35,31 +51,27 @@ export async function GET(request: Request) {
     }
   };
 
-  const onTicketUpdate = (payload: unknown) => {
+  const onTicketUpdate = (payload: any) => {
+    if (payload?.id !== ticketId) return;
     safeEnqueue(`data: ${JSON.stringify(payload)}\n\n`);
   };
 
   const stream = new ReadableStream<Uint8Array>({
     start(controller) {
       controllerRef = controller;
-
       keepAlive = setInterval(() => {
         safeEnqueue(":\n\n");
       }, 15000);
-
-      eventBus.on("ticket:update", onTicketUpdate);
+      eventBus.on("ticket:detail", onTicketUpdate);
 
       const signal = (request as any).signal as AbortSignal | undefined;
       if (signal) {
-        if (signal.aborted) {
-          close();
-        } else {
-          signal.addEventListener("abort", close, { once: true });
-        }
+        if (signal.aborted) close();
+        else signal.addEventListener("abort", close, { once: true });
       }
 
       safeEnqueue("retry: 5000\n\n");
-      safeEnqueue('event: ping\ndata: "ok"\n\n');
+      safeEnqueue(`event: connected\ndata: "ok"\n\n`);
 
       return close;
     },

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
@@ -9,7 +9,7 @@ import { Ticket } from "../admin/TicketManagement";
 import { TicketDetails } from "../admin/TicketDetails";
 import type { User } from "@/types/user";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
+import { useTicketListSse } from "@/lib/use-ticket-list-sse";
 
 interface PartnerTicketsProps {
   user: User;
@@ -21,6 +21,7 @@ export function PartnerTickets({ user }: PartnerTicketsProps) {
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const queryClient = useQueryClient();
+  useTicketListSse(() => queryClient.invalidateQueries({ queryKey: ["tickets"] }));
 
   const ticketsQuery = useQuery({
     queryKey: ["tickets"],
@@ -50,31 +51,9 @@ export function PartnerTickets({ user }: PartnerTicketsProps) {
     }
   }, [ticketsQuery.error, t]);
 
-  useEffect(() => {
-    const es = new EventSource("/api/events");
-    es.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (data?.type === "ticket:update") {
-          queryClient.invalidateQueries({ queryKey: ["tickets"] });
-        }
-      } catch {
-        // ignore
-      }
-    };
-    es.onerror = () => {
-      es.close();
-    };
-    return () => es.close();
-  }, [queryClient]);
-
-  const filteredTickets = filterStatus === 'all' 
-    ? tickets 
+  const filteredTickets = filterStatus === 'all'
+    ? tickets
     : tickets.filter(t => t.status === filterStatus);
-
-  const handleUpdateTicket = (updatedTicket: Ticket) => {
-    setTickets(tickets.map(t => t.id === updatedTicket.id ? updatedTicket : t));
-  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -99,10 +78,9 @@ export function PartnerTickets({ user }: PartnerTicketsProps) {
   if (selectedTicket) {
     return (
       <div className="space-y-4">
-        <TicketDetails 
-          ticket={selectedTicket} 
+        <TicketDetails
+          ticket={selectedTicket}
           onClose={() => setSelectedTicket(null)}
-          onUpdate={handleUpdateTicket}
           userRole="partner"
           currentUser={user}
         />
@@ -119,29 +97,29 @@ export function PartnerTickets({ user }: PartnerTicketsProps) {
         </CardHeader>
         <CardContent>
           <div className="flex gap-2">
-            <Button 
-              variant={filterStatus === 'all' ? 'default' : 'outline'} 
+            <Button
+              variant={filterStatus === 'all' ? 'default' : 'outline'}
               onClick={() => setFilterStatus('all')}
               size="sm"
             >
               {t('partner.tickets.all')}
             </Button>
-            <Button 
-              variant={filterStatus === 'open' ? 'default' : 'outline'} 
+            <Button
+              variant={filterStatus === 'open' ? 'default' : 'outline'}
               onClick={() => setFilterStatus('open')}
               size="sm"
             >
               {t('partner.tickets.open')}
             </Button>
-            <Button 
-              variant={filterStatus === 'in_progress' ? 'default' : 'outline'} 
+            <Button
+              variant={filterStatus === 'in_progress' ? 'default' : 'outline'}
               onClick={() => setFilterStatus('in_progress')}
               size="sm"
             >
               {t('partner.tickets.in_progress')}
             </Button>
-            <Button 
-              variant={filterStatus === 'completed' ? 'default' : 'outline'} 
+            <Button
+              variant={filterStatus === 'completed' ? 'default' : 'outline'}
               onClick={() => setFilterStatus('completed')}
               size="sm"
             >
@@ -168,7 +146,7 @@ export function PartnerTickets({ user }: PartnerTicketsProps) {
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="text-sm text-gray-600">{ticket.description}</p>
-              
+
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Calendar className="w-4 h-4" />
                 {t('partner.tickets.created')}: {ticket.createdDate}
