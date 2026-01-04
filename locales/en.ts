@@ -326,7 +326,9 @@ export const en = {
             saved: "Location saved locally.",
             required: "Latitude and longitude are required.",
             noGeo: "Geolocation is not available on this device.",
-            setFromDevice: "Location set from your device."
+            setFromDevice: "Location set from your device.",
+            project: "Project",
+            hintPins: "Multiple pins allowed. Click to add, drag to move."
         },
         projects: {
             assigned: "Assigned Projects",
@@ -391,7 +393,7 @@ export const en = {
     blog: {
         title: "Blog",
         empty: "No posts yet.",
-        back: "Back to blog",
+        back: "Back to home page",
         notFound: "Post not found"
     },
     common: {
@@ -399,7 +401,21 @@ export const en = {
         close: "Close",
         back: "Back",
         next: "Next",
-        home: "Home"
+        home: "Home",
+        dashboard: "Dashboard",
+        map: {
+            loadingPins: "Loading pins…",
+            loadPinsFailed: "Failed to load locations",
+            addPinFailed: "Failed to add pin",
+            updatePinFailed: "Failed to update pin",
+            deletePinFailed: "Failed to delete pin",
+            projectPins: "Project pins",
+            addPinHint: "Click map to add a pin. Drag to move.",
+            delete: "Delete",
+            loadingProjects: "Loading projects…",
+            selectProject: "Select a project",
+            noProjectSelected: "No project selected."
+        }
     },
     onboarding: {
         title: "Complete Your Account",

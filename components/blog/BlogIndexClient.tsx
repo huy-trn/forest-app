@@ -21,7 +21,7 @@ export function BlogIndexClient({ locale, posts }: { locale: string; posts: Post
           {posts.map((post) => (
             <Link
               key={post.id}
-              href={`/${locale}/blog/${post.id}`}
+              href={`/${locale}/post/${post.id}`}
               className="block border rounded-lg bg-white p-4 hover:shadow-md transition"
             >
               <h3 className="text-lg font-semibold mb-2">{post.title}</h3>

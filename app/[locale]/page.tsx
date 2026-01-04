@@ -1,8 +1,7 @@
-import Link from "next/link";
 import { getUserFromCookies } from "@/lib/auth-helpers";
-import { PublicShowcase } from "@/components/investor/PublicShowcase";
 import { getShowcaseContent } from "@/lib/showcase-service";
 import { AuthLink } from "@/components/dashboard/AuthLink";
+import { ShowcaseClient } from "./ShowcaseClient";
 
 const supportedLocales = ["en", "vi"] as const;
 const fallbackLocale = "en";
@@ -19,7 +18,7 @@ export default async function LocaleHomePage({ params }: { params: { locale: str
   const showcase = await getShowcaseContent(locale);
 
   const dashboardPath =
-    user?.role === "admin"
+    user?.role === "admin" || user?.role === "root"
       ? `/${locale}/admin`
       : user?.role === "partner"
         ? `/${locale}/partner`
@@ -30,14 +29,13 @@ export default async function LocaleHomePage({ params }: { params: { locale: str
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-10 space-y-6">
-        <div className="flex justify-end">
-          {dashboardPath ? (
-            <AuthLink href={dashboardPath} kind="dashboard" />
-          ) : (
-            <AuthLink href={`/${locale}/login`} kind="login" />
-          )}
-        </div>
-        <PublicShowcase locale={locale} content={showcase} />
+        <ShowcaseClient
+          locale={locale}
+          content={showcase}
+          isAuthenticated={!!user}
+          dashboardPath={dashboardPath || undefined}
+          loginPath={`/${locale}/login`}
+        />
       </div>
     </div>
   );

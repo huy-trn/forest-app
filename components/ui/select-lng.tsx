@@ -1,16 +1,17 @@
 import { useTranslation } from "react-i18next";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select";
 
 export function SelectLng() {
-    const {t, i18n } = useTranslation();
+    const { t, i18n } = useTranslation();
     return (
-        <select
-            value={i18n.language}
-            onChange={e => i18n.changeLanguage(e.target.value)}
-            className="border rounded px-2 py-1 text-sm mr-2"
-            style={{ minWidth: 90 }}
-        >
-            <option value="en">{t('language.english')}</option>
-            <option value="vi">{t('language.vietnamese')}</option>
-        </select>
-    )
+        <Select value={i18n.language} onValueChange={(val) => i18n.changeLanguage(val)}>
+            <SelectTrigger className="w-[120px] mr-2">
+                <SelectValue />
+            </SelectTrigger>
+            <SelectContent position="popper">
+                <SelectItem value="en">{t("language.english")}</SelectItem>
+                <SelectItem value="vi">{t("language.vietnamese")}</SelectItem>
+            </SelectContent>
+        </Select>
+    );
 }

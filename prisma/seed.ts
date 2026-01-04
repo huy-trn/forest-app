@@ -3,6 +3,28 @@ import { hash } from "bcryptjs";
 
 const prisma = new PrismaClient();
 
+const buildBodyEn = (summary: string) => {
+  const paragraphs = [
+    summary,
+    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer feugiat, arcu sit amet feugiat aliquet, arcu mauris commodo leo, vel tempus arcu lacus id tortor. Sed non bibendum erat. Cras non lorem eget odio bibendum vestibulum.",
+    "Curabitur aliquet orci at felis laoreet, sed tempus turpis dapibus. Duis molestie ligula in arcu consectetur, eget vulputate enim cursus. Donec vitae nisi vitae risus volutpat tempor at sed ipsum.",
+    "Phasellus gravida, ligula vitae lacinia posuere, nibh nisl sodales leo, id tristique mi quam id nunc. Sed vel sapien at arcu imperdiet gravida quis id turpis. Etiam venenatis, ipsum in tempor aliquet, erat eros posuere nulla, vel ultricies turpis enim eget nibh.",
+    "Suspendisse non aliquet leo. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Sed consequat, velit nec tempor posuere, risus est pulvinar erat, sed varius sapien tellus vitae risus.",
+  ];
+  return paragraphs.map((p) => `<p>${p}</p>`).join("");
+};
+
+const buildBodyVi = (summary: string) => {
+  const paragraphs = [
+    summary,
+    "Nội dung mô tả đầy đủ hơn để xem bố cục hiển thị: lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer feugiat arcu vitae ante hendrerit, vel laoreet mi tempor.",
+    "Curabitur aliquet orci tại đây giúp bài viết dài hơn, dễ nhìn khi trình bày. Duis molestie ligula in arcu consectetur, eget vulputate enim cursus, giúp trang trông giống blog thực tế.",
+    "Phasellus gravida, ligula vitae lacinia posuere, nibh nisl sodales leo, id tristique mi quam id nunc. Sed vel sapien at arcu imperdiet gravida quis id turpis. Etiam venenatis, ipsum in tempor aliquet, erat eros posuere nulla, vel ultricies turpis enim eget nibh.",
+    "Suspendisse non aliquet leo. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Sed consequat, velit nec tempor posuere, risus est pulvinar erat, sed varius sapien tellus vitae risus.",
+  ];
+  return paragraphs.map((p) => `<p>${p}</p>`).join("");
+};
+
 async function main() {
   const existing = await prisma.user.count();
   if (existing > 0) {
@@ -26,7 +48,7 @@ async function main() {
 
   const [admin, partnerA, partnerB, partnerC, partnerD, investorA, investorB, investorC] = await Promise.all([
     prisma.user.create({
-      data: { name: "Admin", email: "admin@example.com", phone: "+84 123 456 789", role: Role.admin, passwordHash: password },
+      data: { name: "Seed Admin", email: "seed-admin@example.com", phone: "+84 123 456 789", role: Role.admin, passwordHash: password },
     }),
     prisma.user.create({
       data: { name: "Nguyễn Văn A", email: "nguyenvana@example.com", phone: "+84 912 345 678", role: Role.partner, passwordHash: password },
@@ -120,6 +142,22 @@ async function main() {
       },
     }),
   ]);
+
+  // Seed some map pins (multiple per project)
+  await prisma.projectLocation.createMany({
+    data: [
+      // Project 1 - Lao Cai vicinity
+      { projectId: project1.id, latitude: 22.336651, longitude: 104.148407, label: "Plot A" },
+      { projectId: project1.id, latitude: 22.345902, longitude: 104.162938, label: "Plot B" },
+      // Project 2 - Nghe An vicinity
+      { projectId: project2.id, latitude: 19.192106, longitude: 105.455933, label: "Zone 1" },
+      { projectId: project2.id, latitude: 19.205812, longitude: 105.470245, label: "Zone 2" },
+      // Project 3 - Ca Mau vicinity
+      { projectId: project3.id, latitude: 8.997533, longitude: 105.131836, label: "Mangrove West" },
+      // Project 4 - Quang Ngai vicinity
+      { projectId: project4.id, latitude: 15.120018, longitude: 108.532715, label: "Tre TB-01" },
+    ],
+  });
 
   // Tickets
   const ticket1 = await prisma.ticket.create({
@@ -301,124 +339,184 @@ async function main() {
       // English posts
       {
         title: "Project spotlight",
-        body: "See how partners and investors are accelerating reforestation across Northern Vietnam.",
+        body: buildBodyEn("See how partners and investors are accelerating reforestation across Northern Vietnam."),
         imageUrl: "https://images.unsplash.com/photo-1523978591478-c753949ff840?auto=format&fit=crop&w=1200&q=80",
         locale: "en",
       },
       {
         title: "Monitoring via satellites",
-        body: "Remote sensing plus on-the-ground logs keep progress transparent for every stakeholder.",
+        body: buildBodyEn("Remote sensing plus on-the-ground logs keep progress transparent for every stakeholder."),
         imageUrl: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80",
         locale: "en",
       },
       {
         title: "Community impact first",
-        body: "Training and fair-pay programs help local farmers thrive alongside new forests.",
+        body: buildBodyEn("Training and fair-pay programs help local farmers thrive alongside new forests."),
         imageUrl: "https://images.unsplash.com/photo-1506765515384-028b60a970df?auto=format&fit=crop&w=1200&q=80",
         locale: "en",
       },
       {
         title: "Mangrove recovery",
-        body: "Weekly salinity readings and photo logs track the health of restored mangroves.",
+        body: buildBodyEn("Weekly salinity readings and photo logs track the health of restored mangroves."),
         imageUrl: "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1200&q=80",
         locale: "en",
       },
       {
         title: "New partner onboarding",
-        body: "Field teams in Nghe An completed 50% of community workshops for soil care.",
+        body: buildBodyEn("Field teams in Nghe An completed 50% of community workshops for soil care."),
         imageUrl: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80",
         locale: "en",
       },
       {
         title: "Drone monitoring",
-        body: "Weekly drone imagery highlights canopy growth and soil moisture.",
+        body: buildBodyEn("Weekly drone imagery highlights canopy growth and soil moisture."),
         imageUrl: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80",
         locale: "en",
       },
       {
         title: "Farmer workshops",
-        body: "Half of local households joined training on seedling care and organic fertilization.",
+        body: buildBodyEn("Half of local households joined training on seedling care and organic fertilization."),
         imageUrl: "https://images.unsplash.com/photo-1506765515384-028b60a970df?auto=format&fit=crop&w=1200&q=80",
         locale: "en",
       },
       {
         title: "ESG reporting",
-        body: "Environmental and social indicators are being compiled for investors.",
+        body: buildBodyEn("Environmental and social indicators are being compiled for investors."),
         imageUrl: "https://images.unsplash.com/photo-1506765515384-028b60a970df?auto=format&fit=crop&w=1200&q=80",
         locale: "en",
       },
       {
         title: "Value-chain planning",
-        body: "Roadmap for timber, resin, and bamboo product sales by region.",
+        body: buildBodyEn("Roadmap for timber, resin, and bamboo product sales by region."),
         imageUrl: "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1200&q=80",
         locale: "en",
       },
       {
         title: "Fresh satellite imagery",
-        body: "This month’s satellite pass shows an 8% canopy density increase.",
+        body: buildBodyEn("This month’s satellite pass shows an 8% canopy density increase."),
         imageUrl: "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1200&q=80",
+        locale: "en",
+      },
+      {
+        title: "Soil health baseline",
+        body: buildBodyEn("Baseline soil carbon samples collected across five plots to track improvement."),
+        imageUrl: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80",
+        locale: "en",
+      },
+      {
+        title: "Nursery expansion",
+        body: buildBodyEn("A second nursery line is producing 2,000 seedlings per week to meet planting goals."),
+        imageUrl: "https://images.unsplash.com/photo-1523978591478-c753949ff840?auto=format&fit=crop&w=1200&q=80",
+        locale: "en",
+      },
+      {
+        title: "Biodiversity notes",
+        body: buildBodyEn("Camera traps captured returning bird species around the restored mangroves."),
+        imageUrl: "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1200&q=80",
+        locale: "en",
+      },
+      {
+        title: "Logistics check",
+        body: buildBodyEn("Road access cleared for the rainy season to keep sapling transport on schedule."),
+        imageUrl: "https://images.unsplash.com/photo-1506765515384-028b60a970df?auto=format&fit=crop&w=1200&q=80",
+        locale: "en",
+      },
+      {
+        title: "Community Q&A",
+        body: buildBodyEn("Monthly forum answered common questions about harvest timelines and revenue sharing."),
+        imageUrl: "https://images.unsplash.com/photo-1506765515384-028b60a970df?auto=format&fit=crop&w=1200&q=80",
         locale: "en",
       },
 
       // Vietnamese posts
       {
         title: "Tiêu điểm dự án",
-        body: "Đối tác và nhà đầu tư đang đẩy nhanh tiến độ trồng rừng tại miền Bắc.",
+        body: buildBodyVi("Đối tác và nhà đầu tư đang đẩy nhanh tiến độ trồng rừng tại miền Bắc."),
         imageUrl: "https://images.unsplash.com/photo-1523978591478-c753949ff840?auto=format&fit=crop&w=1200&q=80",
         locale: "vi",
       },
       {
         title: "Giám sát vệ tinh",
-        body: "Kết hợp ảnh vệ tinh và nhật ký hiện trường để minh bạch tiến độ.",
+        body: buildBodyVi("Kết hợp ảnh vệ tinh và nhật ký hiện trường để minh bạch tiến độ."),
         imageUrl: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80",
         locale: "vi",
       },
       {
         title: "Tác động cộng đồng",
-        body: "Các khóa tập huấn và chương trình thu nhập công bằng giúp nông hộ phát triển.",
+        body: buildBodyVi("Các khóa tập huấn và chương trình thu nhập công bằng giúp nông hộ phát triển."),
         imageUrl: "https://images.unsplash.com/photo-1506765515384-028b60a970df?auto=format&fit=crop&w=1200&q=80",
         locale: "vi",
       },
       {
         title: "Phục hồi rừng ngập mặn",
-        body: "Ghi nhận độ mặn và ảnh hiện trường hàng tuần để theo dõi sức khỏe rừng.",
+        body: buildBodyVi("Ghi nhận độ mặn và ảnh hiện trường hàng tuần để theo dõi sức khỏe rừng."),
         imageUrl: "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1200&q=80",
         locale: "vi",
       },
       {
         title: "Theo dõi rừng bằng drone",
-        body: "Ảnh flycam giúp giám sát tốc độ sinh trưởng theo từng tuần.",
+        body: buildBodyVi("Ảnh flycam giúp giám sát tốc độ sinh trưởng theo từng tuần."),
         imageUrl: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80",
         locale: "vi",
       },
       {
         title: "Hội thảo nông hộ",
-        body: "50% hộ dân đã tham gia tập huấn kỹ thuật ươm giống và bón phân hữu cơ.",
+        body: buildBodyVi("50% hộ dân đã tham gia tập huấn kỹ thuật ươm giống và bón phân hữu cơ."),
         imageUrl: "https://images.unsplash.com/photo-1506765515384-028b60a970df?auto=format&fit=crop&w=1200&q=80",
         locale: "vi",
       },
       {
         title: "Báo cáo ESG",
-        body: "Các chỉ số môi trường và xã hội đang được tổng hợp cho nhà đầu tư.",
+        body: buildBodyVi("Các chỉ số môi trường và xã hội đang được tổng hợp cho nhà đầu tư."),
         imageUrl: "https://images.unsplash.com/photo-1506765515384-028b60a970df?auto=format&fit=crop&w=1200&q=80",
         locale: "vi",
       },
       {
         title: "Kết nối chuỗi giá trị",
-        body: "Lập kế hoạch bán gỗ, nhựa thông và sản phẩm tre theo vùng.",
+        body: buildBodyVi("Lập kế hoạch bán gỗ, nhựa thông và sản phẩm tre theo vùng."),
         imageUrl: "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1200&q=80",
         locale: "vi",
       },
       {
         title: "Thử nghiệm giống mới",
-        body: "Ba giống keo lai được trồng thử tại Quảng Ngãi để đánh giá sinh trưởng.",
+        body: buildBodyVi("Ba giống keo lai được trồng thử tại Quảng Ngãi để đánh giá sinh trưởng."),
         imageUrl: "https://images.unsplash.com/photo-1523978591478-c753949ff840?auto=format&fit=crop&w=1200&q=80",
         locale: "vi",
       },
       {
         title: "Bảo vệ rừng cộng đồng",
-        body: "Tổ chức tuần tra định kỳ và ghi nhận hiện trạng bằng ứng dụng di động.",
+        body: buildBodyVi("Tổ chức tuần tra định kỳ và ghi nhận hiện trạng bằng ứng dụng di động."),
         imageUrl: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80",
+        locale: "vi",
+      },
+      {
+        title: "Đo mẫu đất",
+        body: buildBodyVi("Lấy mẫu carbon đất tại 5 ô thí nghiệm để theo dõi mức cải thiện theo thời gian."),
+        imageUrl: "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1200&q=80",
+        locale: "vi",
+      },
+      {
+        title: "Mở rộng vườn ươm",
+        body: buildBodyVi("Dây chuyền ươm thứ hai đang cung cấp 2.000 cây giống mỗi tuần."),
+        imageUrl: "https://images.unsplash.com/photo-1523978591478-c753949ff840?auto=format&fit=crop&w=1200&q=80",
+        locale: "vi",
+      },
+      {
+        title: "Đa dạng sinh học",
+        body: buildBodyVi("Bẫy ảnh ghi nhận chim quay lại khu rừng ngập mặn vừa phục hồi."),
+        imageUrl: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80",
+        locale: "vi",
+      },
+      {
+        title: "Kiểm tra hậu cần",
+        body: buildBodyVi("Đã dọn đường vận chuyển cây giống trước mùa mưa để đảm bảo tiến độ trồng."),
+        imageUrl: "https://images.unsplash.com/photo-1506765515384-028b60a970df?auto=format&fit=crop&w=1200&q=80",
+        locale: "vi",
+      },
+      {
+        title: "Gặp gỡ cộng đồng",
+        body: buildBodyVi("Phiên hỏi đáp hằng tháng giải đáp thắc mắc về thời gian thu hoạch và chia sẻ lợi nhuận."),
+        imageUrl: "https://images.unsplash.com/photo-1506765515384-028b60a970df?auto=format&fit=crop&w=1200&q=80",
         locale: "vi",
       },
     ],

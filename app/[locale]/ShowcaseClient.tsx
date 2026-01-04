@@ -1,39 +1,55 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import useEmblaCarousel from "embla-carousel-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
-import { useTranslation } from "react-i18next";
-import { ImageWithFallback } from "../figma/ImageWithFallback";
-import { ShowcaseContent } from "@/types/showcase";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
+import { ShowcaseContent } from "@/types/showcase";
+import { useRouter } from "next/navigation";
 
 type Props = {
   locale: string;
   content: ShowcaseContent;
+  isAuthenticated?: boolean;
+  dashboardPath?: string;
+  loginPath?: string;
 };
 
-export function PublicShowcase({ locale, content }: Props) {
+export function ShowcaseClient({ locale, content, isAuthenticated, dashboardPath, loginPath }: Props) {
   const { t } = useTranslation();
+  const router = useRouter();
   const [page, setPage] = useState(1);
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
 
-  // auto-slide headlines every 6s
+  const goTo = useCallback(
+    (href?: string) => {
+      if (!href) return;
+      router.push(href);
+    },
+    [router]
+  );
+
   useEffect(() => {
     if (!emblaApi) return;
     const autoScroll = () => {
       const slides = emblaApi.slideNodes().length;
       if (slides <= 1) return;
-      if (emblaApi.canScrollNext()) {
-        emblaApi.scrollNext();
-      } else {
-        emblaApi.scrollTo(0);
-      }
+      if (emblaApi.canScrollNext()) emblaApi.scrollNext();
+      else emblaApi.scrollTo(0);
     };
     const id = setInterval(autoScroll, 6000);
     return () => clearInterval(id);
   }, [emblaApi]);
+
+  const previewBody = (text?: string | null) => {
+    if (!text) return "";
+    const stripped = text.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+    return stripped.length > 180 ? `${stripped.slice(0, 180)}…` : stripped;
+  };
 
   const data: ShowcaseContent = {
     heroTitle: content.heroTitle || "Lorem ipsum dolor sit amet",
@@ -45,7 +61,7 @@ export function PublicShowcase({ locale, content }: Props) {
   const posts = data.posts ?? [];
   const headlinePosts = posts.slice(0, HEADLINE_COUNT);
   const archivePosts = posts.slice(HEADLINE_COUNT);
-  const pageSize = 4;
+  const pageSize = 5;
   const totalPages = Math.max(1, Math.ceil(Math.max(archivePosts.length, 1) / pageSize));
   const pagedPosts = useMemo(() => {
     const start = (page - 1) * pageSize;
@@ -54,8 +70,22 @@ export function PublicShowcase({ locale, content }: Props) {
 
   return (
     <div className="space-y-8">
-      <Card className="bg-gradient-to-br from-green-600 to-emerald-700 text-white">
-        <CardContent className="pt-6 pb-8">
+      <div className="flex justify-end">
+        {isAuthenticated && dashboardPath ? (
+          <Button size="sm" variant="outline" onClick={() => goTo(dashboardPath)}>
+            {t("common.dashboard", { defaultValue: "Dashboard" })}
+          </Button>
+        ) : (
+          loginPath && (
+            <Button size="sm" variant="default" onClick={() => goTo(loginPath)}>
+              {t("login.signIn", { defaultValue: "Sign In" })}
+            </Button>
+          )
+        )}
+      </div>
+
+      <Card className="bg-gradient-to-br from-green-600 to-emerald-700 text-white relative overflow-hidden">
+        <CardContent className="pt-6 pb-10">
           <div className="max-w-3xl mx-auto text-center space-y-4">
             <h1 className="text-white">{data.heroTitle}</h1>
             <p className="text-lg text-green-50">{data.heroDescription}</p>
@@ -101,7 +131,7 @@ export function PublicShowcase({ locale, content }: Props) {
             <div className="flex">
               {headlinePosts.map((post, idx) => (
                 <div key={idx} className="min-w-0 flex-[0_0_100%] md:flex-[0_0_50%] pr-4">
-                  <Link href={`/${locale}/blog/${post.id ?? ""}`} className="block h-full">
+                  <Link href={`/${locale}/post/${post.id ?? ""}`} className="block h-full">
                     <Card className="overflow-hidden border h-full">
                       {post.imageUrl ? (
                         <div className="h-40 bg-muted">
@@ -110,7 +140,7 @@ export function PublicShowcase({ locale, content }: Props) {
                       ) : null}
                       <CardContent className="p-4 space-y-2">
                         <h3 className="text-lg font-semibold">{post.title}</h3>
-                        <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">{post.body}</p>
+                        <p className="text-sm text-gray-600 leading-relaxed">{previewBody(post.body)}</p>
                       </CardContent>
                     </Card>
                   </Link>
@@ -147,15 +177,24 @@ export function PublicShowcase({ locale, content }: Props) {
               </div>
             </div>
             {pagedPosts.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="space-y-3">
                 {pagedPosts.map((post, idx) => (
-                  <Link key={`${post.title}-${idx}`} href={`/${locale}/blog/${post.id ?? ""}`} className="block">
-                    <Card className="border h-full">
-                      <CardContent className="p-4 space-y-2">
+                  <Link
+                    key={`${post.title}-${idx}`}
+                    href={`/${locale}/post/${post.id ?? ""}`}
+                    className="block border rounded-lg bg-white hover:shadow-sm transition"
+                  >
+                    <div className="flex gap-3 p-4">
+                      {post.imageUrl ? (
+                        <div className="w-24 h-24 flex-shrink-0 rounded-md overflow-hidden bg-gray-100">
+                          <ImageWithFallback src={post.imageUrl} alt={post.title} className="w-full h-full object-cover" />
+                        </div>
+                      ) : null}
+                      <div className="flex-1 space-y-1">
                         <h4 className="font-semibold">{post.title}</h4>
-                        <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">{post.body}</p>
-                      </CardContent>
-                    </Card>
+                        <p className="text-sm text-gray-600 leading-relaxed">{previewBody(post.body)}</p>
+                      </div>
+                    </div>
                   </Link>
                 ))}
               </div>

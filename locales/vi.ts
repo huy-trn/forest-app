@@ -326,7 +326,9 @@ export const vi:TextMap = {
             saved: "Đã lưu vị trí trên thiết bị.",
             required: "Cần nhập vĩ độ và kinh độ.",
             noGeo: "Thiết bị không hỗ trợ định vị.",
-            setFromDevice: "Đã lấy vị trí từ thiết bị."
+            setFromDevice: "Đã lấy vị trí từ thiết bị.",
+            project: "Dự án",
+            hintPins: "Cho phép nhiều ghim. Bấm để thêm, kéo để di chuyển."
         },
         projects: {
             assigned: "Dự án được phân công",
@@ -391,7 +393,7 @@ export const vi:TextMap = {
     blog: {
         title: "Blog",
         empty: "Chưa có bài viết.",
-        back: "Quay lại blog",
+        back: "Quay lại trang chính",
         notFound: "Không tìm thấy bài viết"
     },
     common: {
@@ -399,7 +401,21 @@ export const vi:TextMap = {
         close: "Đóng",
         back: "Quay lại",
         next: "Tiếp",
-        home: "Trang chủ"
+        home: "Trang chủ",
+        dashboard: "Bảng điều khiển",
+        map: {
+            loadingPins: "Đang tải ghim…",
+            loadPinsFailed: "Không tải được vị trí",
+            addPinFailed: "Không thể thêm ghim",
+            updatePinFailed: "Không thể cập nhật ghim",
+            deletePinFailed: "Không thể xóa ghim",
+            projectPins: "Các ghim của dự án",
+            addPinHint: "Bấm vào bản đồ để thêm ghim. Kéo để di chuyển.",
+            delete: "Xóa",
+            loadingProjects: "Đang tải dự án…",
+            selectProject: "Chọn dự án",
+            noProjectSelected: "Chưa chọn dự án."
+        }
     },
     onboarding: {
         title: "Hoàn tất tài khoản",

@@ -18,7 +18,7 @@ export function BlogPostClient({ locale, post }: { locale: string; post: Post | 
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 py-10 space-y-4">
-          <Link href={`/${locale}/blog`} className="text-sm text-green-700 hover:text-green-900">
+          <Link href={`/${locale}`} className="text-sm text-green-700 hover:text-green-900">
             ← {t("blog.back", { defaultValue: "Back to blog" })}
           </Link>
           <h1 className="text-2xl font-semibold">{t("blog.notFound", { defaultValue: "Post not found" })}</h1>
@@ -29,18 +29,25 @@ export function BlogPostClient({ locale, post }: { locale: string; post: Post | 
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-10 space-y-6">
-        <Link href={`/${locale}/blog`} className="text-sm text-green-700 hover:text-green-900">
-          ← {t("blog.back", { defaultValue: "Back to blog" })}
-        </Link>
-        <article className="bg-white rounded-lg border p-6 shadow-sm space-y-4">
-          <h1 className="text-3xl font-semibold">{post.title}</h1>
+      <div className="container mx-auto px-4 py-10 space-y-8">
+        <div className="flex items-center justify-between">
+          <Link href={`/${locale}`} className="text-sm text-green-700 hover:text-green-900">
+            ← {t("blog.back", { defaultValue: "Back to blog" })}
+          </Link>
+        </div>
+        <article className="bg-white rounded-2xl border shadow-sm max-w-4xl mx-auto overflow-hidden">
           {post.imageUrl ? (
-            <div className="rounded-lg overflow-hidden">
-              <img src={post.imageUrl} alt={post.title} className="w-full h-auto object-cover" />
+            <div className="w-full h-72 md:h-80 lg:h-96 bg-gray-100 overflow-hidden">
+              <img src={post.imageUrl} alt={post.title} className="w-full h-full object-cover" />
             </div>
           ) : null}
-          <p className="text-base leading-relaxed text-gray-700 whitespace-pre-line">{post.body}</p>
+          <div className="p-6 md:p-8 space-y-6">
+            <h1 className="text-3xl font-semibold leading-tight">{post.title}</h1>
+            <div
+              className="prose prose-gray max-w-none text-gray-800"
+              dangerouslySetInnerHTML={{ __html: post.body || "" }}
+            />
+          </div>
         </article>
       </div>
     </div>

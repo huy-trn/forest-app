@@ -15,16 +15,42 @@ services:
     build: .
     restart: unless-stopped
     depends_on:
-      - db
+      db:
+        condition: service_started
+      nominatim:
+        condition: service_healthy
     environment:
       NODE_ENV: production
       PORT: 3000
       POSTGRES_URL: postgres://postgres:postgres@db:5432/forest_db
       NEXT_TELEMETRY_DISABLED: "1"
       NEXTAUTH_URL: http://localhost:3000
+      NOMINATIM_URL: http://nominatim:8080
     ports:
       - "3000:3000"
     command: ["sh", "-c", "npx prisma migrate deploy && npx prisma db seed && npm run start"]
 
+  nominatim:
+    image: mediagis/nominatim:4.4
+    restart: unless-stopped
+    environment:
+      # Import Vietnam extract on first run; adjust as needed
+      PBF_URL: https://download.geofabrik.de/asia/vietnam-latest.osm.pbf
+      # Optional: enable address normalization
+      NOMINATIM_COMBINED_ADDRESS: "true"
+    ports:
+      - "8080:8080"
+    volumes:
+      - nominatim-data:/var/lib/postgresql/data
+      - nominatim-nominatim:/var/lib/nominatim
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "-", "http://localhost:8080/search?format=json&q=test&limit=1"]
+      interval: 30s
+      timeout: 10s
+      retries: 60
+      start_period: 60s
+
 volumes:
   db-data:
+  nominatim-data:
+  nominatim-nominatim:

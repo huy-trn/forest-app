@@ -6,7 +6,7 @@ export default async function AdminPage({ params }: { params: { locale: string }
   const locale = params.locale || "en";
   const user = await getUserFromCookies();
   if (!user) redirect(`/${locale}/login`);
-  if (user.role !== "admin") redirect(`/${locale}`);
+  if (user.role !== "admin" && user.role !== "root") redirect(`/${locale}`);
 
   return (
     <AdminDashboardClient

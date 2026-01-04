@@ -165,103 +165,104 @@ export function ProjectManagement() {
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>{t('admin.projectManagement.title')}</CardTitle>
-              <CardDescription>{t('admin.projectManagement.desc')}</CardDescription>
-            </div>
-            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <FolderPlus className="w-4 h-4 mr-2" />
-                  {t('admin.projectManagement.createBtn')}
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>{t('admin.projectManagement.createTitle')}</DialogTitle>
-                  <DialogDescription>{t('admin.projectManagement.createDesc')}</DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="project-title">{t('admin.projectManagement.nameLabel')}</Label>
-                    <Input
-                      id="project-title"
-                      value={newProject.title}
-                      onChange={(e) => setNewProject({ ...newProject, title: e.target.value })}
-                      placeholder={t('admin.projectManagement.namePlaceholder')}
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="project-country">{t('admin.projectManagement.countryLabel')}</Label>
-                      <Input
-                        id="project-country"
-                        value={newProject.country}
-                        onChange={(e) => setNewProject({ ...newProject, country: e.target.value })}
-                        placeholder={t('admin.projectManagement.countryPlaceholder')}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="project-province">{t('admin.projectManagement.provinceLabel')}</Label>
-                      <Input
-                        id="project-province"
-                        value={newProject.province}
-                        onChange={(e) => setNewProject({ ...newProject, province: e.target.value })}
-                        placeholder={t('admin.projectManagement.provincePlaceholder')}
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="project-area">{t('admin.projectManagement.areaLabel')}</Label>
-                    <Input
-                      id="project-area"
-                      value={newProject.area}
-                      onChange={(e) => setNewProject({ ...newProject, area: e.target.value })}
-                      placeholder={t('admin.projectManagement.areaPlaceholder')}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="project-description">{t('admin.projectManagement.descLabel')}</Label>
-                    <Textarea
-                      id="project-description"
-                      value={newProject.description}
-                      onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
-                      placeholder={t('admin.projectManagement.descPlaceholder')}
-                      rows={4}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                <Label>{t('admin.projectManagement.assignLabel')}</Label>
-                <div className="border rounded-lg p-4 max-h-48 overflow-y-auto space-y-3">
-                  {allUsers.map((user) => (
-                    <div key={user.id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`user-${user.id}`}
-                        checked={selectedMembers.includes(user.id)}
-                            onCheckedChange={(checked: boolean) => {
-                              if (checked) {
-                                setSelectedMembers([...selectedMembers, user.id]);
-                              } else {
-                                setSelectedMembers(selectedMembers.filter(id => id !== user.id));
-                              }
-                            }}
-                          />
-                          <label htmlFor={`user-${user.id}`} className="flex-1 cursor-pointer">
-                            {user.name} <Badge variant="outline" className="ml-2">{user.role === 'partner' ? t('admin.projectManagement.partner') : t('admin.projectManagement.investor')}</Badge>
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <Button onClick={handleCreateProject} className="w-full">{t('admin.projectManagement.createBtn')}</Button>
-                </div>
-              </DialogContent>
-            </Dialog>
+      <Card className="border-emerald-100 bg-emerald-50/60">
+        <CardContent className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-4">
+          <div>
+            <CardTitle className="text-lg">{t('admin.projectManagement.title')}</CardTitle>
+            <CardDescription>{t('admin.projectManagement.desc')}</CardDescription>
+            <p className="text-xs text-emerald-800 mt-1">
+              {t('admin.projectManagement.projects', { defaultValue: 'Projects' })}: {projects.length}
+            </p>
           </div>
-        </CardHeader>
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <FolderPlus className="w-4 h-4 mr-2" />
+                {t('admin.projectManagement.createBtn')}
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>{t('admin.projectManagement.createTitle')}</DialogTitle>
+                <DialogDescription>{t('admin.projectManagement.createDesc')}</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="project-title">{t('admin.projectManagement.nameLabel')}</Label>
+                  <Input
+                    id="project-title"
+                    value={newProject.title}
+                    onChange={(e) => setNewProject({ ...newProject, title: e.target.value })}
+                    placeholder={t('admin.projectManagement.namePlaceholder')}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="project-country">{t('admin.projectManagement.countryLabel')}</Label>
+                    <Input
+                      id="project-country"
+                      value={newProject.country}
+                      onChange={(e) => setNewProject({ ...newProject, country: e.target.value })}
+                      placeholder={t('admin.projectManagement.countryPlaceholder')}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="project-province">{t('admin.projectManagement.provinceLabel')}</Label>
+                    <Input
+                      id="project-province"
+                      value={newProject.province}
+                      onChange={(e) => setNewProject({ ...newProject, province: e.target.value })}
+                      placeholder={t('admin.projectManagement.provincePlaceholder')}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="project-area">{t('admin.projectManagement.areaLabel')}</Label>
+                  <Input
+                    id="project-area"
+                    value={newProject.area}
+                    onChange={(e) => setNewProject({ ...newProject, area: e.target.value })}
+                    placeholder={t('admin.projectManagement.areaPlaceholder')}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="project-description">{t('admin.projectManagement.descLabel')}</Label>
+                  <Textarea
+                    id="project-description"
+                    value={newProject.description}
+                    onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
+                    placeholder={t('admin.projectManagement.descPlaceholder')}
+                    rows={4}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t('admin.projectManagement.assignLabel')}</Label>
+                  <div className="border rounded-lg p-4 max-h-48 overflow-y-auto space-y-3">
+                    {allUsers.map((user) => (
+                      <div key={user.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`user-${user.id}`}
+                          checked={selectedMembers.includes(user.id)}
+                          onCheckedChange={(checked: boolean) => {
+                            if (checked) {
+                              setSelectedMembers([...selectedMembers, user.id]);
+                            } else {
+                              setSelectedMembers(selectedMembers.filter(id => id !== user.id));
+                            }
+                          }}
+                        />
+                        <Label htmlFor={`user-${user.id}`} className="flex-1 cursor-pointer">
+                          {user.name} <Badge variant="outline" className="ml-2">{user.role === 'partner' ? t('admin.projectManagement.partner') : t('admin.projectManagement.investor')}</Badge>
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <Button onClick={handleCreateProject} className="w-full">{t('admin.projectManagement.createBtn')}</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </CardContent>
       </Card>
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>

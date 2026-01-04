@@ -1,134 +1,160 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { useTranslation } from 'react-i18next';
-import { Badge } from '../ui/badge';
-import { Button } from '../ui/button';
-import { Progress } from '../ui/progress';
-import { MapPin, Calendar, TreeDeciduous, Users, Eye } from 'lucide-react';
+import { useTranslation } from "react-i18next";
+import { useQuery } from "@tanstack/react-query";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
+import { Badge } from "../ui/badge";
+import { Button } from "../ui/button";
+import { Progress } from "../ui/progress";
+import { MapPin, Calendar, TreeDeciduous, Users, Eye } from "lucide-react";
 
-const myProjects = [
-  {
-    id: '1',
-    title: 'Dự án Rừng Thông Miền Bắc',
-    description: 'Dự án trồng rừng thông quy mô lớn',
-    country: 'Việt Nam',
-    province: 'Lào Cai',
-    area: '125 hecta',
-    status: 'active',
-    progress: 65,
-    startDate: '2024-01-20',
-    treesPlanted: 9750,
-    targetTrees: 15000,
-    lastUpdate: '2025-11-14',
-    members: [
-      { id: '1', name: 'Nguyễn Văn A', role: 'partner' },
-      { id: '3', name: 'Lê Văn C', role: 'investor' }
-    ],
-    recentActivities: [
-      { date: '2025-11-14', activity: 'Trồng 200 cây thông khu vực A-1' },
-      { date: '2025-11-12', activity: 'Bảo dưỡng và làm cỏ khu vực B' }
-    ]
-  }
-];
+type Project = {
+  id: string;
+  title: string;
+  description?: string | null;
+  country?: string | null;
+  province?: string | null;
+  area?: string | null;
+  status?: string | null;
+  progress?: number | null;
+  startDate?: string | null;
+  treesPlanted?: number | null;
+  targetTrees?: number | null;
+  lastUpdate?: string | null;
+  members?: Array<{ id: string; name: string; role: string }>;
+  recentActivities?: Array<{ date: string; activity: string }>;
+};
 
 export function InvestorProjects() {
   const { t } = useTranslation();
+  const projectsQuery = useQuery({
+    queryKey: ["projects"],
+    queryFn: async () => {
+      const res = await fetch("/api/projects");
+      if (!res.ok) throw new Error("Failed to load projects");
+      return res.json() as Promise<Project[]>;
+    },
+  });
+
+  const projects = projectsQuery.data || [];
+
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('investor.projects.title')}</CardTitle>
-          <CardDescription>{t('investor.projects.desc')}</CardDescription>
-        </CardHeader>
+      <Card className="border-emerald-100 bg-emerald-50/60">
+        <CardContent className="flex items-center justify-between gap-3 py-4">
+          <div>
+            <CardTitle className="text-lg">{t("investor.projects.title")}</CardTitle>
+            <CardDescription>{t("investor.projects.desc")}</CardDescription>
+            <p className="text-xs text-emerald-800 mt-1">
+              {t("partner.projects.projectsLabel", { defaultValue: "Projects" })}: {projects.length}
+            </p>
+          </div>
+        </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 gap-6">
-        {myProjects.map((project) => (
-          <Card key={project.id} className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div>
-                  <CardTitle className="text-lg">{project.title}</CardTitle>
-                  <div className="flex items-center gap-2 text-sm text-gray-600 mt-1">
-                    <MapPin className="w-4 h-4" />
-                    {project.province}, {project.country}
-                  </div>
-                </div>
-                <Badge variant="default">{project.status === 'active' ? t('investor.projects.active') : t('investor.projects.completed')}</Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-gray-600">{project.description}</p>
-
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div>
-                  <p className="text-sm text-gray-600">{t('investor.projects.area')}</p>
-                  <p>{project.area}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">{t('investor.projects.startDate')}</p>
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
-                    <p>{project.startDate}</p>
-                  </div>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">{t('investor.projects.treesPlanted')}</p>
-                  <div className="flex items-center gap-2">
-                    <TreeDeciduous className="w-4 h-4 text-green-600" />
-                    <p>{project.treesPlanted.toLocaleString()}</p>
-                  </div>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">{t('investor.projects.target')}</p>
-                  <p>{project.targetTrees.toLocaleString()} {t('investor.projects.trees')}</p>
-                </div>
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm text-gray-600">{t('investor.projects.progress')}</p>
-                  <p className="text-sm">{project.progress}%</p>
-                </div>
-                <Progress value={project.progress} />
-              </div>
-
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <Users className="w-4 h-4 text-gray-600" />
-                  <p className="text-sm text-gray-600">{t('investor.projects.members', { count: project.members.length })} ({project.members.length})</p>
-                </div>
-                <div className="flex flex-wrap gap-1">
-                  {project.members.map((member) => (
-                    <Badge key={member.id} variant="outline" className="text-xs">
-                      {member.name} ({member.role === 'partner' ? t('investor.projects.partner') : t('investor.projects.investor')})
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-
-              <div className="pt-3 border-t">
-                <p className="text-sm text-gray-600 mb-2">{t('investor.projects.recent')}</p>
-                <div className="space-y-2">
-                  {project.recentActivities.map((activity, idx) => (
-                    <div key={idx} className="flex items-start gap-2 text-sm">
-                      <Calendar className="w-4 h-4 text-gray-400 mt-0.5" />
-                      <div>
-                        <p className="text-gray-600">{activity.date}</p>
-                        <p>{activity.activity}</p>
-                      </div>
+      {projectsQuery.isLoading ? (
+        <p className="text-sm text-gray-500">Loading projects...</p>
+      ) : projectsQuery.isError ? (
+        <p className="text-sm text-red-600">Failed to load projects</p>
+      ) : (
+        <div className="grid grid-cols-1 gap-6">
+          {projects.map((project) => (
+            <Card key={project.id} className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div>
+                    <CardTitle className="text-lg">{project.title}</CardTitle>
+                    <div className="flex items-center gap-2 text-sm text-gray-600 mt-1">
+                      <MapPin className="w-4 h-4" />
+                      {(project.province || t("partner.projects.province", { defaultValue: "Province" }))},{" "}
+                      {project.country || t("partner.projects.country", { defaultValue: "Country" })}
                     </div>
-                  ))}
+                  </div>
+                  <Badge variant="default">
+                    {project.status === "active" ? t("investor.projects.active") : t("investor.projects.completed")}
+                  </Badge>
                 </div>
-              </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-gray-600">{project.description}</p>
 
-              <Button variant="outline" className="w-full">
-                <Eye className="w-4 h-4 mr-2" />
-                {t('investor.projects.detail')}
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600">{t("investor.projects.area")}</p>
+                    <p>{project.area || "-"}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">{t("investor.projects.startDate")}</p>
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4" />
+                      <p>{project.startDate || "-"}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">{t("investor.projects.treesPlanted")}</p>
+                    <div className="flex items-center gap-2">
+                      <TreeDeciduous className="w-4 h-4 text-green-600" />
+                      <p>{(project.treesPlanted ?? 0).toLocaleString()}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">{t("investor.projects.target")}</p>
+                    <p>
+                      {(project.targetTrees ?? 0).toLocaleString()} {t("investor.projects.trees")}
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm text-gray-600">{t("investor.projects.progress")}</p>
+                    <p className="text-sm">{project.progress ?? 0}%</p>
+                  </div>
+                  <Progress value={project.progress ?? 0} />
+                </div>
+
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Users className="w-4 h-4 text-gray-600" />
+                    <p className="text-sm text-gray-600">
+                      {t("investor.projects.members", { count: project.members?.length || 0 })} ({project.members?.length || 0})
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {project.members?.map((member) => (
+                      <Badge key={member.id} variant="outline" className="text-xs">
+                        {member.name} ({member.role === "partner" ? t("investor.projects.partner") : t("investor.projects.investor")})
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                {project.recentActivities?.length ? (
+                  <div className="pt-3 border-t">
+                    <p className="text-sm text-gray-600 mb-2">{t("investor.projects.recent")}</p>
+                    <div className="space-y-2">
+                      {project.recentActivities.map((activity, idx) => (
+                        <div key={idx} className="flex items-start gap-2 text-sm">
+                          <Calendar className="w-4 h-4 text-gray-400 mt-0.5" />
+                          <div>
+                            <p className="text-gray-600">{activity.date}</p>
+                            <p>{activity.activity}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
+                <div className="flex justify-end">
+                  <Button variant="ghost" size="sm" className="text-emerald-700 hover:text-emerald-900">
+                    <Eye className="w-4 h-4 mr-1" />
+                    {t("investor.projects.detail", { defaultValue: "View detail" })}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

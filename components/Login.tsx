@@ -102,9 +102,6 @@ export function Login({ onLogin, loading, error }: LoginProps) {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? t("login.loading") ?? "Signing in..." : t("login.signIn")}
             </Button>
-            <p className="text-xs text-gray-500">
-              Demo users (password: password123): admin@example.com, nguyenvana@example.com, tranthib@example.com, levanc@example.com
-            </p>
           </form>
         </CardContent>
       </Card>
