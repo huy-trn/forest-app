@@ -37,7 +37,7 @@ services:
       # Import Vietnam extract on first run; adjust as needed
       PBF_URL: https://download.geofabrik.de/asia/vietnam-latest.osm.pbf
       # Optional: enable address normalization
-      NOMINATIM_COMBINED_ADDRESS: "true"
+      COMBINED_ADDRESS: "true"
     ports:
       - "8080:8080"
     volumes:

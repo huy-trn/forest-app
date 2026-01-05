@@ -1,7 +1,8 @@
 import { languages } from "./languages";
 import { TextMap } from "./types";
 
-export const vi:TextMap = {
+export const vi: TextMap = {
+    country: "Việt Nam",
     language: {
         ...languages
     },
@@ -215,7 +216,7 @@ export const vi:TextMap = {
         }
     },
     investor: {
-        dashboard:{
+        dashboard: {
             title: "Bảng điều khiển",
             role: "Nhà đầu tư",
             logout: "Đăng xuất",
@@ -299,7 +300,7 @@ export const vi:TextMap = {
         },
     },
     partner: {
-        dashboard:{
+        dashboard: {
             title: "Bảng điều khiển",
             role: "Đối tác",
             logout: "Đăng xuất",
@@ -397,24 +398,69 @@ export const vi:TextMap = {
         notFound: "Không tìm thấy bài viết"
     },
     common: {
+        reset: "Đặt lại",
         error: "Có lỗi xảy ra",
+        cancel: "Hủy",
         close: "Đóng",
         back: "Quay lại",
         next: "Tiếp",
         home: "Trang chủ",
         dashboard: "Bảng điều khiển",
         map: {
-            loadingPins: "Đang tải ghim…",
-            loadPinsFailed: "Không tải được vị trí",
-            addPinFailed: "Không thể thêm ghim",
-            updatePinFailed: "Không thể cập nhật ghim",
-            deletePinFailed: "Không thể xóa ghim",
-            projectPins: "Các ghim của dự án",
-            addPinHint: "Bấm vào bản đồ để thêm ghim. Kéo để di chuyển.",
+            updatePinFailed: "Cập nhật vị trí khu rừng thất bại",
+            loadingPins: "Đang tải vị trí khu rừng…",
+            loadPinsFailed: "Tải vị trí thất bại",
+            addPinFailed: "Thêm vị trí khu rừng thất bại",
+            updateFailed: "Không thể cập nhật vị trí khu rừng",
+            deletePinFailed: "Xóa vị trí khu rừng thất bại",
+            projectPins: "Vị trí khu rừng của dự án",
+            pinModeHint: "Chế độ thêm: nhấn bản đồ hoặc tìm kiếm để đặt vị trí khu rừng, sau đó điền thông tin và ranh giới.",
             delete: "Xóa",
             loadingProjects: "Đang tải dự án…",
             selectProject: "Chọn dự án",
-            noProjectSelected: "Chưa chọn dự án."
+            noProjectSelected: "Chưa chọn dự án.",
+            searchPlaceholder: "Tìm địa điểm",
+            searching: "Đang tìm...",
+            showPolygons: "Hiển thị ranh giới",
+            hideTools: "Ẩn công cụ",
+            showTools: "Hiển thị công cụ",
+            finishDrawing: "Kết thúc vẽ ranh giới",
+            drawPolygon: "Vẽ ranh giới",
+            drawingHint: "Nhấp bản đồ để thêm điểm ranh giới, lưu để áp dụng.",
+            drawHint: "Bật vẽ để phác họa ranh giới trên bản đồ.",
+            pinCount: "{{count}} vị trí khu rừng",
+            quickPins: "Vị trí khu rừng",
+            viewAll: "Mở danh sách",
+            unnamed: "Vị trí chưa đặt tên",
+            pins: "Danh sách vị trí",
+            addPin: "Thêm vị trí khu rừng",
+            name: "Tên vị trí khu rừng",
+            description: "Mô tả",
+            latitude: "Vĩ độ",
+            longitude: "Kinh độ",
+            latPlaceholder: "Vĩ độ tâm",
+            lngPlaceholder: "Kinh độ tâm",
+            polygon: "Ranh giới (JSON array [lat, lng])",
+            savePin: "Lưu vị trí khu rừng",
+            viewOnly: "Chỉ xem.",
+            focus: "Định vị",
+            history: "Lịch sử",
+            polygonJson: "Ranh giới (JSON)",
+            preview: "Xem nhanh",
+            save: "Lưu thay đổi",
+            addPinHint: "Thêm vị trí khu rừng mới",
+            historyList: "Lịch sử thay đổi",
+            refresh: "Tải lại",
+            loading: "Đang tải...",
+            unknownUser: "Không rõ",
+            restore: "Khôi phục",
+            currentState: "Trạng thái hiện tại",
+            noHistory: "Chưa có lịch sử.",
+            noPinsYet: "Chưa có vị trí khu rừng nào. Chuyển sang Thêm để tạo mới.",
+            noPinsView: "Chưa có vị trí khu rừng trong dự án này.",
+            invalidCoordinates: "Vui lòng nhập tọa độ hợp lệ",
+            addPinMode: "Thêm pin",
+            edit: "Chỉnh sửa"
         }
     },
     onboarding: {

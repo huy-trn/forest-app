@@ -50,6 +50,7 @@ model User {
   investorRequests InvestorRequest[]
   accounts   Account[]
   sessions   Session[]
+  locationVersions ProjectLocationVersion[]
 }
 
 model Project {
@@ -64,6 +65,7 @@ model Project {
   members     ProjectMember[]
   tickets     Ticket[]
   locations   ProjectLocation[]
+  locationVersions ProjectLocationVersion[]
 }
 
 model ProjectMember {
@@ -212,8 +214,34 @@ model ProjectLocation {
   latitude  Float
   longitude Float
   label     String?
+  name      String?
+  description String?
+  polygon   Json?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+  versions  ProjectLocationVersion[]
 
   @@index([projectId])
+}
+
+model ProjectLocationVersion {
+  id          String   @id @default(uuid())
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId   String
+  location    ProjectLocation @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  locationId  String
+  user        User?    @relation(fields: [userId], references: [id])
+  userId      String?
+  operation   String
+  latitude    Float
+  longitude   Float
+  label       String?
+  name        String?
+  description String?
+  polygon     Json?
+  createdAt   DateTime @default(now())
+
+  @@index([projectId])
+  @@index([locationId])
 }

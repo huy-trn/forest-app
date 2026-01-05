@@ -2,6 +2,7 @@
 import { languages } from "./languages";
 
 export const en = {
+    country: "England",
     language: {
         ...languages
     },
@@ -215,7 +216,7 @@ export const en = {
         }
     },
     investor: {
-        dashboard:{
+        dashboard: {
             title: "Dashboard",
             role: "Investor",
             logout: "Log out",
@@ -299,7 +300,7 @@ export const en = {
         },
     },
     partner: {
-        dashboard:{
+        dashboard: {
             title: "Dashboard",
             role: "Partner",
             logout: "Log out",
@@ -397,24 +398,69 @@ export const en = {
         notFound: "Post not found"
     },
     common: {
+        reset: "Reset",
         error: "Something went wrong",
+        cancel: "Cancel",
         close: "Close",
         back: "Back",
         next: "Next",
         home: "Home",
         dashboard: "Dashboard",
         map: {
-            loadingPins: "Loading pins…",
+            loadingPins: "Loading locations…",
             loadPinsFailed: "Failed to load locations",
-            addPinFailed: "Failed to add pin",
-            updatePinFailed: "Failed to update pin",
-            deletePinFailed: "Failed to delete pin",
-            projectPins: "Project pins",
-            addPinHint: "Click map to add a pin. Drag to move.",
+            addPinFailed: "Failed to add location",
+            updateFailed: "Failed to update location",
+            deletePinFailed: "Failed to delete location",
+            projectPins: "Project locations",
+            pinModeHint: "Add mode: click the map or search to place a forest site, then add details and boundary.",
             delete: "Delete",
             loadingProjects: "Loading projects…",
             selectProject: "Select a project",
-            noProjectSelected: "No project selected."
+            noProjectSelected: "No project selected.",
+            searchPlaceholder: "Search location",
+            searching: "Searching...",
+            showPolygons: "Show boundary",
+            hideTools: "Hide tools",
+            showTools: "Show tools",
+            finishDrawing: "Finish drawing",
+            drawPolygon: "Draw boundary",
+            drawingHint: "Click the map to add boundary points, then save.",
+            drawHint: "Toggle draw to sketch a boundary on the map.",
+            pinCount: "{{count}} forest sites",
+            quickPins: "Forest sites",
+            viewAll: "Open list",
+            unnamed: "Unnamed forest site",
+            pins: "Location list",
+            addPin: "Add Forest Site",
+            name: "Forest site name",
+            description: "Description",
+            latitude: "Latitude",
+            longitude: "Longitude",
+            latPlaceholder: "Center latitude",
+            lngPlaceholder: "Center longitude",
+            polygon: "Boundary (JSON array [lat, lng])",
+            savePin: "Save forest site",
+            viewOnly: "View only.",
+            focus: "Locate",
+            history: "History",
+            polygonJson: "Boundary (JSON)",
+            preview: "Quick view",
+            save: "Save changes",
+            addPinHint: "Add a new forest site",
+            historyList: "Change history",
+            refresh: "Refresh",
+            loading: "Loading...",
+            unknownUser: "Unknown",
+            restore: "Restore",
+            currentState: "Current state",
+            noHistory: "No history yet.",
+            noPinsYet: "No forest sites yet. Switch to Add to create one.",
+            noPinsView: "No forest sites in this project.",
+            invalidCoordinates: "Please provide valid coordinates",
+            updatePinFailed: "Failed to update pin",
+            addPinMode: "Add pin",
+            edit: "Edit"
         }
     },
     onboarding: {

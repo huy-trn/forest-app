@@ -1,9 +1,16 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Role } from "@prisma/client";
+import { getUserFromRequest } from "@/lib/auth-helpers";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const user = await getUserFromRequest(request);
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const isAdmin = user.role === Role.admin || user.role === Role.root;
+
   const projects = await prisma.project.findMany({
+    where: isAdmin ? {} : { members: { some: { userId: user.sub } } },
     include: {
       members: { include: { user: true } },
     },

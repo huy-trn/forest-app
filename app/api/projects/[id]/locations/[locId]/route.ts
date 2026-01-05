@@ -29,25 +29,79 @@ export async function PATCH(req: Request, { params }: { params: { id: string; lo
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const { latitude, longitude, label } = body as {
+  const { latitude, longitude, label, name, description, polygon, rollbackToVersionId } = body as {
     latitude?: number;
     longitude?: number;
     label?: string | null;
+    name?: string | null;
+    description?: string | null;
+    polygon?: any;
+    rollbackToVersionId?: string | null;
   };
 
   const data: any = {};
-  if (typeof latitude === "number") data.latitude = latitude;
-  if (typeof longitude === "number") data.longitude = longitude;
-  if (typeof label !== "undefined") data.label = label;
-  if (Object.keys(data).length === 0) {
-    return NextResponse.json({ error: "No fields to update" }, { status: 400 });
-  }
+  let rollbackVersion: any = null;
 
   // Ensure the location belongs to the project
   const existing = await prisma.projectLocation.findFirst({ where: { id: locId, projectId } });
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const updated = await prisma.projectLocation.update({ where: { id: locId }, data });
+  if (rollbackToVersionId) {
+    rollbackVersion = await prisma.projectLocationVersion.findFirst({
+      where: { id: rollbackToVersionId, locationId: locId, projectId },
+    });
+    if (!rollbackVersion) return NextResponse.json({ error: "Version not found" }, { status: 404 });
+    data.latitude = rollbackVersion.latitude;
+    data.longitude = rollbackVersion.longitude;
+    data.label = rollbackVersion.label;
+    data.name = rollbackVersion.name;
+    data.description = rollbackVersion.description;
+    data.polygon = rollbackVersion.polygon;
+  } else {
+    if (typeof latitude === "number") data.latitude = latitude;
+    if (typeof longitude === "number") data.longitude = longitude;
+    if (typeof label !== "undefined") data.label = label;
+    if (typeof name !== "undefined") data.name = name;
+    if (typeof description !== "undefined") data.description = description;
+    if (typeof polygon !== "undefined") {
+      if (polygon === null) {
+        data.polygon = null;
+      } else {
+        if (!Array.isArray(polygon)) {
+          return NextResponse.json({ error: "polygon must be an array of { lat, lng } points" }, { status: 400 });
+        }
+        const clean = polygon.map((p: any) => ({
+          lat: typeof p.lat === "number" ? p.lat : typeof p.latitude === "number" ? p.latitude : NaN,
+          lng: typeof p.lng === "number" ? p.lng : typeof p.longitude === "number" ? p.longitude : NaN,
+        }));
+        if (clean.some((p: any) => Number.isNaN(p.lat) || Number.isNaN(p.lng))) {
+          return NextResponse.json({ error: "polygon points need numeric lat/lng" }, { status: 400 });
+        }
+        data.polygon = clean;
+      }
+    }
+    if (Object.keys(data).length === 0) {
+      return NextResponse.json({ error: "No fields to update" }, { status: 400 });
+    }
+  }
+
+  const updated = await prisma.projectLocation.update({ where: { id: locId }, data: { ...data, deletedAt: null } });
+
+  await prisma.projectLocationVersion.create({
+    data: {
+      projectId,
+      locationId: locId,
+      userId: user.sub,
+      operation: rollbackVersion ? "rollback" : "update",
+      latitude: updated.latitude,
+      longitude: updated.longitude,
+      label: updated.label,
+      name: updated.name,
+      description: updated.description,
+      polygon: updated.polygon as any,
+    },
+  });
+
   return NextResponse.json(updated);
 }
 
@@ -57,7 +111,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string; l
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const member = await isProjectMember(user.sub, projectId);
-  const isAdmin = user.role === Role.admin;
+  const isAdmin = user.role === Role.admin || user.role === Role.root;
   const isPartner = user.role === Role.partner;
   if (!(isAdmin || (isPartner && member))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -67,6 +121,24 @@ export async function DELETE(req: Request, { params }: { params: { id: string; l
   const existing = await prisma.projectLocation.findFirst({ where: { id: locId, projectId } });
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  await prisma.projectLocation.delete({ where: { id: locId } });
+  await prisma.projectLocationVersion.create({
+    data: {
+      projectId,
+      locationId: locId,
+      userId: user.sub,
+      operation: "delete",
+      latitude: existing.latitude,
+      longitude: existing.longitude,
+      label: existing.label,
+      name: existing.name,
+      description: existing.description,
+      polygon: existing.polygon as any,
+    },
+  });
+
+  await prisma.projectLocation.update({
+    where: { id: locId },
+    data: { deletedAt: new Date() },
+  });
   return NextResponse.json({ ok: true });
 }

@@ -9,7 +9,7 @@ import { TicketManagement } from "./admin/TicketManagement";
 import { InvestorRequests } from "./admin/InvestorRequests";
 import { DashboardHeader } from "./dashboard/DashboardHeader";
 import { PostManagement } from "./admin/PostManagement";
-import { PartnerMap } from "./partner/PartnerMap";
+import { ProjectsMapPanel } from "./project-map/ProjectsMapPanel";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
@@ -88,7 +88,7 @@ export function AdminDashboard({
           </TabsContent>
 
           <TabsContent value="map">
-            <PartnerMap />
+            <ProjectsMapPanel />
           </TabsContent>
         </Tabs>
       </main>

@@ -5,7 +5,7 @@ import { User } from "@/types/user";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { PartnerProjects } from "./partner/PartnerProjects";
 import { PartnerTickets } from "./partner/PartnerTickets";
-import { PartnerMap } from "./partner/PartnerMap";
+import { ProjectsMapPanel } from "./project-map/ProjectsMapPanel";
 import { DashboardHeader } from "./dashboard/DashboardHeader";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -70,7 +70,7 @@ export function PartnerDashboard({
           </TabsContent>
 
           <TabsContent value="map">
-            <PartnerMap />
+            <ProjectsMapPanel />
           </TabsContent>
         </Tabs>
       </main>

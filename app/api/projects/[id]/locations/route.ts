@@ -23,7 +23,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   }
 
   const locations = await prisma.projectLocation.findMany({
-    where: { projectId },
+    where: { projectId, deletedAt: null },
     orderBy: { createdAt: "asc" },
   });
   return NextResponse.json(locations);
@@ -48,18 +48,63 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const { latitude, longitude, label } = body as {
+  const { latitude, longitude, label, name, description, polygon } = body as {
     latitude?: number;
     longitude?: number;
     label?: string | null;
+    name?: string | null;
+    description?: string | null;
+    polygon?: any;
   };
 
   if (typeof latitude !== "number" || typeof longitude !== "number") {
     return NextResponse.json({ error: "latitude and longitude are required numbers" }, { status: 400 });
   }
 
+  let parsedPolygon: any = undefined;
+  if (typeof polygon !== "undefined") {
+    if (polygon === null) {
+      parsedPolygon = null;
+    } else {
+      if (!Array.isArray(polygon)) {
+        return NextResponse.json({ error: "polygon must be an array of { lat, lng } points" }, { status: 400 });
+      }
+      const clean = polygon.map((p: any) => ({
+        lat: typeof p.lat === "number" ? p.lat : typeof p.latitude === "number" ? p.latitude : NaN,
+        lng: typeof p.lng === "number" ? p.lng : typeof p.longitude === "number" ? p.longitude : NaN,
+      }));
+      if (clean.some((p: any) => Number.isNaN(p.lat) || Number.isNaN(p.lng))) {
+        return NextResponse.json({ error: "polygon points need numeric lat/lng" }, { status: 400 });
+      }
+      parsedPolygon = clean;
+    }
+  }
+
   const created = await prisma.projectLocation.create({
-    data: { projectId, latitude, longitude, label: label ?? null },
+    data: {
+      projectId,
+      latitude,
+      longitude,
+      label: label ?? null,
+      name: name ?? null,
+      description: description ?? null,
+      polygon: parsedPolygon ?? null,
+      deletedAt: null,
+    },
+  });
+  await prisma.projectLocationVersion.create({
+    data: {
+      projectId,
+      locationId: created.id,
+      userId: user.sub,
+      operation: "create",
+      latitude: created.latitude,
+      longitude: created.longitude,
+      label: created.label,
+      name: created.name,
+      description: created.description,
+      polygon: created.polygon as any,
+    },
   });
   return NextResponse.json(created, { status: 201 });
 }
