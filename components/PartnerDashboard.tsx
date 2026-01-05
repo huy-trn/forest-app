@@ -62,7 +62,7 @@ export function PartnerDashboard({
           </TabsList>
 
           <TabsContent value="projects">
-            <PartnerProjects />
+            <PartnerProjects locale={locale} />
           </TabsContent>
 
           <TabsContent value="tickets">

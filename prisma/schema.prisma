@@ -62,6 +62,7 @@ model Project {
   province    String?
   area        String?
   createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @default(now()) @updatedAt
   members     ProjectMember[]
   tickets     Ticket[]
   locations   ProjectLocation[]

@@ -4,6 +4,32 @@ import { Role } from "@prisma/client";
 import { getUserFromRequest } from "@/lib/auth-helpers";
 
 export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const isPublic = searchParams.get("public") === "true";
+
+  if (isPublic) {
+    const projects = await prisma.project.findMany({
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        country: true,
+        province: true,
+        area: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+    return NextResponse.json(
+      projects.map((p) => ({
+        ...p,
+        createdAt: p.createdAt?.toISOString?.() ?? p.createdAt,
+        updatedAt: p.updatedAt?.toISOString?.() ?? p.updatedAt,
+      }))
+    );
+  }
+
   const user = await getUserFromRequest(request);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

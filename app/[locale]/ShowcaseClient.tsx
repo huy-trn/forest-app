@@ -54,19 +54,22 @@ export function ShowcaseClient({ locale, content, isAuthenticated, dashboardPath
   const data: ShowcaseContent = {
     heroTitle: content.heroTitle || "Lorem ipsum dolor sit amet",
     heroDescription: content.heroDescription || "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-    posts: content.posts ?? [],
+    projects: (content.projects ?? []).map((p) => ({
+      ...p,
+      description: p.description ?? "",
+    })),
   };
 
   const HEADLINE_COUNT = 3;
-  const posts = data.posts ?? [];
-  const headlinePosts = posts.slice(0, HEADLINE_COUNT);
-  const archivePosts = posts.slice(HEADLINE_COUNT);
+  const projects = data.projects ?? [];
+  const featuredProjects = projects.slice(0, HEADLINE_COUNT);
+  const moreProjects = projects.slice(HEADLINE_COUNT);
   const pageSize = 5;
-  const totalPages = Math.max(1, Math.ceil(Math.max(archivePosts.length, 1) / pageSize));
-  const pagedPosts = useMemo(() => {
+  const totalPages = Math.max(1, Math.ceil(Math.max(moreProjects.length, 1) / pageSize));
+  const pagedProjects = useMemo(() => {
     const start = (page - 1) * pageSize;
-    return archivePosts.slice(start, start + pageSize);
-  }, [archivePosts, page]);
+    return moreProjects.slice(start, start + pageSize);
+  }, [moreProjects, page]);
 
   return (
     <div className="space-y-8">
@@ -97,14 +100,14 @@ export function ShowcaseClient({ locale, content, isAuthenticated, dashboardPath
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>{t("investor.showcase.postsTitle", { defaultValue: "Featured updates" })}</CardTitle>
+              <CardTitle>{t("investor.showcase.postsTitle", { defaultValue: "Featured projects" })}</CardTitle>
               <CardDescription>
                 {t("investor.showcase.postsDesc", {
                   defaultValue: "Highlights from ongoing projects and teams.",
                 })}
               </CardDescription>
             </div>
-            {headlinePosts.length > 1 ? (
+            {featuredProjects.length > 1 ? (
               <div className="flex gap-2">
                 <button
                   type="button"
@@ -129,18 +132,23 @@ export function ShowcaseClient({ locale, content, isAuthenticated, dashboardPath
         <CardContent>
           <div className="overflow-hidden" ref={emblaRef}>
             <div className="flex">
-              {headlinePosts.map((post, idx) => (
+              {featuredProjects.map((project, idx) => (
                 <div key={idx} className="min-w-0 flex-[0_0_100%] md:flex-[0_0_50%] pr-4">
-                  <Link href={`/${locale}/post/${post.id ?? ""}`} className="block h-full">
+                  <Link href={`/${locale}/projects/${project.id ?? ""}`} className="block h-full">
                     <Card className="overflow-hidden border h-full">
-                      {post.imageUrl ? (
+                      {project.imageUrl ? (
                         <div className="h-40 bg-muted">
-                          <ImageWithFallback src={post.imageUrl} alt={post.title} className="w-full h-full object-cover" />
+                          <ImageWithFallback src={project.imageUrl} alt={project.title} className="w-full h-full object-cover" />
                         </div>
                       ) : null}
                       <CardContent className="p-4 space-y-2">
-                        <h3 className="text-lg font-semibold">{post.title}</h3>
-                        <p className="text-sm text-gray-600 leading-relaxed">{previewBody(post.body)}</p>
+                        <h3 className="text-lg font-semibold">{project.title}</h3>
+                        <p className="text-sm text-gray-600 leading-relaxed">
+                          {previewBody(project.description)}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {[project.province, project.country].filter(Boolean).join(", ")}
+                        </p>
                       </CardContent>
                     </Card>
                   </Link>
@@ -152,7 +160,7 @@ export function ShowcaseClient({ locale, content, isAuthenticated, dashboardPath
           <div className="mt-6 space-y-4">
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium text-gray-700">
-                {t("investor.showcase.postsArchive", { defaultValue: "Older updates" })}
+                {t("investor.showcase.postsArchive", { defaultValue: "More projects" })}
               </p>
               <div className="flex items-center gap-2 text-sm">
                 <button
@@ -176,30 +184,33 @@ export function ShowcaseClient({ locale, content, isAuthenticated, dashboardPath
                 </button>
               </div>
             </div>
-            {pagedPosts.length > 0 ? (
+            {pagedProjects.length > 0 ? (
               <div className="space-y-3">
-                {pagedPosts.map((post, idx) => (
+                {pagedProjects.map((project, idx) => (
                   <Link
-                    key={`${post.title}-${idx}`}
-                    href={`/${locale}/post/${post.id ?? ""}`}
+                    key={`${project.title}-${idx}`}
+                    href={`/${locale}/projects/${project.id ?? ""}`}
                     className="block border rounded-lg bg-white hover:shadow-sm transition"
                   >
                     <div className="flex gap-3 p-4">
-                      {post.imageUrl ? (
+                      {project.imageUrl ? (
                         <div className="w-24 h-24 flex-shrink-0 rounded-md overflow-hidden bg-gray-100">
-                          <ImageWithFallback src={post.imageUrl} alt={post.title} className="w-full h-full object-cover" />
+                          <ImageWithFallback src={project.imageUrl} alt={project.title} className="w-full h-full object-cover" />
                         </div>
                       ) : null}
                       <div className="flex-1 space-y-1">
-                        <h4 className="font-semibold">{post.title}</h4>
-                        <p className="text-sm text-gray-600 leading-relaxed">{previewBody(post.body)}</p>
+                        <h4 className="font-semibold">{project.title}</h4>
+                        <p className="text-sm text-gray-600 leading-relaxed">{previewBody(project.description)}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {[project.province, project.country].filter(Boolean).join(", ")}
+                        </p>
                       </div>
                     </div>
                   </Link>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-gray-500">{t("investor.showcase.noArchive", { defaultValue: "No older posts yet." })}</p>
+              <p className="text-sm text-gray-500">{t("investor.showcase.noArchive", { defaultValue: "No projects yet." })}</p>
             )}
           </div>
         </CardContent>

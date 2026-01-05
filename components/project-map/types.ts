@@ -6,6 +6,7 @@ export type ProjectData = {
   id: string;
   description: string | null;
   createdAt: Date;
+  updatedAt?: Date;
   country: string | null;
   province: string | null;
 };

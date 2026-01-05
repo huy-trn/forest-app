@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
 import { Button } from "../ui/button";
 import {
   Card,
@@ -12,7 +13,6 @@ import {
 } from "../ui/card";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { Textarea } from "../ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -23,13 +23,15 @@ import {
 } from "../ui/dialog";
 import { Badge } from "../ui/badge";
 import { Checkbox } from "../ui/checkbox";
-import { FolderPlus, MapPin, Calendar, Users, Edit } from "lucide-react";
+import { FolderPlus, MapPin, Calendar, Users, Edit, Eye } from "lucide-react";
 import { toast } from "sonner";
+import { RichTextEditor } from "../ui/rich-text-editor";
 
 interface Project {
   id: string;
   title: string;
-  description: string;
+  description?: string | null;
+  descriptionRich?: string | null;
   status: string;
   country: string;
   province: string;
@@ -44,7 +46,7 @@ interface User {
   role: string;
 }
 
-export function ProjectManagement() {
+export function ProjectManagement({ locale }: { locale: string }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [projects, setProjects] = useState<Project[]>([]);
@@ -55,6 +57,7 @@ export function ProjectManagement() {
   const [newProject, setNewProject] = useState({
     title: '',
     description: '',
+    descriptionRich: '',
     country: 'Việt Nam',
     province: '',
     area: ''
@@ -85,6 +88,8 @@ export function ProjectManagement() {
         (projectsQuery.data as Project[]).map((p: any) => ({
           ...p,
           createdDate: p.createdAt ?? p.createdDate,
+          descriptionRich: (p as any).descriptionRich ?? p.description ?? "",
+          description: (p as any).description ?? "",
         }))
       );
     }
@@ -103,6 +108,7 @@ export function ProjectManagement() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...newProject,
+          description: newProject.descriptionRich || newProject.description,
           memberIds: selectedMembers,
         }),
       });
@@ -111,7 +117,7 @@ export function ProjectManagement() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
-      setNewProject({ title: "", description: "", country: "Việt Nam", province: "", area: "" });
+      setNewProject({ title: "", description: "", descriptionRich: "", country: "Việt Nam", province: "", area: "" });
       setSelectedMembers([]);
       setIsCreateDialogOpen(false);
       toast.success(t("admin.projectManagement.createSuccess"));
@@ -129,6 +135,7 @@ export function ProjectManagement() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...selectedProject,
+          description: selectedProject.descriptionRich ?? selectedProject.description,
           memberIds: selectedMembers,
         }),
       });
@@ -227,13 +234,37 @@ export function ProjectManagement() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="project-description">{t('admin.projectManagement.descLabel')}</Label>
-                  <Textarea
-                    id="project-description"
-                    value={newProject.description}
-                    onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
+                  <RichTextEditor
+                    value={newProject.descriptionRich}
+                    onChange={(val) => setNewProject({ ...newProject, descriptionRich: val, description: val })}
                     placeholder={t('admin.projectManagement.descPlaceholder')}
-                    rows={4}
+                    onAttachUpload={async (files) => {
+                      const uploads = await Promise.all(
+                        files.map(async (file) => {
+                          const presignRes = await fetch("/api/uploads", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              name: file.name,
+                              type: file.type,
+                              projectId: selectedProject?.id || newProject.title || "public",
+                            }),
+                          });
+                          if (!presignRes.ok) throw new Error("presign_failed");
+                          const { uploadUrl, viewUrl } = await presignRes.json();
+                          const uploadRes = await fetch(uploadUrl, {
+                            method: "PUT",
+                            headers: { "Content-Type": file.type },
+                            body: file,
+                          });
+                          if (!uploadRes.ok) throw new Error("upload_failed");
+                          return { src: viewUrl as string };
+                        })
+                      );
+                      return uploads;
+                    }}
                   />
+                  <div className="text-xs text-muted-foreground">{t("admin.projectManagement.descHint", { defaultValue: "Supports images and formatting." })}</div>
                 </div>
                 <div className="space-y-2">
                   <Label>{t('admin.projectManagement.assignLabel')}</Label>
@@ -252,7 +283,12 @@ export function ProjectManagement() {
                           }}
                         />
                         <Label htmlFor={`user-${user.id}`} className="flex-1 cursor-pointer">
-                          {user.name} <Badge variant="outline" className="ml-2">{user.role === 'partner' ? t('admin.projectManagement.partner') : t('admin.projectManagement.investor')}</Badge>
+                          {user.name} <Badge variant="outline" className="ml-2">
+                            {user.role === 'partner'
+                              ? t('admin.projectManagement.partner')
+                              : user.role === 'investor'
+                                ? t('admin.projectManagement.investor')
+                                : t('admin.projectManagement.admin')}</Badge>
                         </Label>
                       </div>
                     ))}
@@ -309,12 +345,37 @@ export function ProjectManagement() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="edit-project-description">{t('admin.projectManagement.descLabel')}</Label>
-                <Textarea
-                  id="edit-project-description"
-                  value={selectedProject.description}
-                  onChange={(e) => setSelectedProject({ ...selectedProject, description: e.target.value })}
-                  rows={4}
+                  <RichTextEditor
+                    value={selectedProject.descriptionRich ?? selectedProject.description ?? ""}
+                    onChange={(val) => setSelectedProject({ ...selectedProject, descriptionRich: val, description: val })}
+                    placeholder={t('admin.projectManagement.descPlaceholder')}
+                  onAttachUpload={async (files) => {
+                    const uploads = await Promise.all(
+                      files.map(async (file) => {
+                        const presignRes = await fetch("/api/uploads", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              name: file.name,
+                              type: file.type,
+                              projectId: selectedProject.id || "public",
+                            }),
+                          });
+                        if (!presignRes.ok) throw new Error("presign_failed");
+                        const { uploadUrl, viewUrl } = await presignRes.json();
+                        const uploadRes = await fetch(uploadUrl, {
+                          method: "PUT",
+                          headers: { "Content-Type": file.type },
+                          body: file,
+                        });
+                        if (!uploadRes.ok) throw new Error("upload_failed");
+                        return { src: viewUrl as string };
+                      })
+                    );
+                    return uploads;
+                  }}
                 />
+                <div className="text-xs text-muted-foreground">{t("admin.projectManagement.descHint", { defaultValue: "Supports images and formatting." })}</div>
               </div>
               <div className="space-y-2">
                 <Label>{t('admin.projectManagement.assignLabel')}</Label>
@@ -382,11 +443,16 @@ export function ProjectManagement() {
                   ))}
                 </div>
               </div>
-              <p className="text-sm text-gray-600">{project.description}</p>
               <div className="flex gap-2 pt-2">
                 <Button variant="outline" className="flex-1" onClick={() => openEditDialog(project)}>
                   <Edit className="w-4 h-4 mr-2" />
                   {t('admin.projectManagement.editBtn')}
+                </Button>
+                <Button asChild variant="ghost" size="sm">
+                  <Link href={`/${locale}/dashboard/projects/${project.id}`} className="flex items-center">
+                    <Eye className="w-4 h-4 mr-1" />
+                    {t("investor.projects.detail", { defaultValue: "View detail" })}
+                  </Link>
                 </Button>
               </div>
             </CardContent>

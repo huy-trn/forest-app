@@ -1,8 +1,10 @@
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Progress } from "../ui/progress";
+import { Button } from "../ui/button";
 import { MapPin, Calendar, TreeDeciduous, Users } from "lucide-react";
 
 type Project = {
@@ -21,7 +23,7 @@ type Project = {
   members?: Array<{ id: string; name: string; role: string }>;
 };
 
-export function PartnerProjects() {
+export function PartnerProjects({ locale }: { locale: string }) {
   const { t } = useTranslation();
   const projectsQuery = useQuery({
     queryKey: ["projects"],
@@ -72,7 +74,6 @@ export function PartnerProjects() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="text-sm text-gray-600">{project.description}</p>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -125,6 +126,13 @@ export function PartnerProjects() {
                 <div className="pt-3 border-t">
                   <p className="text-sm text-gray-600 mb-1">{t("partner.projects.lastActivity")}</p>
                   <p className="text-sm">{project.lastActivity || "-"}</p>
+                </div>
+                <div className="flex justify-end pt-2">
+                  <Button asChild variant="ghost" size="sm" className="text-emerald-700 hover:text-emerald-900">
+                    <Link href={`/${locale}/dashboard/projects/${project.id}`} className="flex items-center">
+                      {t("investor.projects.detail", { defaultValue: "View detail" })}
+                    </Link>
+                  </Button>
                 </div>
               </CardContent>
             </Card>

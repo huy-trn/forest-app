@@ -2,12 +2,17 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Role } from "@prisma/client";
 
-export async function GET(_: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: { id: string } }) {
+  const isPublic = new URL(request.url).searchParams.get("public") === "true";
   const project = await prisma.project.findUnique({
     where: { id: params.id },
-    include: { members: { include: { user: true } } },
+    include: isPublic ? undefined : { members: { include: { user: true } } },
   });
   if (!project) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (isPublic) {
+    const { id, title, description, country, province, area, status, createdAt, updatedAt } = project as any;
+    return NextResponse.json({ id, title, description, descriptionRich: description, country, province, area, status, createdAt, updatedAt });
+  }
   return NextResponse.json({
     ...project,
     members: project.members.map((m) => ({

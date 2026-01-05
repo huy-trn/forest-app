@@ -1,19 +1,16 @@
 import { prisma } from "@/lib/prisma";
 import { defaultShowcaseContent } from "@/lib/showcase-defaults";
-import { ShowcaseContent } from "@/types/showcase";
+import { ShowcaseContent, ShowcaseProject } from "@/types/showcase";
+
+const extractFirstImage = (html?: string | null): string | null => {
+  if (!html) return null;
+  const match = html.match(/<img[^>]+src=["']([^"']+)["']/i);
+  return match?.[1] ?? null;
+};
 
 export async function getShowcaseContent(locale: string): Promise<ShowcaseContent> {
   const targetLocale = (locale || "en").toLowerCase();
   const prismaAny = prisma as any;
-
-  const mapPosts = (rows: any[]) =>
-    rows.map((p) => ({
-      id: p.id,
-      title: p.title,
-      body: p.body,
-      imageUrl: p.imageUrl || undefined,
-      locale: p.locale || undefined,
-    }));
 
   try {
     let heroTitle = "";
@@ -26,43 +23,32 @@ export async function getShowcaseContent(locale: string): Promise<ShowcaseConten
       heroDescription = hero?.description || fallbackHero?.description || "";
     }
 
-    if (prismaAny?.post?.findMany) {
-      const posts = await prismaAny.post.findMany({
-        where: { OR: [{ locale: targetLocale }, { locale: null }, { locale: "" }] },
+    const projects: ShowcaseProject[] = await prisma.project
+      .findMany({
         orderBy: { createdAt: "desc" },
-      });
+        take: 12,
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          country: true,
+          province: true,
+          area: true,
+          createdAt: true,
+          descriptionRich: true,
+        },
+      })
+      .then((rows) =>
+        rows.map((p) => ({
+          ...p,
+          createdAt: p.createdAt?.toISOString?.() ?? undefined,
+          imageUrl: extractFirstImage((p as any).descriptionRich ?? p.description ?? ""),
+          description: (p as any).descriptionRich ?? p.description ?? null,
+        }))
+      )
+      .catch(() => []);
 
-      const effectivePosts =
-        posts.length > 0
-          ? posts
-          : await prismaAny.post.findMany({
-              where: { OR: [{ locale: "en" }, { locale: null }, { locale: "" }] },
-              orderBy: { createdAt: "desc" },
-            });
-
-      return { ...defaultShowcaseContent, heroTitle, heroDescription, posts: mapPosts(effectivePosts) };
-    }
-
-    if (prismaAny?.$queryRaw) {
-      const posts = (await prismaAny.$queryRaw`
-        SELECT title, body, "imageUrl", locale
-        FROM "Post"
-        WHERE locale = ${targetLocale} OR locale IS NULL OR locale = ''
-        ORDER BY "createdAt" DESC
-      `) as any[];
-
-      const effectivePosts =
-        posts.length > 0
-          ? posts
-          : ((await prismaAny.$queryRaw`
-              SELECT title, body, "imageUrl", locale
-              FROM "Post"
-              WHERE locale = 'en' OR locale IS NULL OR locale = ''
-              ORDER BY "createdAt" DESC
-            `) as any[]);
-
-      return { ...defaultShowcaseContent, heroTitle, heroDescription, posts: mapPosts(effectivePosts) };
-    }
+    return { ...defaultShowcaseContent, heroTitle, heroDescription, projects };
   } catch (err) {
     console.error("Failed to load showcase content", err);
   }

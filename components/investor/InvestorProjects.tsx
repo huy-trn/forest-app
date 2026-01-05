@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -23,7 +24,7 @@ type Project = {
   recentActivities?: Array<{ date: string; activity: string }>;
 };
 
-export function InvestorProjects() {
+export function InvestorProjects({ locale }: { locale: string }) {
   const { t } = useTranslation();
   const projectsQuery = useQuery({
     queryKey: ["projects"],
@@ -74,7 +75,6 @@ export function InvestorProjects() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="text-sm text-gray-600">{project.description}</p>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div>
@@ -145,9 +145,11 @@ export function InvestorProjects() {
                 ) : null}
 
                 <div className="flex justify-end">
-                  <Button variant="ghost" size="sm" className="text-emerald-700 hover:text-emerald-900">
+                  <Button asChild variant="ghost" size="sm" className="text-emerald-700 hover:text-emerald-900">
+                    <Link href={`/${locale}/dashboard/projects/${project.id}`} className="flex items-center">
                     <Eye className="w-4 h-4 mr-1" />
                     {t("investor.projects.detail", { defaultValue: "View detail" })}
+                    </Link>
                   </Button>
                 </div>
               </CardContent>

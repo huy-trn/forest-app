@@ -6,6 +6,25 @@ export const en = {
     language: {
         ...languages
     },
+    projectDetail: {
+        loading: "Loading project…",
+        error: "Unable to load project.",
+        descriptionFallback: "No description provided.",
+        createdLabel: "Created",
+        locationLabel: "Location",
+        membersLabel: "Members",
+        teamLabel: "Team",
+        memberFallback: "Member",
+        areaLabel: "Area",
+        locationsLabel: "Locations",
+        idLabel: "Project ID",
+        locationsList: "Locations",
+        missing: "N/A",
+        galleryLabel: "Gallery",
+        overview: "Overview",
+        pending: "Pending",
+        updatedLabel: "Updated"
+    },
     admin: {
         dashboard: {
             title: "Dashboard",
@@ -118,7 +137,7 @@ export const en = {
             role: "Role",
             admin: "Admin",
             adminShort: "Admin",
-            partner: "Partner",
+            partner: "Farmer",
             investor: "Investor",
             sendInvite: "Send Invite",
             searchPlaceholder: "Search by name, email or phone...",
@@ -146,9 +165,14 @@ export const en = {
             areaPlaceholder: "e.g. 125",
             descLabel: "Description",
             descPlaceholder: "Enter project description",
+            descHint: "Supports images and formatting.",
             assignLabel: "Assign Members",
-            partnerLabel: "Partner",
+            partnerLabel: "Farmer",
             investorLabel: "Investor",
+            admin: "Admin",
+            partner: "Farmer",
+            investor: "Investor",
+            projects: "Projects",
             createSuccess: "Project created successfully",
             editTitle: "Update Project",
             editDesc: "Edit information and assign members",
@@ -302,7 +326,7 @@ export const en = {
     partner: {
         dashboard: {
             title: "Dashboard",
-            role: "Partner",
+            role: "Farmer",
             logout: "Log out",
             projects: "Projects",
             tickets: "Tickets",

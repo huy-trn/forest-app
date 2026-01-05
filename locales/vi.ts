@@ -6,6 +6,25 @@ export const vi: TextMap = {
     language: {
         ...languages
     },
+    projectDetail: {
+        loading: "Đang tải dự án…",
+        error: "Không thể tải dự án.",
+        descriptionFallback: "Chưa có mô tả.",
+        createdLabel: "Ngày tạo",
+        locationLabel: "Địa điểm",
+        membersLabel: "Thành viên",
+        teamLabel: "Nhóm dự án",
+        memberFallback: "Thành viên",
+        areaLabel: "Diện tích",
+        locationsLabel: "Địa điểm",
+        idLabel: "Mã dự án",
+        locationsList: "Các địa điểm",
+        missing: "Chưa có",
+        galleryLabel: "Hình ảnh",
+        overview: "Tổng quan",
+        pending: "Đang cập nhật",
+        updatedLabel: "Cập nhật"
+    },
     admin: {
         dashboard: {
             title: "Bảng điều khiển",
@@ -118,7 +137,7 @@ export const vi: TextMap = {
             role: "Vai trò",
             admin: "Quản trị viên",
             adminShort: "Admin",
-            partner: "Đối tác",
+            partner: "Nông hộ",
             investor: "Nhà đầu tư",
             sendInvite: "Gửi lời mời",
             searchPlaceholder: "Tìm theo tên, email hoặc số điện thoại...",
@@ -146,9 +165,14 @@ export const vi: TextMap = {
             areaPlaceholder: "VD: 125",
             descLabel: "Mô tả",
             descPlaceholder: "Nhập mô tả dự án",
+            descHint: "Hỗ trợ chèn ảnh và định dạng.",
             assignLabel: "Phân công thành viên",
-            partnerLabel: "Đối tác",
+            partnerLabel: "Nông hộ",
             investorLabel: "Nhà đầu tư",
+            admin: "Quản trị viên",
+            partner: "Nông hộ",
+            investor: "Nhà đầu tư",
+            projects: "Dự án",
             createSuccess: "Tạo dự án thành công",
             editTitle: "Cập nhật dự án",
             editDesc: "Chỉnh sửa thông tin và phân công thành viên",
@@ -294,7 +318,7 @@ export const vi: TextMap = {
             postsTitle: "Bản tin nổi bật",
             postsDesc: "Điểm nhấn từ các dự án và đội ngũ trên hiện trường.",
             post1Title: "Tiêu điểm dự án",
-            post1Body: "Xem cách đối tác và nhà đầu tư đang thúc đẩy trồng rừng.",
+            post1Body: "Xem cách Nông hộ và nhà đầu tư đang thúc đẩy trồng rừng.",
             postsArchive: "Bản tin cũ hơn",
             noArchive: "Chưa có bản tin cũ."
         },
@@ -302,7 +326,7 @@ export const vi: TextMap = {
     partner: {
         dashboard: {
             title: "Bảng điều khiển",
-            role: "Đối tác",
+            role: "Nông hộ",
             logout: "Đăng xuất",
             projects: "Dự án",
             tickets: "Công việc",

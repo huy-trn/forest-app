@@ -187,7 +187,7 @@ export function TicketDetails({ ticket, onClose, userRole }: TicketDetailsProps)
     const presignRes = await fetch('/api/uploads', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: file.name, type: file.type }),
+      body: JSON.stringify({ name: file.name, type: file.type, projectId: localTicket.projectId ?? "public" }),
     });
 
     if (!presignRes.ok) throw new Error('presign_failed');

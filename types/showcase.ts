@@ -1,13 +1,27 @@
-export type ShowcasePost = {
-  id?: string;
+export type ShowcaseProject = {
+  id: string;
   title: string;
-  body: string;
-  imageUrl?: string;
-  locale?: string;
+  description?: string | null;
+  country?: string | null;
+  province?: string | null;
+  area?: string | null;
+  createdAt?: string;
+  imageUrl?: string | null;
 };
 
 export type ShowcaseContent = {
   heroTitle: string;
   heroDescription: string;
-  posts: ShowcasePost[];
+  projects: ShowcaseProject[];
+  stats?: {
+    projects: string;
+    area: string;
+    trees: string;
+  };
+  features?: Array<{ title: string; description: string }>;
+  featuredTitle?: string;
+  featuredDescription?: string;
+  impactTitle?: string;
+  impactDescription?: string;
+  impact?: Array<{ title: string; value: string; description?: string }>;
 };
