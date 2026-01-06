@@ -67,8 +67,8 @@ export function ProjectManagement({ locale }: { locale: string }) {
   });
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const forestTypeLabels: Record<"natural" | "artificial", string> = {
-    natural: t("common.naturalForest", { defaultValue: "Natural forest" }),
-    artificial: t("common.artificialForest", { defaultValue: "Artificial forest" }),
+    natural: t("common.naturalForest"),
+    artificial: t("common.artificialForest"),
   };
 
   const projectsQuery = useQuery({
@@ -250,8 +250,8 @@ export function ProjectManagement({ locale }: { locale: string }) {
                       <SelectValue placeholder={t("admin.projectManagement.forestTypePlaceholder", { defaultValue: "Select forest type" })} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="natural">{t("common.naturalForest", { defaultValue: "Natural forest" })}</SelectItem>
-                      <SelectItem value="artificial">{t("common.artificialForest", { defaultValue: "Artificial forest" })}</SelectItem>
+                      <SelectItem value="natural">{t("common.naturalForest")}</SelectItem>
+                      <SelectItem value="artificial">{t("common.artificialForest")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -376,8 +376,8 @@ export function ProjectManagement({ locale }: { locale: string }) {
                     <SelectValue placeholder={t("admin.projectManagement.forestTypePlaceholder", { defaultValue: "Select forest type" })} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="natural">{t("common.naturalForest", { defaultValue: "Natural forest" })}</SelectItem>
-                    <SelectItem value="artificial">{t("common.artificialForest", { defaultValue: "Artificial forest" })}</SelectItem>
+                    <SelectItem value="natural">{t("common.naturalForest")}</SelectItem>
+                    <SelectItem value="artificial">{t("common.artificialForest")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

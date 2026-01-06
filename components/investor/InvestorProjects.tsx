@@ -30,8 +30,8 @@ export function InvestorProjects({ locale }: { locale: string }) {
   const { t } = useTranslation();
   const [forestTypeFilter, setForestTypeFilter] = useState<"all" | "natural" | "artificial">("all");
   const forestTypeLabels: Record<"natural" | "artificial", string> = {
-    natural: t("common.naturalForest", { defaultValue: "Natural forest" }),
-    artificial: t("common.artificialForest", { defaultValue: "Artificial forest" }),
+    natural: t("common.naturalForest"),
+    artificial: t("common.artificialForest"),
   };
   const normalizeForestType = (type?: string | null) => (type === "artificial" ? "artificial" : "natural");
   const projectsQuery = useQuery({

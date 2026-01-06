@@ -88,8 +88,8 @@ export function ShowcaseClient({ locale, content, isAuthenticated, dashboardPath
     return moreProjects.slice(start, start + pageSize);
   }, [moreProjects, page]);
   const forestTypeLabels: Record<ForestType, string> = {
-    natural: t("common.naturalForest", { defaultValue: "Natural forest" }),
-    artificial: t("common.artificialForest", { defaultValue: "Artificial forest" }),
+    natural: t("common.naturalForest"),
+    artificial: t("common.artificialForest"),
   };
 
   return (

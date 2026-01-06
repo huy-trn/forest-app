@@ -110,8 +110,8 @@ export default function ProjectDetailClient({ projectId, isPublic = false }: Pro
       label: t("projectDetail.forestTypeLabel", { defaultValue: "Forest type" }),
       value: data.forestType
         ? normalizeForestType(data.forestType) === "artificial"
-          ? t("common.artificialForest", { defaultValue: "Artificial forest" })
-          : t("common.naturalForest", { defaultValue: "Natural forest" })
+          ? t("common.artificialForest")
+          : t("common.naturalForest")
         : pendingText,
       icon: <TreeDeciduous className="w-4 h-4" />,
     },
