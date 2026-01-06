@@ -67,7 +67,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: IMAGE_NAME,IMAGE_TAG,GHCR_USERNAME,GHCR_TOKEN,DOMAIN_NAME,CERTBOT_EMAIL
+          envs: IMAGE_NAME,IMAGE_TAG,GHCR_USERNAME,GHCR_TOKEN,DOMAIN_NAME,CERTBOT_EMAIL,EC2_HOST
           script: |
             set -e
             APP_DIR="/home/${{ secrets.EC2_USER }}/app"
@@ -95,3 +95,4 @@ jobs:
           GHCR_TOKEN: ${{ secrets.GHCR_READ_TOKEN || secrets.GHCR_TOKEN }}
           DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
           CERTBOT_EMAIL: ${{ secrets.CERTBOT_EMAIL }}
+          EC2_HOST: ${{ secrets.EC2_HOST }}
