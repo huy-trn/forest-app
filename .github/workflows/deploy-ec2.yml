@@ -39,11 +39,12 @@ jobs:
               - 'tsconfig.json'
               - 'Dockerfile'
               - '.dockerignore'
+              - '.github/workflows/**'
             deploy:
               - 'docker-compose.yml'
               - 'docker-compose.prod.yml'
               - 'deploy/**'
-              - '.github/workflows/deploy-ec2.yml'
+              - '.github/workflows/**'
   build-and-push:
     name: Build and push image
     runs-on: ubuntu-latest
