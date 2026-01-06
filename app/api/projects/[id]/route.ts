@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { Role } from "@prisma/client";
+import { Role, ForestType } from "@prisma/client";
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   const isPublic = new URL(request.url).searchParams.get("public") === "true";
@@ -10,8 +10,20 @@ export async function GET(request: Request, { params }: { params: { id: string }
   });
   if (!project) return NextResponse.json({ error: "Not found" }, { status: 404 });
   if (isPublic) {
-    const { id, title, description, country, province, area, status, createdAt, updatedAt } = project as any;
-    return NextResponse.json({ id, title, description, descriptionRich: description, country, province, area, status, createdAt, updatedAt });
+    const { id, title, description, country, province, area, status, createdAt, updatedAt, forestType } = project as any;
+    return NextResponse.json({
+      id,
+      title,
+      description,
+      descriptionRich: description,
+      country,
+      province,
+      area,
+      status,
+      forestType,
+      createdAt,
+      updatedAt,
+    });
   }
   return NextResponse.json({
     ...project,
@@ -25,16 +37,24 @@ export async function GET(request: Request, { params }: { params: { id: string }
 
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
   const body = await request.json();
-  const { title, description, country, province, area, status, memberIds, memberRoles } = body as {
+  const { title, description, country, province, area, status, forestType, memberIds, memberRoles } = body as {
     title?: string;
     description?: string;
     country?: string;
     province?: string;
     area?: string;
     status?: string;
+    forestType?: ForestType | string;
     memberIds?: string[];
     memberRoles?: Record<string, Role>;
   };
+
+  const normalizedForestType =
+    forestType === ForestType.natural || forestType === "natural"
+      ? ForestType.natural
+      : forestType === ForestType.artificial || forestType === "artificial"
+        ? ForestType.artificial
+        : undefined;
 
   const project = await prisma.project.update({
     where: { id: params.id },
@@ -45,6 +65,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
       province,
       area,
       status: status as any,
+      forestType: normalizedForestType,
       members: {
         deleteMany: {},
         create: (memberIds || []).map((id) => ({

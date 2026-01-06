@@ -9,6 +9,7 @@ export type ProjectData = {
   updatedAt?: Date;
   country: string | null;
   province: string | null;
+  forestType?: "natural" | "artificial";
 };
 
 export type ProjectLocation = {

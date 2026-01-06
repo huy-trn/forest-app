@@ -8,7 +8,7 @@ import type { ProjectData } from "@/components/project-map/types";
 import { useProjectLocations } from "@/components/project-map/useProjectLocations";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Users } from "lucide-react";
+import { Calendar, MapPin, TreeDeciduous, Users } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 type ProjectDetailClientProps = {
@@ -21,6 +21,7 @@ type ProjectDetail = ProjectData & {
   status?: string | null;
   members?: ProjectMember[];
   descriptionRich?: string | null;
+  forestType?: "natural" | "artificial" | null;
 };
 
 function normalizeProject(data: any): ProjectDetail {
@@ -35,6 +36,7 @@ function normalizeProject(data: any): ProjectDetail {
     createdAt: data.createdAt ? new Date(data.createdAt) : undefined,
     updatedAt: data.updatedAt ? new Date(data.updatedAt) : undefined,
     status: data.status ?? null,
+    forestType: data.forestType ?? null,
     members: Array.isArray(data.members)
       ? data.members.map((m: any) => ({ id: m.id, name: m.name ?? null, role: m.role ?? null }))
       : [],
@@ -45,6 +47,7 @@ export default function ProjectDetailClient({ projectId, isPublic = false }: Pro
   const { t } = useTranslation();
   const { locations } = useProjectLocations(projectId);
   const pendingText = t("projectDetail.pending", { defaultValue: "Pending" });
+  const normalizeForestType = (type?: string | null) => (type === "artificial" ? "artificial" : "natural");
   const { data, isLoading, isError } = useQuery({
     queryKey: ["project", projectId, { public: isPublic }],
     queryFn: async () => {
@@ -102,6 +105,15 @@ export default function ProjectDetailClient({ projectId, isPublic = false }: Pro
       label: t("projectDetail.areaLabel"),
       value: data.area || pendingText,
       icon: <MapPin className="w-4 h-4" />,
+    },
+    {
+      label: t("projectDetail.forestTypeLabel", { defaultValue: "Forest type" }),
+      value: data.forestType
+        ? normalizeForestType(data.forestType) === "artificial"
+          ? t("common.artificialForest", { defaultValue: "Artificial forest" })
+          : t("common.naturalForest", { defaultValue: "Natural forest" })
+        : pendingText,
+      icon: <TreeDeciduous className="w-4 h-4" />,
     },
     {
       label: t("projectDetail.locationsLabel"),

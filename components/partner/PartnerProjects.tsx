@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
@@ -20,11 +21,18 @@ type Project = {
   treesPlanted?: number | null;
   targetTrees?: number | null;
   lastActivity?: string | null;
+  forestType?: "natural" | "artificial" | null;
   members?: Array<{ id: string; name: string; role: string }>;
 };
 
 export function PartnerProjects({ locale }: { locale: string }) {
   const { t } = useTranslation();
+  const [forestTypeFilter, setForestTypeFilter] = useState<"all" | "natural" | "artificial">("all");
+  const forestTypeLabels: Record<"natural" | "artificial", string> = {
+    natural: t("common.naturalForest", { defaultValue: "Natural forest" }),
+    artificial: t("common.artificialForest", { defaultValue: "Artificial forest" }),
+  };
+  const normalizeForestType = (type?: string | null) => (type === "artificial" ? "artificial" : "natural");
   const projectsQuery = useQuery({
     queryKey: ["projects"],
     queryFn: async () => {
@@ -35,6 +43,8 @@ export function PartnerProjects({ locale }: { locale: string }) {
   });
 
   const projects = projectsQuery.data || [];
+  const filteredProjects =
+    forestTypeFilter === "all" ? projects : projects.filter((p) => normalizeForestType(p.forestType) === forestTypeFilter);
 
   return (
     <div className="space-y-6">
@@ -50,13 +60,27 @@ export function PartnerProjects({ locale }: { locale: string }) {
         </CardContent>
       </Card>
 
+      <div className="flex flex-wrap items-center gap-2">
+        <p className="text-sm text-gray-600">{t("common.forestType", { defaultValue: "Forest type" })}:</p>
+        {(["all", "natural", "artificial"] as const).map((type) => (
+          <Button
+            key={type}
+            size="sm"
+            variant={forestTypeFilter === type ? "default" : "outline"}
+            onClick={() => setForestTypeFilter(type)}
+          >
+            {type === "all" ? t("common.allTypes", { defaultValue: "All" }) : forestTypeLabels[type]}
+          </Button>
+        ))}
+      </div>
+
       {projectsQuery.isLoading ? (
         <p className="text-sm text-gray-500">Loading projects...</p>
       ) : projectsQuery.isError ? (
         <p className="text-sm text-red-600">Failed to load projects</p>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {projects.map((project) => (
+          {filteredProjects.map((project) => (
             <Card key={project.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>
                 <div className="flex items-start justify-between">
@@ -68,9 +92,12 @@ export function PartnerProjects({ locale }: { locale: string }) {
                       {project.country || t("partner.projects.country", { defaultValue: "Country" })}
                     </div>
                   </div>
-                  <Badge variant="default">
-                    {project.status === "active" ? t("partner.projects.active") : t("partner.projects.completed")}
-                  </Badge>
+                  <div className="flex flex-col items-end gap-2">
+                    <Badge variant="default">
+                      {project.status === "active" ? t("partner.projects.active") : t("partner.projects.completed")}
+                    </Badge>
+                    <Badge variant="secondary">{forestTypeLabels[normalizeForestType(project.forestType)]}</Badge>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">

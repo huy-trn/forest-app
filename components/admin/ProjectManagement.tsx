@@ -23,6 +23,7 @@ import {
 } from "../ui/dialog";
 import { Badge } from "../ui/badge";
 import { Checkbox } from "../ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { FolderPlus, MapPin, Calendar, Users, Edit, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { RichTextEditor } from "../ui/rich-text-editor";
@@ -33,6 +34,7 @@ interface Project {
   description?: string | null;
   descriptionRich?: string | null;
   status: string;
+  forestType?: "natural" | "artificial" | null;
   country: string;
   province: string;
   area: string;
@@ -60,9 +62,14 @@ export function ProjectManagement({ locale }: { locale: string }) {
     descriptionRich: '',
     country: 'Việt Nam',
     province: '',
-    area: ''
+    area: '',
+    forestType: "natural" as "natural" | "artificial",
   });
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  const forestTypeLabels: Record<"natural" | "artificial", string> = {
+    natural: t("common.naturalForest", { defaultValue: "Natural forest" }),
+    artificial: t("common.artificialForest", { defaultValue: "Artificial forest" }),
+  };
 
   const projectsQuery = useQuery({
     queryKey: ["projects"],
@@ -90,6 +97,7 @@ export function ProjectManagement({ locale }: { locale: string }) {
           createdDate: p.createdAt ?? p.createdDate,
           descriptionRich: (p as any).descriptionRich ?? p.description ?? "",
           description: (p as any).description ?? "",
+          forestType: (p as any).forestType ?? "natural",
         }))
       );
     }
@@ -117,7 +125,7 @@ export function ProjectManagement({ locale }: { locale: string }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
-      setNewProject({ title: "", description: "", descriptionRich: "", country: "Việt Nam", province: "", area: "" });
+      setNewProject({ title: "", description: "", descriptionRich: "", country: "Việt Nam", province: "", area: "", forestType: "natural" });
       setSelectedMembers([]);
       setIsCreateDialogOpen(false);
       toast.success(t("admin.projectManagement.createSuccess"));
@@ -233,6 +241,21 @@ export function ProjectManagement({ locale }: { locale: string }) {
                   />
                 </div>
                 <div className="space-y-2">
+                  <Label htmlFor="project-forest-type">{t("admin.projectManagement.forestTypeLabel", { defaultValue: "Forest type" })}</Label>
+                  <Select
+                    value={newProject.forestType}
+                    onValueChange={(val) => setNewProject({ ...newProject, forestType: val as "natural" | "artificial" })}
+                  >
+                    <SelectTrigger id="project-forest-type">
+                      <SelectValue placeholder={t("admin.projectManagement.forestTypePlaceholder", { defaultValue: "Select forest type" })} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="natural">{t("common.naturalForest", { defaultValue: "Natural forest" })}</SelectItem>
+                      <SelectItem value="artificial">{t("common.artificialForest", { defaultValue: "Artificial forest" })}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="project-description">{t('admin.projectManagement.descLabel')}</Label>
                   <RichTextEditor
                     value={newProject.descriptionRich}
@@ -344,6 +367,21 @@ export function ProjectManagement({ locale }: { locale: string }) {
                 />
               </div>
               <div className="space-y-2">
+                <Label htmlFor="edit-project-forest-type">{t("admin.projectManagement.forestTypeLabel", { defaultValue: "Forest type" })}</Label>
+                <Select
+                  value={selectedProject.forestType ?? "natural"}
+                  onValueChange={(val) => setSelectedProject({ ...selectedProject, forestType: val as "natural" | "artificial" })}
+                >
+                  <SelectTrigger id="edit-project-forest-type">
+                    <SelectValue placeholder={t("admin.projectManagement.forestTypePlaceholder", { defaultValue: "Select forest type" })} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="natural">{t("common.naturalForest", { defaultValue: "Natural forest" })}</SelectItem>
+                    <SelectItem value="artificial">{t("common.artificialForest", { defaultValue: "Artificial forest" })}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="edit-project-description">{t('admin.projectManagement.descLabel')}</Label>
                   <RichTextEditor
                     value={selectedProject.descriptionRich ?? selectedProject.description ?? ""}
@@ -412,9 +450,12 @@ export function ProjectManagement({ locale }: { locale: string }) {
             <CardHeader>
               <div className="flex items-start justify-between">
                 <CardTitle className="text-lg">{project.title}</CardTitle>
-                <Badge variant={project.status === 'active' ? 'default' : 'secondary'}>
-                  {project.status === 'active' ? t('admin.projectManagement.active') : t('admin.projectManagement.completed')}
-                </Badge>
+                <div className="flex flex-col items-end gap-2">
+                  <Badge variant={project.status === 'active' ? 'default' : 'secondary'}>
+                    {project.status === 'active' ? t('admin.projectManagement.active') : t('admin.projectManagement.completed')}
+                  </Badge>
+                  <Badge variant="outline">{forestTypeLabels[(project.forestType as "natural" | "artificial") || "natural"]}</Badge>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-3">

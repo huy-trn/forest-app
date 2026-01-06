@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 import { ShowcaseContent } from "@/types/showcase";
 import { useRouter } from "next/navigation";
@@ -19,11 +20,15 @@ type Props = {
   loginPath?: string;
 };
 
+type ForestType = "natural" | "artificial";
+
 export function ShowcaseClient({ locale, content, isAuthenticated, dashboardPath, loginPath }: Props) {
   const { t } = useTranslation();
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
+  const normalizeForestType = useCallback((type?: string | null): ForestType => (type === "artificial" ? "artificial" : "natural"), []);
+  const [forestTypeFilter, setForestTypeFilter] = useState<ForestType>("natural");
 
   const goTo = useCallback(
     (href?: string) => {
@@ -62,14 +67,30 @@ export function ShowcaseClient({ locale, content, isAuthenticated, dashboardPath
 
   const HEADLINE_COUNT = 3;
   const projects = data.projects ?? [];
-  const featuredProjects = projects.slice(0, HEADLINE_COUNT);
-  const moreProjects = projects.slice(HEADLINE_COUNT);
+  useEffect(() => {
+    const types = projects.map((p) => normalizeForestType(p.forestType));
+    if (!types.length) return;
+    if (!types.includes(forestTypeFilter)) {
+      setForestTypeFilter(types.includes("natural") ? "natural" : "artificial");
+    }
+  }, [projects, forestTypeFilter, normalizeForestType]);
+
+  const filteredProjects = useMemo(
+    () => projects.filter((p) => normalizeForestType(p.forestType) === forestTypeFilter),
+    [projects, forestTypeFilter, normalizeForestType]
+  );
+  const featuredProjects = filteredProjects.slice(0, HEADLINE_COUNT);
+  const moreProjects = filteredProjects.slice(HEADLINE_COUNT);
   const pageSize = 5;
   const totalPages = Math.max(1, Math.ceil(Math.max(moreProjects.length, 1) / pageSize));
   const pagedProjects = useMemo(() => {
     const start = (page - 1) * pageSize;
     return moreProjects.slice(start, start + pageSize);
   }, [moreProjects, page]);
+  const forestTypeLabels: Record<ForestType, string> = {
+    natural: t("common.naturalForest", { defaultValue: "Natural forest" }),
+    artificial: t("common.artificialForest", { defaultValue: "Artificial forest" }),
+  };
 
   return (
     <div className="space-y-8">
@@ -128,6 +149,22 @@ export function ShowcaseClient({ locale, content, isAuthenticated, dashboardPath
               </div>
             ) : null}
           </div>
+          <div className="flex flex-wrap items-center gap-2 pt-3">
+            <p className="text-sm text-muted-foreground">{t("common.forestType", { defaultValue: "Forest type" })}</p>
+            {(["natural", "artificial"] as ForestType[]).map((type) => (
+              <Button
+                key={type}
+                size="sm"
+                variant={forestTypeFilter === type ? "default" : "outline"}
+                onClick={() => {
+                  setPage(1);
+                  setForestTypeFilter(type);
+                }}
+              >
+                {forestTypeLabels[type]}
+              </Button>
+            ))}
+          </div>
         </CardHeader>
         <CardContent>
           <div className="overflow-hidden" ref={emblaRef}>
@@ -143,6 +180,7 @@ export function ShowcaseClient({ locale, content, isAuthenticated, dashboardPath
                       ) : null}
                       <CardContent className="p-4 space-y-2">
                         <h3 className="text-lg font-semibold">{project.title}</h3>
+                        <Badge variant="secondary">{forestTypeLabels[normalizeForestType(project.forestType)]}</Badge>
                         <p className="text-sm text-gray-600 leading-relaxed">
                           {previewBody(project.description)}
                         </p>
@@ -200,6 +238,9 @@ export function ShowcaseClient({ locale, content, isAuthenticated, dashboardPath
                       ) : null}
                       <div className="flex-1 space-y-1">
                         <h4 className="font-semibold">{project.title}</h4>
+                        <Badge variant="outline" className="text-xs">
+                          {forestTypeLabels[normalizeForestType(project.forestType)]}
+                        </Badge>
                         <p className="text-sm text-gray-600 leading-relaxed">{previewBody(project.description)}</p>
                         <p className="text-xs text-muted-foreground">
                           {[project.province, project.country].filter(Boolean).join(", ")}

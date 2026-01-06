@@ -1,528 +1,401 @@
-import { PrismaClient, Role, ProjectStatus, TicketStatus, RequestStatus } from "@prisma/client";
+import { PrismaClient, Role, ProjectStatus, TicketStatus, RequestStatus, ForestType } from "@prisma/client";
 import { hash } from "bcryptjs";
 
 const prisma = new PrismaClient();
 
-const buildBodyEn = (summary: string) => {
-  const paragraphs = [
-    summary,
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer feugiat, arcu sit amet feugiat aliquet, arcu mauris commodo leo, vel tempus arcu lacus id tortor. Sed non bibendum erat. Cras non lorem eget odio bibendum vestibulum.",
-    "Curabitur aliquet orci at felis laoreet, sed tempus turpis dapibus. Duis molestie ligula in arcu consectetur, eget vulputate enim cursus. Donec vitae nisi vitae risus volutpat tempor at sed ipsum.",
-    "Phasellus gravida, ligula vitae lacinia posuere, nibh nisl sodales leo, id tristique mi quam id nunc. Sed vel sapien at arcu imperdiet gravida quis id turpis. Etiam venenatis, ipsum in tempor aliquet, erat eros posuere nulla, vel ultricies turpis enim eget nibh.",
-    "Suspendisse non aliquet leo. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Sed consequat, velit nec tempor posuere, risus est pulvinar erat, sed varius sapien tellus vitae risus.",
-  ];
-  return paragraphs.map((p) => `<p>${p}</p>`).join("");
+const htmlBody = (paragraphs: string[], imageUrl?: string) => {
+  const image = imageUrl ? `<p><img src="${imageUrl}" alt="project image" /></p>` : "";
+  return [image, ...paragraphs.map((p) => `<p>${p}</p>`)].filter(Boolean).join("");
 };
 
-const buildBodyVi = (summary: string) => {
-  const paragraphs = [
-    summary,
-    "Nội dung mô tả đầy đủ hơn để xem bố cục hiển thị: lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer feugiat arcu vitae ante hendrerit, vel laoreet mi tempor.",
-    "Curabitur aliquet orci tại đây giúp bài viết dài hơn, dễ nhìn khi trình bày. Duis molestie ligula in arcu consectetur, eget vulputate enim cursus, giúp trang trông giống blog thực tế.",
-    "Phasellus gravida, ligula vitae lacinia posuere, nibh nisl sodales leo, id tristique mi quam id nunc. Sed vel sapien at arcu imperdiet gravida quis id turpis. Etiam venenatis, ipsum in tempor aliquet, erat eros posuere nulla, vel ultricies turpis enim eget nibh.",
-    "Suspendisse non aliquet leo. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Sed consequat, velit nec tempor posuere, risus est pulvinar erat, sed varius sapien tellus vitae risus.",
-  ];
-  return paragraphs.map((p) => `<p>${p}</p>`).join("");
-};
+async function resetDatabase() {
+  await prisma.verificationToken.deleteMany();
+  await prisma.account.deleteMany();
+  await prisma.session.deleteMany();
+  await prisma.ticketAttachment.deleteMany();
+  await prisma.ticketComment.deleteMany();
+  await prisma.ticketLog.deleteMany();
+  await prisma.ticketAssignee.deleteMany();
+  await prisma.ticket.deleteMany();
+  await prisma.projectLocationVersion.deleteMany();
+  await prisma.projectLocation.deleteMany();
+  await prisma.projectMember.deleteMany();
+  await prisma.investorRequest.deleteMany();
+  await prisma.project.deleteMany();
+  await prisma.user.deleteMany();
+  await prisma.post.deleteMany();
+  await prisma.showcaseHero.deleteMany();
+}
 
-async function main() {
-  const existing = await prisma.user.count();
-  if (existing > 0) {
-    // Reset tables to ensure a clean seed.
-    await prisma.account.deleteMany();
-    await prisma.session.deleteMany();
-    await prisma.verificationToken.deleteMany();
-    await prisma.ticketAttachment.deleteMany();
-    await prisma.ticketComment.deleteMany();
-    await prisma.ticketLog.deleteMany();
-    await prisma.ticketAssignee.deleteMany();
-    await prisma.ticket.deleteMany();
-    await prisma.projectMember.deleteMany();
-    await prisma.project.deleteMany();
-    await prisma.investorRequest.deleteMany();
-    await prisma.user.deleteMany();
+async function seedUsers(password: string) {
+  const users = [
+    { name: "Quỳnh Nguyễn", email: "admin@example.com", phone: "+84 912 000 111", role: Role.admin },
+    { name: "Huyền Trần", email: "ops@example.com", phone: "+84 913 222 333", role: Role.admin },
+    { name: "Lan Phạm", email: "lan.pham@partners.com", phone: "+84 934 555 888", role: Role.partner },
+    { name: "Kiệt Trần", email: "kiet.tran@partners.com", phone: "+84 925 101 202", role: Role.partner },
+    { name: "Minh Bùi", email: "minh.bui@partners.com", phone: "+84 936 303 404", role: Role.partner, status: "inactive" },
+    { name: "An Hồ", email: "an.ho@partners.com", phone: "+84 937 909 101", role: Role.partner },
+    { name: "Sophie Lê", email: "sophie.le@greenbamboo.vn", phone: "+84 988 111 222", role: Role.investor },
+    { name: "Thanh Tùng", email: "thanh.tung@impactfund.vn", phone: "+84 955 333 444", role: Role.investor },
+    { name: "Minh Châu", email: "minh.chau@earthcare.vn", phone: "+84 977 666 777", role: Role.investor },
+  ];
+
+  const created = await Promise.all(
+    users.map((u) =>
+      prisma.user.create({
+        data: {
+          ...u,
+          passwordHash: password,
+        },
+      })
+    )
+  );
+
+  return Object.fromEntries(created.map((u) => [u.email, u]));
+}
+
+async function seedProjects(userMap: Record<string, any>) {
+  const projectsData = [
+    {
+      title: "Phục hồi rừng bản địa Lạng Sơn",
+      description: htmlBody(
+        [
+          "Khôi phục rừng tự nhiên trên đất thoái hóa, ưu tiên cây bản địa như dẻ, trám và lim. Kế hoạch 3 năm gồm làm giàu rừng, phục hồi tầng tán và xây dựng lực lượng bảo vệ cộng đồng.",
+          "Đội ngũ phối hợp với kiểm lâm xã để thiết lập các ô tiêu chuẩn theo dõi tăng trưởng và kiểm soát cháy rừng mùa khô.",
+        ],
+        "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1200&q=80"
+      ),
+      status: ProjectStatus.active,
+      forestType: ForestType.natural,
+      country: "Việt Nam",
+      province: "Lạng Sơn",
+      area: "150 ha",
+      members: [
+        { role: Role.partner, email: "lan.pham@partners.com" },
+        { role: Role.partner, email: "kiet.tran@partners.com" },
+        { role: Role.investor, email: "sophie.le@greenbamboo.vn" },
+      ],
+    },
+    {
+      title: "Lá chắn ngập mặn Mekong",
+      description: htmlBody(
+        [
+          "Trồng phục hồi đước và mắm tại các dải bờ xói lở, lắp thiết bị đo độ mặn và mực nước để cảnh báo sớm.",
+          "Kết hợp tuần tra cộng đồng và ảnh vệ tinh để đánh giá mật độ tán rừng hằng tháng, bảo vệ sinh kế nuôi trồng thủy sản.",
+        ],
+        "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80"
+      ),
+      status: ProjectStatus.active,
+      forestType: ForestType.natural,
+      country: "Việt Nam",
+      province: "Bạc Liêu",
+      area: "96 ha",
+      members: [
+        { role: Role.partner, email: "an.ho@partners.com" },
+        { role: Role.partner, email: "lan.pham@partners.com" },
+        { role: Role.investor, email: "thanh.tung@impactfund.vn" },
+      ],
+    },
+    {
+      title: "Trang trại thông Tây Nguyên",
+      description: htmlBody(
+        [
+          "Khu rừng trồng thông lấy nhựa có chứng chỉ FSC, bổ sung dải cây bụi bản địa để giữ ẩm và giảm xói mòn.",
+          "Đội vận hành thử nghiệm cảm biến độ ẩm đất IoT và lịch khai thác giật lùi để tối ưu sản lượng nhựa.",
+        ],
+        "https://images.unsplash.com/photo-1523978591478-c753949ff840?auto=format&fit=crop&w=1200&q=80"
+      ),
+      status: ProjectStatus.active,
+      forestType: ForestType.artificial,
+      country: "Việt Nam",
+      province: "Gia Lai",
+      area: "210 ha",
+      members: [
+        { role: Role.partner, email: "kiet.tran@partners.com" },
+        { role: Role.partner, email: "minh.bui@partners.com" },
+        { role: Role.investor, email: "sophie.le@greenbamboo.vn" },
+        { role: Role.investor, email: "minh.chau@earthcare.vn" },
+      ],
+    },
+    {
+      title: "Hợp tác xã tre Quảng Ngãi",
+      description: htmlBody(
+        [
+          "Mô hình rừng trồng tre luân kỳ kết hợp cây che phủ đậu nành để phục hồi đất và đa dạng sinh học.",
+          "Kế hoạch 2024 tập trung mở rộng 30 ha mới, lắp đặt hệ thống tưới nhỏ giọt tiết kiệm nước và đào mương giữ ẩm.",
+        ],
+        "https://images.unsplash.com/photo-1506765515384-028b60a970df?auto=format&fit=crop&w=1200&q=80"
+      ),
+      status: ProjectStatus.completed,
+      forestType: ForestType.artificial,
+      country: "Việt Nam",
+      province: "Quảng Ngãi",
+      area: "128 ha",
+      members: [
+        { role: Role.partner, email: "an.ho@partners.com" },
+        { role: Role.partner, email: "lan.pham@partners.com" },
+        { role: Role.investor, email: "thanh.tung@impactfund.vn" },
+        { role: Role.investor, email: "minh.chau@earthcare.vn" },
+      ],
+    },
+  ];
+
+  const projects = [];
+  for (const project of projectsData) {
+    const created = await prisma.project.create({
+      data: {
+        title: project.title,
+        description: project.description,
+        status: project.status,
+        forestType: project.forestType,
+        country: project.country,
+        province: project.province,
+        area: project.area,
+        members: {
+          create: project.members.map((m) => ({
+            role: m.role,
+            userId: userMap[m.email].id,
+          })),
+        },
+      },
+    });
+    projects.push(created);
   }
 
-  // Create users
-  const password = await hash("password123", 10);
+  return projects;
+}
 
-  const [admin, partnerA, partnerB, partnerC, partnerD, investorA, investorB, investorC] = await Promise.all([
-    prisma.user.create({
-      data: { name: "Seed Admin", email: "seed-admin@example.com", phone: "+84 123 456 789", role: Role.admin, passwordHash: password },
-    }),
-    prisma.user.create({
-      data: { name: "Nguyễn Văn A", email: "nguyenvana@example.com", phone: "+84 912 345 678", role: Role.partner, passwordHash: password },
-    }),
-    prisma.user.create({
-      data: { name: "Trần Thị B", email: "tranthib@example.com", phone: "+84 923 456 789", role: Role.partner, passwordHash: password },
-    }),
-    prisma.user.create({
-      data: { name: "Phạm Thị D", email: "phamthid@example.com", phone: "+84 977 654 321", role: Role.partner, status: "inactive", passwordHash: password },
-    }),
-    prisma.user.create({
-      data: { name: "Đặng Minh H", email: "dangminhh@example.com", phone: "+84 955 333 444", role: Role.partner, passwordHash: password },
-    }),
-    prisma.user.create({
-      data: { name: "Lê Văn C", email: "levanc@example.com", phone: "+84 934 567 890", role: Role.investor, passwordHash: password },
-    }),
-    prisma.user.create({
-      data: { name: "Hoàng Văn E", email: "hoangvane@example.com", phone: "+84 956 789 012", role: Role.investor, status: "inactive", passwordHash: password },
-    }),
-    prisma.user.create({
-      data: { name: "Bùi Văn F", email: "buivanf@example.com", phone: "+84 988 111 222", role: Role.investor, passwordHash: password },
-    }),
-  ]);
-
-  // Projects with members
-  const project1 = await prisma.project.create({
-    data: {
-      title: "Dự án Rừng Thông Miền Bắc",
-      description: "Dự án trồng rừng thông quy mô lớn",
-      status: ProjectStatus.active,
-      country: "Việt Nam",
-      province: "Lào Cai",
-      area: "125 hecta",
-      members: {
-        create: [
-          { role: Role.partner, userId: partnerA.id },
-          { role: Role.investor, userId: investorA.id },
-        ],
-      },
-    },
-  });
-
-  const [project2, project3, project4] = await Promise.all([
-    prisma.project.create({
-      data: {
-        title: "Phục hồi rừng Sồi",
-        description: "Dự án phục hồi rừng sồi và phong",
-        status: ProjectStatus.active,
-        country: "Việt Nam",
-        province: "Nghệ An",
-        area: "87 hecta",
-        members: {
-          create: [
-            { role: Role.partner, userId: partnerB.id },
-            { role: Role.investor, userId: investorB.id },
-          ],
-        },
-      },
-    }),
-    prisma.project.create({
-      data: {
-        title: "Tái sinh rừng ngập mặn Cà Mau",
-        description: "Khôi phục đa dạng sinh học vùng ngập mặn",
-        status: ProjectStatus.completed,
-        country: "Việt Nam",
-        province: "Cà Mau",
-        area: "43 hecta",
-        members: {
-          create: [
-            { role: Role.partner, userId: partnerC.id },
-            { role: Role.investor, userId: investorA.id },
-          ],
-        },
-      },
-    }),
-    prisma.project.create({
-      data: {
-        title: "Bảo tồn tre Trà Bồng",
-        description: "Dự án bảo tồn tre và hỗ trợ sinh kế địa phương",
-        status: ProjectStatus.active,
-        country: "Việt Nam",
-        province: "Quảng Ngãi",
-        area: "60 hecta",
-        members: {
-          create: [
-            { role: Role.partner, userId: partnerD.id },
-            { role: Role.partner, userId: partnerA.id },
-            { role: Role.investor, userId: investorC.id },
-          ],
-        },
-      },
-    }),
-  ]);
-
-  // Seed some map pins (multiple per project)
+async function seedLocations(projects: any[]) {
+  const [p1, p2, p3, p4] = projects;
   await prisma.projectLocation.createMany({
     data: [
-      // Project 1 - Lao Cai vicinity
-      { projectId: project1.id, latitude: 22.336651, longitude: 104.148407, label: "Plot A" },
-      { projectId: project1.id, latitude: 22.345902, longitude: 104.162938, label: "Plot B" },
-      // Project 2 - Nghe An vicinity
-      { projectId: project2.id, latitude: 19.192106, longitude: 105.455933, label: "Zone 1" },
-      { projectId: project2.id, latitude: 19.205812, longitude: 105.470245, label: "Zone 2" },
-      // Project 3 - Ca Mau vicinity
-      { projectId: project3.id, latitude: 8.997533, longitude: 105.131836, label: "Mangrove West" },
-      // Project 4 - Quang Ngai vicinity
-      { projectId: project4.id, latitude: 15.120018, longitude: 108.532715, label: "Tre TB-01" },
+      { projectId: p1.id, latitude: 21.8334, longitude: 106.7701, label: "Ô mẫu 1", name: "Đồi Kéo" },
+      { projectId: p1.id, latitude: 21.8249, longitude: 106.7543, label: "Ô mẫu 2", name: "Bản Keo" },
+      { projectId: p2.id, latitude: 9.2312, longitude: 105.6921, label: "Cồn chắn sóng", name: "Cồn Đước" },
+      { projectId: p2.id, latitude: 9.2458, longitude: 105.7055, label: "Trạm đo", name: "Trạm mặn 01" },
+      { projectId: p3.id, latitude: 13.9812, longitude: 108.1033, label: "Lô thu nhựa", name: "Lô T1" },
+      { projectId: p3.id, latitude: 13.9655, longitude: 108.1156, label: "Lô thử nghiệm", name: "Lô IoT" },
+      { projectId: p4.id, latitude: 15.1031, longitude: 108.6101, label: "Vùng ươm", name: "Nursery Bắc" },
+      { projectId: p4.id, latitude: 15.0899, longitude: 108.5922, label: "Lô tre 2023", name: "Lô tre QN-23" },
     ],
   });
+}
 
-  // Tickets
-  const ticket1 = await prisma.ticket.create({
+async function seedTickets(projects: any[], userMap: Record<string, any>) {
+  const [p1, p2, p3, p4] = projects;
+  await prisma.ticket.create({
     data: {
-      title: "Trồng cây khu vực A-1",
-      description: "Trồng 500 cây thông tại khu vực A-1",
-      projectId: project1.id,
+      title: "Đo đạc tái sinh tự nhiên",
+      description: "Thu thập mật độ cây tái sinh và loài ưu thế tại 8 ô tiêu chuẩn.",
+      projectId: p1.id,
       status: TicketStatus.in_progress,
-      assignees: { create: [{ userId: partnerA.id }] },
+      assignees: { create: [{ userId: userMap["lan.pham@partners.com"].id }] },
       logs: {
         create: [
-          {
-            message: "Đã trồng 200 cây thông",
-            userId: partnerA.id,
-          },
+          { message: "Đã đo 4/8 ô, mật độ trung bình 1.200 cây/ha", userId: userMap["lan.pham@partners.com"].id },
+          { message: "Upload ảnh ô mẫu lên hệ thống", userId: userMap["lan.pham@partners.com"].id },
         ],
       },
       comments: {
         create: [
-          {
-            message: "Tiến độ tốt, tiếp tục theo dõi",
-            userId: admin.id,
-            userRole: Role.admin,
-          },
+          { message: "Nhớ gắn tọa độ GPS từng ô", userId: userMap["ops@example.com"].id, userRole: Role.admin },
         ],
       },
       attachments: {
-        create: [{ name: "photo1.jpg", type: "image", url: "#" }],
+        create: [{ name: "plots-kml.kml", type: "kml", url: "https://example.com/plots.kml" }],
       },
     },
   });
 
-  const ticket2 = await prisma.ticket.create({
+  await prisma.ticket.create({
     data: {
-      title: "Kiểm tra và bảo dưỡng khu B-2",
-      description: "Kiểm tra tình trạng cây và làm cỏ khu vực B-2",
-      projectId: project2.id,
+      title: "Kiểm tra hệ thống quan trắc mặn",
+      description: "Hiệu chuẩn cảm biến và kiểm tra pin năng lượng mặt trời.",
+      projectId: p2.id,
       status: TicketStatus.open,
-      assignees: { create: [{ userId: partnerB.id }] },
+      assignees: { create: [{ userId: userMap["an.ho@partners.com"].id }] },
+      comments: {
+        create: [
+          { message: "Đề nghị chụp ảnh tủ điện sau khi vệ sinh", userId: userMap["admin@example.com"].id, userRole: Role.admin },
+        ],
+      },
     },
   });
 
-  const ticket3 = await prisma.ticket.create({
+  await prisma.ticket.create({
     data: {
-      title: "Đóng hố, bổ sung phân",
-      description: "Bổ sung phân hữu cơ và dọn dẹp khu vực A-2",
-      projectId: project1.id,
+      title: "Lịch khai thác nhựa quý III",
+      description: "Cập nhật kế hoạch khai thác giật lùi và phân công nhóm thu nhựa.",
+      projectId: p3.id,
+      status: TicketStatus.in_progress,
+      assignees: {
+        create: [
+          { userId: userMap["kiet.tran@partners.com"].id },
+          { userId: userMap["minh.bui@partners.com"].id },
+        ],
+      },
+      logs: {
+        create: [{ message: "Đã khoanh vùng 12 ha cho chu kỳ mới", userId: userMap["kiet.tran@partners.com"].id }],
+      },
+      comments: {
+        create: [
+          { message: "Cần báo cáo tồn kho nhựa", userId: userMap["sophie.le@greenbamboo.vn"].id, userRole: Role.investor },
+        ],
+      },
+    },
+  });
+
+  await prisma.ticket.create({
+    data: {
+      title: "Đào mương giữ ẩm và trồng dặm",
+      description: "Hoàn thiện 2.5 km mương và trồng dặm 4.000 cây tre giống mới.",
+      projectId: p4.id,
       status: TicketStatus.completed,
-      assignees: { create: [{ userId: partnerA.id }] },
+      assignees: { create: [{ userId: userMap["an.ho@partners.com"].id }] },
       logs: {
         create: [
-          { message: "Hoàn thành 100% diện tích", userId: partnerA.id },
-          { message: "Đã nghiệm thu", userId: admin.id },
+          { message: "Mương đã xong 100%, kiểm tra nước đọng ổn định", userId: userMap["an.ho@partners.com"].id },
+          { message: "Trồng dặm hoàn tất, tỷ lệ sống 94%", userId: userMap["lan.pham@partners.com"].id },
         ],
       },
-      comments: {
-        create: [
-          { message: "Cần thêm báo cáo chi phí", userId: investorA.id, userRole: Role.investor },
-          { message: "Đã cập nhật vào bảng tổng hợp", userId: admin.id, userRole: Role.admin },
-        ],
-      },
-    },
-  });
-
-  const ticket4 = await prisma.ticket.create({
-    data: {
-      title: "Theo dõi ngập mặn",
-      description: "Quan trắc độ mặn và mức nước hàng tuần",
-      projectId: project3.id,
-      status: TicketStatus.closed,
-      assignees: { create: [{ userId: partnerC.id }] },
       attachments: {
-        create: [
-          { name: "salinity-week1.csv", type: "csv", url: "#" },
-          { name: "photo-mangrove.png", type: "image", url: "#" },
-        ],
+        create: [{ name: "photo-drainage.jpg", type: "image", url: "https://images.unsplash.com/photo-1506765515384-028b60a970df?auto=format&fit=crop&w=800&q=80" }],
       },
     },
   });
+}
 
-  await prisma.ticket.create({
-    data: {
-      title: "Tập huấn cộng đồng",
-      description: "Hướng dẫn bảo vệ tre và quy trình thu hoạch bền vững",
-      projectId: project4.id,
-      status: TicketStatus.in_progress,
-      assignees: { create: [{ userId: partnerD.id }, { userId: partnerA.id }] },
-      logs: {
-        create: [{ message: "Hoàn thành 50% số hộ tham dự", userId: partnerD.id }],
-      },
-      comments: {
-        create: [{ message: "Cần thêm tài liệu hình ảnh", userId: investorC.id, userRole: Role.investor }],
-      },
-    },
-  });
-
-  await prisma.ticket.create({
-    data: {
-      title: "Đo đạc diện tích thực tế",
-      description: "Đo đạc lại diện tích và cập nhật bản đồ GIS",
-      projectId: project2.id,
-      status: TicketStatus.in_progress,
-      assignees: { create: [{ userId: partnerB.id }] },
-      logs: {
-        create: [{ message: "Đã hoàn thành 30% khu vực phía đông", userId: partnerB.id }],
-      },
-    },
-  });
-
-  // Investor requests
+async function seedInvestorRequests(projects: any[], userMap: Record<string, any>) {
+  const [p1, p2, p3, p4] = projects;
   await prisma.investorRequest.createMany({
     data: [
       {
-        content: "Quan tâm đầu tư dự án rừng thông.",
+        content: "Cần bảng phân bổ vốn cho giai đoạn 2024-2025.",
+        status: RequestStatus.processing,
+        fromName: userMap["sophie.le@greenbamboo.vn"].name,
+        fromEmail: userMap["sophie.le@greenbamboo.vn"].email,
+        projectId: p3.id,
+        investorId: userMap["sophie.le@greenbamboo.vn"].id,
+        response: "Đang tổng hợp chi phí thiết bị và nhân công.",
+      },
+      {
+        content: "Đề nghị báo cáo độ mặn tuần này và ảnh hiện trường.",
         status: RequestStatus.pending,
-        fromName: investorA.name,
-        fromEmail: investorA.email ?? "investor@example.com",
-        projectId: project1.id,
-        investorId: investorA.id,
+        fromName: userMap["thanh.tung@impactfund.vn"].name,
+        fromEmail: userMap["thanh.tung@impactfund.vn"].email,
+        projectId: p2.id,
+        investorId: userMap["thanh.tung@impactfund.vn"].id,
       },
       {
-        content: "Muốn xem báo cáo tiến độ dự án sồi.",
-        status: RequestStatus.processing,
-        fromName: investorB.name,
-        fromEmail: investorB.email ?? "investor2@example.com",
-        projectId: project2.id,
-        investorId: investorB.id,
-        response: "Đang chuẩn bị báo cáo.",
-      },
-      {
-        content: "Đề nghị khảo sát hiện trường tại Cà Mau.",
+        content: "Quan tâm mua tín chỉ carbon từ rừng bản địa.",
         status: RequestStatus.completed,
-        fromName: investorA.name,
-        fromEmail: investorA.email ?? "investor@example.com",
-        projectId: project3.id,
-        investorId: investorA.id,
-        response: "Đã chia sẻ lịch khảo sát và liên hệ đội ngũ địa phương.",
+        fromName: userMap["minh.chau@earthcare.vn"].name,
+        fromEmail: userMap["minh.chau@earthcare.vn"].email,
+        projectId: p1.id,
+        investorId: userMap["minh.chau@earthcare.vn"].id,
+        response: "Đã gửi phương pháp luận và hồ sơ đo đạc.",
       },
       {
-        content: "Đề xuất tạm dừng giải ngân do thời tiết xấu.",
-        status: RequestStatus.rejected,
-        fromName: investorB.name,
-        fromEmail: investorB.email ?? "investor2@example.com",
-        projectId: project2.id,
-        investorId: investorB.id,
-        response: "Lý do không đủ cơ sở, kế hoạch vẫn tiếp tục.",
-      },
-      {
-        content: "Cần báo cáo ESG cho dự án tre.",
+        content: "Muốn tham quan hiện trường tre vào tháng tới.",
         status: RequestStatus.processing,
-        fromName: investorC.name,
-        fromEmail: investorC.email ?? "investor3@example.com",
-        projectId: project4.id,
-        investorId: investorC.id,
+        fromName: userMap["thanh.tung@impactfund.vn"].name,
+        fromEmail: userMap["thanh.tung@impactfund.vn"].email,
+        projectId: p4.id,
+        investorId: userMap["thanh.tung@impactfund.vn"].id,
+        response: "Đã lên lịch khảo sát ngày 12/05, sẽ gửi lịch chi tiết.",
       },
     ],
   });
+}
 
-  // Showcase content
-  await prisma.showcaseHero.deleteMany();
-  await prisma.post.deleteMany();
-
+async function seedShowcase() {
   await prisma.showcaseHero.createMany({
     data: [
       {
         locale: "en",
-        title: "Forest Management Web App",
-        description: "Role-based dashboards for admins, partners, and investors to collaborate on forest projects.",
+        title: "Vietnam Forest Operations Hub",
+        description: "Field-ready dashboards for monitoring natural and plantation forests, built for teams and investors.",
       },
       {
         locale: "vi",
-        title: "Hệ thống quản lý rừng",
-        description: "Bảng điều khiển cho quản trị, đối tác và nhà đầu tư hợp tác trên dự án trồng rừng.",
-      },
-    ],
-  });
-  await prisma.post.createMany({
-    data: [
-      // English posts
-      {
-        title: "Project spotlight",
-        body: buildBodyEn("See how partners and investors are accelerating reforestation across Northern Vietnam."),
-        imageUrl: "https://images.unsplash.com/photo-1523978591478-c753949ff840?auto=format&fit=crop&w=1200&q=80",
-        locale: "en",
-      },
-      {
-        title: "Monitoring via satellites",
-        body: buildBodyEn("Remote sensing plus on-the-ground logs keep progress transparent for every stakeholder."),
-        imageUrl: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80",
-        locale: "en",
-      },
-      {
-        title: "Community impact first",
-        body: buildBodyEn("Training and fair-pay programs help local farmers thrive alongside new forests."),
-        imageUrl: "https://images.unsplash.com/photo-1506765515384-028b60a970df?auto=format&fit=crop&w=1200&q=80",
-        locale: "en",
-      },
-      {
-        title: "Mangrove recovery",
-        body: buildBodyEn("Weekly salinity readings and photo logs track the health of restored mangroves."),
-        imageUrl: "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1200&q=80",
-        locale: "en",
-      },
-      {
-        title: "New partner onboarding",
-        body: buildBodyEn("Field teams in Nghe An completed 50% of community workshops for soil care."),
-        imageUrl: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80",
-        locale: "en",
-      },
-      {
-        title: "Drone monitoring",
-        body: buildBodyEn("Weekly drone imagery highlights canopy growth and soil moisture."),
-        imageUrl: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80",
-        locale: "en",
-      },
-      {
-        title: "Farmer workshops",
-        body: buildBodyEn("Half of local households joined training on seedling care and organic fertilization."),
-        imageUrl: "https://images.unsplash.com/photo-1506765515384-028b60a970df?auto=format&fit=crop&w=1200&q=80",
-        locale: "en",
-      },
-      {
-        title: "ESG reporting",
-        body: buildBodyEn("Environmental and social indicators are being compiled for investors."),
-        imageUrl: "https://images.unsplash.com/photo-1506765515384-028b60a970df?auto=format&fit=crop&w=1200&q=80",
-        locale: "en",
-      },
-      {
-        title: "Value-chain planning",
-        body: buildBodyEn("Roadmap for timber, resin, and bamboo product sales by region."),
-        imageUrl: "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1200&q=80",
-        locale: "en",
-      },
-      {
-        title: "Fresh satellite imagery",
-        body: buildBodyEn("This month’s satellite pass shows an 8% canopy density increase."),
-        imageUrl: "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1200&q=80",
-        locale: "en",
-      },
-      {
-        title: "Soil health baseline",
-        body: buildBodyEn("Baseline soil carbon samples collected across five plots to track improvement."),
-        imageUrl: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80",
-        locale: "en",
-      },
-      {
-        title: "Nursery expansion",
-        body: buildBodyEn("A second nursery line is producing 2,000 seedlings per week to meet planting goals."),
-        imageUrl: "https://images.unsplash.com/photo-1523978591478-c753949ff840?auto=format&fit=crop&w=1200&q=80",
-        locale: "en",
-      },
-      {
-        title: "Biodiversity notes",
-        body: buildBodyEn("Camera traps captured returning bird species around the restored mangroves."),
-        imageUrl: "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1200&q=80",
-        locale: "en",
-      },
-      {
-        title: "Logistics check",
-        body: buildBodyEn("Road access cleared for the rainy season to keep sapling transport on schedule."),
-        imageUrl: "https://images.unsplash.com/photo-1506765515384-028b60a970df?auto=format&fit=crop&w=1200&q=80",
-        locale: "en",
-      },
-      {
-        title: "Community Q&A",
-        body: buildBodyEn("Monthly forum answered common questions about harvest timelines and revenue sharing."),
-        imageUrl: "https://images.unsplash.com/photo-1506765515384-028b60a970df?auto=format&fit=crop&w=1200&q=80",
-        locale: "en",
-      },
-
-      // Vietnamese posts
-      {
-        title: "Tiêu điểm dự án",
-        body: buildBodyVi("Đối tác và nhà đầu tư đang đẩy nhanh tiến độ trồng rừng tại miền Bắc."),
-        imageUrl: "https://images.unsplash.com/photo-1523978591478-c753949ff840?auto=format&fit=crop&w=1200&q=80",
-        locale: "vi",
-      },
-      {
-        title: "Giám sát vệ tinh",
-        body: buildBodyVi("Kết hợp ảnh vệ tinh và nhật ký hiện trường để minh bạch tiến độ."),
-        imageUrl: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80",
-        locale: "vi",
-      },
-      {
-        title: "Tác động cộng đồng",
-        body: buildBodyVi("Các khóa tập huấn và chương trình thu nhập công bằng giúp nông hộ phát triển."),
-        imageUrl: "https://images.unsplash.com/photo-1506765515384-028b60a970df?auto=format&fit=crop&w=1200&q=80",
-        locale: "vi",
-      },
-      {
-        title: "Phục hồi rừng ngập mặn",
-        body: buildBodyVi("Ghi nhận độ mặn và ảnh hiện trường hàng tuần để theo dõi sức khỏe rừng."),
-        imageUrl: "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1200&q=80",
-        locale: "vi",
-      },
-      {
-        title: "Theo dõi rừng bằng drone",
-        body: buildBodyVi("Ảnh flycam giúp giám sát tốc độ sinh trưởng theo từng tuần."),
-        imageUrl: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80",
-        locale: "vi",
-      },
-      {
-        title: "Hội thảo nông hộ",
-        body: buildBodyVi("50% hộ dân đã tham gia tập huấn kỹ thuật ươm giống và bón phân hữu cơ."),
-        imageUrl: "https://images.unsplash.com/photo-1506765515384-028b60a970df?auto=format&fit=crop&w=1200&q=80",
-        locale: "vi",
-      },
-      {
-        title: "Báo cáo ESG",
-        body: buildBodyVi("Các chỉ số môi trường và xã hội đang được tổng hợp cho nhà đầu tư."),
-        imageUrl: "https://images.unsplash.com/photo-1506765515384-028b60a970df?auto=format&fit=crop&w=1200&q=80",
-        locale: "vi",
-      },
-      {
-        title: "Kết nối chuỗi giá trị",
-        body: buildBodyVi("Lập kế hoạch bán gỗ, nhựa thông và sản phẩm tre theo vùng."),
-        imageUrl: "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1200&q=80",
-        locale: "vi",
-      },
-      {
-        title: "Thử nghiệm giống mới",
-        body: buildBodyVi("Ba giống keo lai được trồng thử tại Quảng Ngãi để đánh giá sinh trưởng."),
-        imageUrl: "https://images.unsplash.com/photo-1523978591478-c753949ff840?auto=format&fit=crop&w=1200&q=80",
-        locale: "vi",
-      },
-      {
-        title: "Bảo vệ rừng cộng đồng",
-        body: buildBodyVi("Tổ chức tuần tra định kỳ và ghi nhận hiện trạng bằng ứng dụng di động."),
-        imageUrl: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80",
-        locale: "vi",
-      },
-      {
-        title: "Đo mẫu đất",
-        body: buildBodyVi("Lấy mẫu carbon đất tại 5 ô thí nghiệm để theo dõi mức cải thiện theo thời gian."),
-        imageUrl: "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1200&q=80",
-        locale: "vi",
-      },
-      {
-        title: "Mở rộng vườn ươm",
-        body: buildBodyVi("Dây chuyền ươm thứ hai đang cung cấp 2.000 cây giống mỗi tuần."),
-        imageUrl: "https://images.unsplash.com/photo-1523978591478-c753949ff840?auto=format&fit=crop&w=1200&q=80",
-        locale: "vi",
-      },
-      {
-        title: "Đa dạng sinh học",
-        body: buildBodyVi("Bẫy ảnh ghi nhận chim quay lại khu rừng ngập mặn vừa phục hồi."),
-        imageUrl: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80",
-        locale: "vi",
-      },
-      {
-        title: "Kiểm tra hậu cần",
-        body: buildBodyVi("Đã dọn đường vận chuyển cây giống trước mùa mưa để đảm bảo tiến độ trồng."),
-        imageUrl: "https://images.unsplash.com/photo-1506765515384-028b60a970df?auto=format&fit=crop&w=1200&q=80",
-        locale: "vi",
-      },
-      {
-        title: "Gặp gỡ cộng đồng",
-        body: buildBodyVi("Phiên hỏi đáp hằng tháng giải đáp thắc mắc về thời gian thu hoạch và chia sẻ lợi nhuận."),
-        imageUrl: "https://images.unsplash.com/photo-1506765515384-028b60a970df?auto=format&fit=crop&w=1200&q=80",
-        locale: "vi",
+        title: "Trung tâm vận hành rừng",
+        description: "Giám sát rừng tự nhiên và rừng trồng với báo cáo minh bạch cho đội ngũ và nhà đầu tư.",
       },
     ],
   });
 
-  console.log("Seed completed");
+  const posts = [
+    {
+      title: "Drone survey finished",
+      locale: "en",
+      body: htmlBody([
+        "A 40-minute drone flight mapped the new bamboo plots. NDVI layers show strong recovery after recent rain.",
+        "Soil moisture sensors will be compared with canopy data to fine-tune irrigation cycles.",
+      ]),
+      imageUrl: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80",
+    },
+    {
+      title: "Mangrove salinity alert",
+      locale: "en",
+      body: htmlBody([
+        "Two sensors reported salinity above 25‰ for 6 hours. Field teams closed sluice gates and deployed burlap shading.",
+        "Follow-up readings are back to safe levels; no seedling loss recorded.",
+      ]),
+      imageUrl: "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1200&q=80",
+    },
+    {
+      title: "Community patrol training",
+      locale: "en",
+      body: htmlBody([
+        "Twenty volunteers completed wildfire patrol drills. Each squad is equipped with radios and first aid kits.",
+        "Patrol routes are logged via the mobile app to keep incident response times under 15 minutes.",
+      ]),
+      imageUrl: "https://images.unsplash.com/photo-1523978591478-c753949ff840?auto=format&fit=crop&w=1200&q=80",
+    },
+    {
+      title: "Bay chụp đầm mặn",
+      locale: "vi",
+      body: htmlBody([
+        "Chuyến bay drone 35 phút đã chụp phủ kín các ô đước mới trồng, NDVI cho thấy tán đang hồi phục tốt.",
+        "Đội vận hành sẽ so sánh với cảm biến độ mặn để điều chỉnh lịch tưới và đóng mở cống.",
+      ]),
+      imageUrl: "https://images.unsplash.com/photo-1506765515384-028b60a970df?auto=format&fit=crop&w=1200&q=80",
+    },
+    {
+      title: "Lắp cảm biến độ ẩm đất",
+      locale: "vi",
+      body: htmlBody([
+        "6 cảm biến đã hoạt động tại lô thông thử nghiệm IoT, truyền dữ liệu mỗi 15 phút.",
+        "Bảng điều khiển hiển thị ngưỡng cảnh báo giúp đội hiện trường điều chỉnh tưới nhỏ giọt kịp thời.",
+      ]),
+      imageUrl: "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1200&q=80",
+    },
+    {
+      title: "Tập huấn cộng đồng",
+      locale: "vi",
+      body: htmlBody([
+        "30 hộ dân tham gia tập huấn về phòng cháy và phân loại rác hữu cơ tại khu rừng bản địa.",
+        "Nhóm nòng cốt được trang bị bộ đàm và kỹ năng sơ cứu để phản ứng nhanh trong mùa khô.",
+      ]),
+      imageUrl: "https://images.unsplash.com/photo-1523978591478-c753949ff840?auto=format&fit=crop&w=1200&q=80",
+    },
+  ];
+
+  await prisma.post.createMany({ data: posts });
+}
+
+async function main() {
+  const password = await hash("password123", 10);
+  await resetDatabase();
+
+  const userMap = await seedUsers(password);
+  const projects = await seedProjects(userMap);
+  await seedLocations(projects);
+  await seedTickets(projects, userMap);
+  await seedInvestorRequests(projects, userMap);
+  await seedShowcase();
+
+  console.log("Seed completed with realistic data");
 }
 
 main()

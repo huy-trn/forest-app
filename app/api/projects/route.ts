@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { Role } from "@prisma/client";
+import { Role, ForestType } from "@prisma/client";
 import { getUserFromRequest } from "@/lib/auth-helpers";
 
 export async function GET(request: Request) {
@@ -17,6 +17,7 @@ export async function GET(request: Request) {
         country: true,
         province: true,
         area: true,
+        forestType: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -57,12 +58,13 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const { title, description, country, province, area, memberIds, memberRoles } = body as {
+  const { title, description, country, province, area, forestType, memberIds, memberRoles } = body as {
     title?: string;
     description?: string;
     country?: string;
     province?: string;
     area?: string;
+    forestType?: ForestType | string;
     memberIds?: string[];
     memberRoles?: Record<string, Role>;
   };
@@ -71,6 +73,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Title is required" }, { status: 400 });
   }
 
+  const normalizedForestType =
+    forestType === ForestType.artificial || forestType === "artificial" ? ForestType.artificial : ForestType.natural;
+
   const project = await prisma.project.create({
     data: {
       title,
@@ -78,6 +83,7 @@ export async function POST(request: Request) {
       country,
       province,
       area,
+      forestType: normalizedForestType,
       members: {
         create: (memberIds || []).map((id) => ({
           userId: id,

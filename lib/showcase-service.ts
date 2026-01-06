@@ -29,21 +29,21 @@ export async function getShowcaseContent(locale: string): Promise<ShowcaseConten
         take: 12,
         select: {
           id: true,
-          title: true,
-          description: true,
-          country: true,
-          province: true,
-          area: true,
-          createdAt: true,
-          descriptionRich: true,
-        },
-      })
+        title: true,
+        description: true,
+        country: true,
+        province: true,
+        area: true,
+        forestType: true,
+        createdAt: true,
+      },
+    })
       .then((rows) =>
         rows.map((p) => ({
           ...p,
           createdAt: p.createdAt?.toISOString?.() ?? undefined,
-          imageUrl: extractFirstImage((p as any).descriptionRich ?? p.description ?? ""),
-          description: (p as any).descriptionRich ?? p.description ?? null,
+          imageUrl: extractFirstImage(p.description ?? ""),
+          description: p.description ?? null,
         }))
       )
       .catch(() => []);
