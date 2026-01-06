@@ -48,7 +48,6 @@ jobs:
     name: Build and push image
     runs-on: ubuntu-latest
     needs: changes
-    if: needs.changes.outputs.build == 'true'
     permissions:
       contents: read
       packages: write
@@ -68,6 +67,7 @@ jobs:
 
       - name: Build and push
         uses: docker/build-push-action@v5
+        if: needs.changes.outputs.build == 'true'
         with:
           context: .
           push: true
@@ -129,7 +129,7 @@ jobs:
             docker image prune -f
         env:
           IMAGE_NAME: ${{ env.IMAGE_NAME }}
-          IMAGE_TAG: ${{ github.sha }}
+          IMAGE_TAG: ${{ needs.changes.outputs.build == 'true' && github.sha || 'latest' }}
           GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
           GHCR_TOKEN: ${{ secrets.GHCR_READ_TOKEN || secrets.GHCR_TOKEN }}
           DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
