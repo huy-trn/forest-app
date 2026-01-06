@@ -1,0 +1,4 @@
+services:
+  web:
+    image: ${IMAGE_NAME}:${IMAGE_TAG}
+    build: null

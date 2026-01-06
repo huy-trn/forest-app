@@ -1,0 +1,215 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/forest-app
+
+jobs:
+  build-and-push:
+    name: Build and push image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push (web)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.IMAGE_NAME }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy to EC2 via SSH
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Upload compose, nginx template, and scripts to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: |
+            docker-compose.yml
+            docker-compose.prod.yml
+            deploy/nginx/app.conf.tmpl
+            deploy/scripts/seed.sh
+          target: ~/apps/forest-app
+
+      - name: Deploy on server
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          envs: IMAGE_NAME,IMAGE_TAG,GHCR_USER,GHCR_TOKEN
+        env:
+          IMAGE_NAME: ${{ env.IMAGE_NAME }}
+          IMAGE_TAG: ${{ github.sha }}
+          GHCR_USER: ${{ secrets.GHCR_USERNAME }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          script: |
+            set -e
+            mkdir -p ~/apps/forest-app
+            cd ~/apps/forest-app
+            echo "Logging into GHCR..."
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+            echo "Pulling image $IMAGE_NAME:$IMAGE_TAG..."
+            export IMAGE_TAG
+            export IMAGE_NAME
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml pull web || true
+            echo "Starting stack..."
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+            echo "Pruning old images..."
+            docker image prune -f
+            chmod +x deploy/scripts/seed.sh || true
+name: Deploy to EC2
+                - name: Upload compose and nginx template to server
+on:
+  push:
+    branches:
+      - main
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/kltn-web
+
+                      deploy/nginx/app.conf.tmpl
+jobs:
+  build-and-push:
+    name: Build and push Docker image
+    runs-on: ubuntu-latest
+                  envs: IMAGE_NAME,IMAGE_TAG,GHCR_USER,GHCR_TOKEN,DOMAIN_NAME,CERTBOT_EMAIL
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+                    DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+                    CERTBOT_EMAIL: ${{ secrets.CERTBOT_EMAIL }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push (runner stage)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          pull: true
+          push: true
+          tags: |
+
+                      # --- NGINX + CERTBOT SETUP ---
+                      echo "Ensuring nginx and certbot are installed..."
+                      if ! command -v nginx >/dev/null 2>&1; then
+                        if command -v apt-get >/dev/null 2>&1; then
+                          sudo apt-get update -y
+                          sudo apt-get install -y nginx
+                        elif command -v yum >/dev/null 2>&1; then
+                          sudo yum install -y nginx
+                          sudo systemctl enable nginx
+                        fi
+                      fi
+                      if ! command -v certbot >/dev/null 2>&1; then
+                        if command -v apt-get >/dev/null 2>&1; then
+                          sudo apt-get install -y certbot python3-certbot-nginx
+                        elif command -v yum >/dev/null 2>&1; then
+                          sudo yum install -y certbot python3-certbot-nginx || sudo dnf install -y certbot python3-certbot-nginx
+                        fi
+                      fi
+
+                      echo "Rendering nginx config for domain: $DOMAIN_NAME"
+                      sudo mkdir -p /etc/nginx/sites-available /etc/nginx/sites-enabled /var/www/certbot
+                      # Substitute DOMAIN_NAME into the template
+                      envsubst '$DOMAIN_NAME' < deploy/nginx/app.conf.tmpl | sudo tee /etc/nginx/sites-available/forest-app >/dev/null
+                      if [ ! -e /etc/nginx/sites-enabled/forest-app ]; then
+                        sudo ln -s /etc/nginx/sites-available/forest-app /etc/nginx/sites-enabled/forest-app || true
+                      fi
+                      # On some distros, default site may conflict
+                      if [ -e /etc/nginx/sites-enabled/default ]; then
+                        sudo rm -f /etc/nginx/sites-enabled/default
+                      fi
+                      sudo nginx -t
+                      sudo systemctl restart nginx || sudo service nginx restart
+
+                      echo "Requesting/renewing certificate via Certbot..."
+                      sudo certbot --nginx -d "$DOMAIN_NAME" --non-interactive --agree-tos -m "$CERTBOT_EMAIL" || true
+                      # Ensure renew timer is enabled (Ubuntu)
+                      if command -v systemctl >/dev/null 2>&1; then
+                        sudo systemctl enable --now certbot.timer || true
+                      fi
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.IMAGE_NAME }}:latest
+          platforms: linux/amd64
+
+  deploy:
+    name: Deploy on EC2 via SSH
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    steps:
+      - name: Checkout (for compose files)
+        uses: actions/checkout@v4
+
+      - name: Upload compose files to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: |
+            docker-compose.yml
+            docker-compose.prod.yml
+          target: /home/${{ secrets.EC2_USER }}/app
+
+      - name: Deploy using docker compose
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          envs: IMAGE_NAME
+          script: |
+            set -e
+            mkdir -p /home/${{ secrets.EC2_USER }}/app
+            cd /home/${{ secrets.EC2_USER }}/app
+            echo "Logging in to GHCR..."
+            echo "${{ secrets.GHCR_READ_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
+            export IMAGE_TAG=${{ github.sha }}
+            export IMAGE_NAME="${IMAGE_NAME}:${IMAGE_TAG}"
+            echo "Pulling ${IMAGE_NAME}"
+            docker pull ${IMAGE_NAME}
+            echo "Starting services via compose..."
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+            echo "Pruning old images"
+            docker image prune -f
