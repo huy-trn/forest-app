@@ -81,7 +81,7 @@ jobs:
     name: Deploy on EC2 via SSH
     runs-on: ubuntu-latest
     needs: [changes, build-and-push]
-    if: needs.changes.outputs.deploy == 'true' || needs.changes.outputs.build == 'true'
+    if: (needs.changes.outputs.deploy == 'true' || needs.changes.outputs.build == 'true') && needs.build-and-push.result != 'failure'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -114,32 +114,63 @@ jobs:
             cd "$APP_DIR"
 
             if ! command -v docker >/dev/null 2>&1; then
-              echo "Docker not found. Installing via Docker convenience script..."
-              curl -fsSL https://get.docker.com -o get-docker.sh
-              sudo sh get-docker.sh
-              if command -v systemctl >/dev/null 2>&1; then
-                sudo systemctl enable docker || true
-                sudo systemctl start docker || true
+              echo "Docker not found. Detecting distro and installing..."
+              os_release="/etc/os-release"
+              is_amazon="false"
+              if [ -f "$os_release" ] && grep -qi "amazon linux" "$os_release"; then
+                is_amazon="true"
+              fi
+
+              if [ "$is_amazon" = "true" ]; then
+                echo "Installing Docker for Amazon Linux..."
+                if command -v yum >/dev/null 2>&1; then
+                  sudo yum update -y
+                fi
+                if command -v amazon-linux-extras >/dev/null 2>&1; then
+                  sudo amazon-linux-extras install docker -y
+                else
+                  sudo yum install -y docker
+                fi
+                if command -v systemctl >/devnull 2>&1; then
+                  sudo systemctl enable docker || true
+                  sudo systemctl start docker || true
+                else
+                  sudo service docker start || true
+                fi
+                sudo usermod -a -G docker "$(whoami)" || true
+              else
+                echo "Installing Docker via convenience script..."
+                curl -fsSL https://get.docker.com -o get-docker.sh
+                sudo sh get-docker.sh
+                if command -v systemctl >/dev/null 2>&1; then
+                  sudo systemctl enable docker || true
+                  sudo systemctl start docker || true
+                fi
               fi
             fi
 
+            DOCKER_CMD="sudo docker"
+            if docker ps >/dev/null 2>&1; then
+              DOCKER_CMD="docker"
+            fi
+
             echo "Logging into GHCR..."
-            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
+            echo "$GHCR_TOKEN" | $DOCKER_CMD login ghcr.io -u "$GHCR_USERNAME" --password-stdin
 
             export IMAGE_NAME="${IMAGE_NAME}"
             export IMAGE_TAG="${IMAGE_TAG}"
 
             echo "Pulling image $IMAGE_NAME:$IMAGE_TAG..."
-            docker compose -f docker-compose.yml -f docker-compose.prod.yml pull web
+            $DOCKER_CMD compose -f docker-compose.yml -f docker-compose.prod.yml pull web
 
             echo "Starting stack..."
-            docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+            $DOCKER_CMD compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
             echo "Pruning old images..."
-            docker image prune -f
+            $DOCKER_CMD image prune -f
         env:
           IMAGE_NAME: ${{ env.IMAGE_NAME }}
-          IMAGE_TAG: ${{ needs.changes.outputs.build == 'true' && github.sha || 'latest' }}
+          IMAGE_TAG: ${{ needs.build-and-push.result == 'success' && github.sha || 'latest' }}
           GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
           GHCR_TOKEN: ${{ secrets.GHCR_READ_TOKEN || secrets.GHCR_TOKEN }}
           DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
