@@ -6,7 +6,7 @@ on:
       - main
 
 env:
-  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/forest-app
+  IMAGE_NAME: ghcr.io/${{ github.repository }}
 
 jobs:
   changes:
@@ -39,7 +39,6 @@ jobs:
               - 'tsconfig.json'
               - 'Dockerfile'
               - '.dockerignore'
-              - '.github/workflows/**'
             deploy:
               - 'docker-compose.yml'
               - 'docker-compose.prod.yml'
@@ -98,11 +97,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: |
-            ./docker-compose.yml
-            ./docker-compose.prod.yml
-            ./deploy/nginx/app.conf.tmpl
-            ./deploy/scripts/seed.sh
+          source: ./docker-compose.yml,./docker-compose.prod.yml,./deploy/nginx/app.conf.tmpl,./deploy/scripts/seed.sh
           target: /home/${{ secrets.EC2_USER }}/app
 
       - name: Deploy using docker compose
