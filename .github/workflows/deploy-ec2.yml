@@ -6,12 +6,49 @@ on:
       - main
 
 env:
-  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/kltn-web
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/forest-app
 
 jobs:
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      build: ${{ steps.filter.outputs.build }}
+      deploy: ${{ steps.filter.outputs.deploy }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - id: filter
+        name: Check changed paths
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            build:
+              - 'app/**'
+              - 'components/**'
+              - 'lib/**'
+              - 'prisma/**'
+              - 'styles/**'
+              - 'public/**'
+              - 'next.config.*'
+              - 'package.json'
+              - 'package-lock.json'
+              - 'tsconfig.json'
+              - 'Dockerfile'
+              - '.dockerignore'
+            deploy:
+              - 'docker-compose.yml'
+              - 'docker-compose.prod.yml'
+              - 'deploy/**'
+              - '.github/workflows/deploy-ec2.yml'
   build-and-push:
     name: Build and push image
     runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.build == 'true'
     permissions:
       contents: read
       packages: write
@@ -43,7 +80,8 @@ jobs:
   deploy:
     name: Deploy on EC2 via SSH
     runs-on: ubuntu-latest
-    needs: build-and-push
+    needs: [changes, build-and-push]
+    if: needs.changes.outputs.deploy == 'true' || needs.changes.outputs.build == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -55,10 +93,10 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           source: |
-            docker-compose.yml
-            docker-compose.prod.yml
-            deploy/nginx/app.conf.tmpl
-            deploy/scripts/seed.sh
+            ./docker-compose.yml
+            ./docker-compose.prod.yml
+            ./deploy/nginx/app.conf.tmpl
+            ./deploy/scripts/seed.sh
           target: /home/${{ secrets.EC2_USER }}/app
 
       - name: Deploy using docker compose
