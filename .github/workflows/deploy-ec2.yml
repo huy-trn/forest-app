@@ -176,7 +176,15 @@ jobs:
             export IMAGE_TAG="${IMAGE_TAG}"
 
             echo "Pulling image $IMAGE_NAME:$IMAGE_TAG..."
+            set +e
             $DOCKER_CMD compose -f docker-compose.yml -f docker-compose.prod.yml pull web
+            pull_status=$?
+            if [ $pull_status -ne 0 ]; then
+              echo "Pull failed for tag $IMAGE_TAG, falling back to latest..."
+              export IMAGE_TAG="latest"
+              $DOCKER_CMD compose -f docker-compose.yml -f docker-compose.prod.yml pull web || exit 1
+            fi
+            set -e
 
             echo "Starting stack..."
             $DOCKER_CMD compose -f docker-compose.yml -f docker-compose.prod.yml up -d
