@@ -113,6 +113,23 @@ jobs:
             mkdir -p "$APP_DIR"
             cd "$APP_DIR"
 
+            if ! command -v docker >/dev/null 2>&1; then
+              echo "Docker not found. Installing..."
+              if command -v apt-get >/dev/null 2>&1; then
+                sudo apt-get update -y
+                sudo apt-get install -y docker.io docker-compose-plugin
+              elif command -v yum >/dev/null 2>&1; then
+                sudo yum install -y docker docker-compose-plugin || sudo amazon-linux-extras install -y docker
+              else
+                echo "Unsupported package manager. Install Docker manually."
+                exit 1
+              fi
+              if command -v systemctl >/dev/null 2>&1; then
+                sudo systemctl enable docker || true
+                sudo systemctl start docker || true
+              fi
+            fi
+
             echo "Logging into GHCR..."
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
 
