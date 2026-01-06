@@ -5,6 +5,7 @@ export type ShowcaseProject = {
   country?: string | null;
   province?: string | null;
   area?: string | null;
+  forestType?: "natural" | "artificial";
   createdAt?: string;
   imageUrl?: string | null;
 };

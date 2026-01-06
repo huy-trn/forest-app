@@ -19,6 +19,11 @@ enum ProjectStatus {
   completed
 }
 
+enum ForestType {
+  natural
+  artificial
+}
+
 enum TicketStatus {
   open
   in_progress
@@ -58,6 +63,7 @@ model Project {
   title       String
   description String?
   status      ProjectStatus    @default(active)
+  forestType  ForestType       @default(natural)
   country     String?
   province    String?
   area        String?
