@@ -87,6 +87,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Validate deploy artifacts exist
+        run: |
+          set -e
+          ls -l docker-compose.yml docker-compose.prod.yml deploy/nginx/app.conf.tmpl deploy/scripts/seed.sh
+
       - name: Upload compose, nginx template, and scripts
         uses: appleboy/scp-action@v0.1.7
         with:
