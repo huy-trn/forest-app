@@ -17,6 +17,8 @@ export function useEvents<T extends EventType>(
       if (!key) return;
       queryClient.invalidateQueries({ queryKey: key });
     });
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+    };
   }, [event, getKey, queryClient]);
 }

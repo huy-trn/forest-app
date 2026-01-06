@@ -14,6 +14,7 @@ export async function POST(
 
   const { message, attachments } = await request.json().catch(() => ({}));
   if (!message) return NextResponse.json({ error: "Message is required" }, { status: 400 });
+  const attachmentItems = (attachments as Array<{ name: string; type: string; url?: string; key?: string }> | undefined) ?? [];
 
   const ticket = await prisma.ticket.update({
     where: { id: params.id },
@@ -25,12 +26,12 @@ export async function POST(
           userRole: dbUser.role as any,
         },
       },
-      attachments: attachments?.length
+      attachments: attachmentItems.length
         ? {
-            create: (attachments as Array<{ name: string; type: string; url: string }>).map((a) => ({
+            create: attachmentItems.map((a) => ({
               name: a.name,
               type: a.type,
-              url: a.key || a.url,
+              url: a.url ?? a.key ?? "",
             })),
           }
         : undefined,
