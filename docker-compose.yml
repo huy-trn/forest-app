@@ -17,8 +17,9 @@ services:
     depends_on:
       db:
         condition: service_started
-      nominatim:
-        condition: service_healthy
+      # Don't really need nominatim because we have fallback public API
+      # nominatim:
+      #   condition: service_healthy
     environment:
       NODE_ENV: production
       PORT: 3000
