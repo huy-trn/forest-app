@@ -217,11 +217,11 @@ jobs:
             fi
             set -e
 
+            echo "Stopping stack..."
+            $DOCKER_CMD compose -f docker-compose.yml -f docker-compose.prod.yml down
+
             echo "Starting stack..."
             $DOCKER_CMD compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-
-            echo "Reloading nginx..."
-            $DOCKER_CMD exec app-nginx-1 nginx -s reload
 
             echo "Pruning old images..."
             $DOCKER_CMD image prune -f
