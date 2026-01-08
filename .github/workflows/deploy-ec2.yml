@@ -191,6 +191,9 @@ jobs:
             echo "Starting stack..."
             $DOCKER_CMD compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
+            echo "Running database migrations..."
+            $DOCKER_CMD compose -f docker-compose.yml -f docker-compose.prod.yml exec -T web npx prisma migrate deploy
+
             echo "Pruning old images..."
             $DOCKER_CMD image prune -f
         env:
