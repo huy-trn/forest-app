@@ -25,6 +25,8 @@ services:
       # Don't really need nominatim because we have fallback public API
       # nominatim:
       #   condition: service_healthy
+    env_file:
+      - .env
     environment:
       NODE_ENV: production
       PORT: 3000

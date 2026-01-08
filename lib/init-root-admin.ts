@@ -5,6 +5,7 @@ import { Role, User } from "@prisma/client";
 let ensurePromise: Promise<void> | null = null;
 
 async function ensure() {
+  console.log("Initializing root admin user...");
   const email = process.env.ROOT_ADMIN_EMAIL;
   const password = process.env.ROOT_ADMIN_PASSWORD;
   if (!email || !password) return;
