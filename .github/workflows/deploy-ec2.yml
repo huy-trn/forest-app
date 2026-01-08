@@ -117,6 +117,10 @@ jobs:
 
             echo "Writing .env from GitHub secrets..."
             umask 077
+            if [ -z "${DOMAIN_NAME}" ]; then
+              echo "Missing DOMAIN_NAME secret. Set it in GitHub Actions secrets."
+              exit 1
+            fi
             {
               echo "POSTGRES_URL=${POSTGRES_URL}"
               echo "NODE_ENV=${NODE_ENV}"
