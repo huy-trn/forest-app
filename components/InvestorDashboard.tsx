@@ -50,9 +50,9 @@ export function InvestorDashboard({ user, locale, onLogout }: InvestorDashboardP
 
       <main className="container mx-auto px-4 py-8">
         <Tabs value={tab} onValueChange={handleTabChange} className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="projects">{t('investor.dashboard.projects')}</TabsTrigger>
-            <TabsTrigger value="requests">{t('investor.dashboard.requests')}</TabsTrigger>
+          <TabsList className="w-full flex-wrap h-auto justify-start">
+            <TabsTrigger value="projects" className="flex-1 min-w-[140px]">{t('investor.dashboard.projects')}</TabsTrigger>
+            <TabsTrigger value="requests" className="flex-1 min-w-[140px]">{t('investor.dashboard.requests')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="projects">

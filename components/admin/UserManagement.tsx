@@ -256,8 +256,8 @@ export function UserManagement() {
               className="pl-10"
             />
           </div>
-          <div className="border rounded-lg">
-            <Table>
+          <div className="border rounded-lg overflow-x-auto">
+            <Table className="min-w-[720px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>{t('admin.userManagement.fullName')}</TableHead>

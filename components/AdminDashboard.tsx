@@ -57,12 +57,12 @@ export function AdminDashboard({
 
       <main className="container mx-auto px-4 py-8">
         <Tabs value={tab} onValueChange={handleTabChange} className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="projects">{t('admin.dashboard.projects')}</TabsTrigger>
-            <TabsTrigger value="tickets">{t('admin.dashboard.tickets')}</TabsTrigger>
-            <TabsTrigger value="requests">{t('admin.dashboard.requests')}</TabsTrigger>
-            <TabsTrigger value="users">{t('admin.dashboard.users')}</TabsTrigger>
-            <TabsTrigger value="map">{t('partner.dashboard.forestMap')}</TabsTrigger>
+          <TabsList className="w-full flex-wrap h-auto justify-start">
+            <TabsTrigger value="projects" className="flex-1 min-w-[120px]">{t('admin.dashboard.projects')}</TabsTrigger>
+            <TabsTrigger value="tickets" className="flex-1 min-w-[120px]">{t('admin.dashboard.tickets')}</TabsTrigger>
+            <TabsTrigger value="requests" className="flex-1 min-w-[120px]">{t('admin.dashboard.requests')}</TabsTrigger>
+            <TabsTrigger value="users" className="flex-1 min-w-[120px]">{t('admin.dashboard.users')}</TabsTrigger>
+            <TabsTrigger value="map" className="flex-1 min-w-[120px]">{t('partner.dashboard.forestMap')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="projects">

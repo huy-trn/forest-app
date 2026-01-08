@@ -55,10 +55,10 @@ export function PartnerDashboard({
 
       <main className="container mx-auto px-4 py-8">
         <Tabs value={tab} onValueChange={handleTabChange} className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="projects">{t('partner.dashboard.projects')}</TabsTrigger>
-            <TabsTrigger value="tickets">{t('partner.dashboard.tickets')}</TabsTrigger>
-            <TabsTrigger value="map">{t('partner.dashboard.forestMap')}</TabsTrigger>
+          <TabsList className="w-full flex-wrap h-auto justify-start">
+            <TabsTrigger value="projects" className="flex-1 min-w-[130px]">{t('partner.dashboard.projects')}</TabsTrigger>
+            <TabsTrigger value="tickets" className="flex-1 min-w-[130px]">{t('partner.dashboard.tickets')}</TabsTrigger>
+            <TabsTrigger value="map" className="flex-1 min-w-[130px]">{t('partner.dashboard.forestMap')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="projects">
