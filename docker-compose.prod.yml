@@ -40,6 +40,9 @@ services:
     environment:
       DOMAIN_NAME: ${DOMAIN_NAME:-${EC2_HOST:?EC2_HOST required}}
       CERTBOT_EMAIL: ${CERTBOT_EMAIL:?CERTBOT_EMAIL required}
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
     volumes:
       - certbot-web:/var/www/certbot
       - letsencrypt:/etc/letsencrypt
