@@ -91,9 +91,6 @@
     "prisma:migrate": "prisma migrate deploy",
     "prisma:seed": "prisma db seed"
   },
-  "prisma": {
-    "seed": "node prisma/seed.ts"
-  },
   "config": {
     "nextauth_url": "http://localhost:3000"
   }
