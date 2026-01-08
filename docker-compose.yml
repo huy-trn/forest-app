@@ -22,8 +22,6 @@ services:
     depends_on:
       db:
         condition: service_started
-      migrate:
-        condition: service_completed_successfully
       # Don't really need nominatim because we have fallback public API
       # nominatim:
       #   condition: service_healthy
@@ -37,20 +35,6 @@ services:
     ports:
       - "3000:3000"
     command: ["sh", "-c", "npm run start"]
-
-  migrate:
-    build: .
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      NODE_ENV: production
-      PORT: 3000
-      POSTGRES_URL: postgres://postgres:postgres@db:5432/forest_db
-      NEXT_TELEMETRY_DISABLED: "1"
-      NEXTAUTH_URL: http://localhost:3000
-      NOMINATIM_URL: http://nominatim:8080
-    command: ["sh", "-c", "npx prisma migrate deploy && npx prisma db seed"]
 
   nominatim:
     image: mediagis/nominatim:4.4

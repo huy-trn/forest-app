@@ -3,9 +3,6 @@ services:
     image: ${IMAGE_NAME}:${IMAGE_TAG}
     build: null
     command: ["sh", "-c", "npm run start"]
-    depends_on:
-      migrate:
-        condition: service_completed_successfully
 
   nginx:
     image: nginx:1.25-alpine
@@ -41,10 +38,6 @@ services:
             certbot renew --webroot -w /var/www/certbot --quiet || true;
             sleep 12h;
           done"
-
-  migrate:
-    image: ${IMAGE_NAME}:${IMAGE_TAG}
-    build: null
 
 volumes:
   certbot-web:
