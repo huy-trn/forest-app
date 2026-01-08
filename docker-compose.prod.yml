@@ -18,12 +18,22 @@ services:
       - certbot-web:/var/www/certbot
       - letsencrypt:/etc/letsencrypt
     command: >
-      sh -c "template=/etc/nginx/templates/app.conf.template;
+      sh -c "template=/etc/nginx/templates/app.conf.tmpl;
       if [ -f /etc/letsencrypt/live/$${DOMAIN_NAME}/fullchain.pem ]; then
-        template=/etc/nginx/templates/app.ssl.conf.template;
+        template=/etc/nginx/templates/app.ssl.conf.tmpl;
       fi;
-      envsubst '$$DOMAIN_NAME' < $$template > /etc/nginx/conf.d/default.conf
-      && nginx -g 'daemon off;'"
+      envsubst '$$DOMAIN_NAME' < $$template > /etc/nginx/conf.d/default.conf;
+      nginx;
+      while true; do
+        if [ -f /etc/letsencrypt/live/$${DOMAIN_NAME}/fullchain.pem ]; then
+          template=/etc/nginx/templates/app.ssl.conf.tmpl;
+        else
+          template=/etc/nginx/templates/app.conf.tmpl;
+        fi;
+        envsubst '$$DOMAIN_NAME' < $$template > /etc/nginx/conf.d/default.conf;
+        nginx -s reload || true;
+        sleep 12h;
+      done"
 
   certbot:
     image: certbot/certbot:latest
