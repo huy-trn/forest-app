@@ -7,8 +7,14 @@ server {
     root /var/www/certbot;
   }
 
-  # Redirect everything else to HTTPS
+  # Proxy to the Next.js app container (HTTP only until cert is ready)
   location / {
-    return 301 https://$host$request_uri;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_pass http://web:3000;
+    proxy_read_timeout 300;
+    proxy_connect_timeout 300;
   }
 }
