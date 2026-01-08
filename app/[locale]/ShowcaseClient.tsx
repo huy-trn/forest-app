@@ -93,7 +93,7 @@ export function ShowcaseClient({ locale, content, isAuthenticated, dashboardPath
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <div className="flex justify-end">
         {isAuthenticated && dashboardPath ? (
           <Button size="sm" variant="outline" onClick={() => goTo(dashboardPath)}>
@@ -108,16 +108,22 @@ export function ShowcaseClient({ locale, content, isAuthenticated, dashboardPath
         )}
       </div>
 
-      <Card className="bg-gradient-to-br from-green-600 to-emerald-700 text-white relative overflow-hidden">
-        <CardContent className="pt-6 pb-10">
-          <div className="max-w-3xl mx-auto text-center space-y-4">
-            <h1 className="text-white">{data.heroTitle}</h1>
-            <p className="text-lg text-green-50">{data.heroDescription}</p>
+      <section className="relative overflow-hidden rounded-3xl border border-emerald-100 bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.45),_rgba(15,23,42,0.85)),linear-gradient(120deg,_rgba(15,118,110,0.95),_rgba(5,46,22,0.9))] px-6 py-10 text-white shadow-[var(--shadow-soft)] sm:px-10">
+        <div className="absolute -top-10 right-6 h-28 w-28 rounded-full bg-emerald-300/40 blur-2xl" />
+        <div className="absolute bottom-0 left-6 h-32 w-32 rounded-full bg-teal-200/30 blur-2xl" />
+        <div className="relative z-10 max-w-4xl space-y-4">
+          <p className="text-xs uppercase tracking-[0.35em] text-emerald-100/80">Forest intelligence</p>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold">{data.heroTitle}</h1>
+          <p className="text-base sm:text-lg text-emerald-50/90">{data.heroDescription}</p>
+          <div className="flex flex-wrap gap-3 pt-2 text-sm text-emerald-100/80">
+            <span className="rounded-full border border-emerald-200/40 bg-white/10 px-3 py-1">Satellite-ready metrics</span>
+            <span className="rounded-full border border-emerald-200/40 bg-white/10 px-3 py-1">Field team coordination</span>
+            <span className="rounded-full border border-emerald-200/40 bg-white/10 px-3 py-1">Investor visibility</span>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
-      <Card>
+      <Card className="border-emerald-100/70">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
@@ -172,10 +178,10 @@ export function ShowcaseClient({ locale, content, isAuthenticated, dashboardPath
               {featuredProjects.map((project, idx) => (
                 <div key={idx} className="min-w-0 flex-[0_0_100%] md:flex-[0_0_50%] pr-4">
                   <Link href={`/${locale}/projects/${project.id ?? ""}`} className="block h-full">
-                    <Card className="overflow-hidden border h-full">
+                    <Card className="group h-full overflow-hidden border border-slate-200/70 bg-white/90 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
                       {project.imageUrl ? (
-                        <div className="h-40 bg-muted">
-                          <ImageWithFallback src={project.imageUrl} alt={project.title} className="w-full h-full object-cover" />
+                        <div className="h-40 bg-muted overflow-hidden">
+                          <ImageWithFallback src={project.imageUrl} alt={project.title} className="w-full h-full object-cover transition duration-500 group-hover:scale-105" />
                         </div>
                       ) : null}
                       <CardContent className="p-4 space-y-2">
@@ -203,7 +209,7 @@ export function ShowcaseClient({ locale, content, isAuthenticated, dashboardPath
               <div className="flex items-center gap-2 text-sm">
                 <button
                   type="button"
-                  className="px-2 py-1 border rounded disabled:opacity-50"
+                  className="px-2 py-1 border rounded-full disabled:opacity-50"
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
                 >
@@ -214,7 +220,7 @@ export function ShowcaseClient({ locale, content, isAuthenticated, dashboardPath
                 </span>
                 <button
                   type="button"
-                  className="px-2 py-1 border rounded disabled:opacity-50"
+                  className="px-2 py-1 border rounded-full disabled:opacity-50"
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page >= totalPages}
                 >
@@ -228,7 +234,7 @@ export function ShowcaseClient({ locale, content, isAuthenticated, dashboardPath
                   <Link
                     key={`${project.title}-${idx}`}
                     href={`/${locale}/projects/${project.id ?? ""}`}
-                    className="block border rounded-lg bg-white hover:shadow-sm transition"
+                    className="block border border-slate-200/70 rounded-2xl bg-white/90 hover:shadow-md transition"
                   >
                     <div className="flex gap-3 p-4">
                       {project.imageUrl ? (

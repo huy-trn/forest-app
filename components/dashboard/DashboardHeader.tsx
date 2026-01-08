@@ -58,31 +58,31 @@ export function DashboardHeader({
   }, [menuOpen]);
 
   return (
-    <header className="bg-white border-b md:sticky md:top-0 z-50">
-      <div className="container mx-auto px-3 sm:px-4 py-2 sm:py-3">
-        <div className="flex items-center justify-between gap-3">
+    <header className="border-b border-slate-200/60 bg-white/80 backdrop-blur md:sticky md:top-0 z-50">
+      <div className="container mx-auto px-3 sm:px-4 py-3">
+        <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <button
               type="button"
               onClick={() => router.push(`/${locale}`)}
               aria-label={i18n.t("common.home", { defaultValue: "Home" }) as string}
-              className="w-9 h-9 sm:w-10 sm:h-10 bg-green-600 rounded-md sm:rounded-lg flex items-center justify-center shrink-0 hover:bg-green-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500"
+              className="w-10 h-10 sm:w-11 sm:h-11 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center shrink-0 shadow-lg shadow-emerald-500/30 hover:from-emerald-600 hover:to-teal-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
             >
               <Home className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </button>
             <div className="min-w-0">
-              <h1 className="text-base sm:text-lg truncate">{title}</h1>
-              {subtitle ? <p className="text-xs sm:text-sm text-gray-600 truncate">{subtitle}</p> : null}
+              <h1 className="text-base sm:text-lg font-semibold truncate">{title}</h1>
+              {subtitle ? <p className="text-xs sm:text-sm text-slate-500 truncate">{subtitle}</p> : null}
             </div>
           </div>
 
           {/* Desktop actions */}
           <div className="hidden md:flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <Globe className="w-4 h-4 text-gray-500" aria-hidden />
+              <Globe className="w-4 h-4 text-slate-500" aria-hidden />
               <label className="sr-only" htmlFor="locale-select">Language</label>
               <Select value={i18n.language} onValueChange={(val) => handleLocaleChange(val)}>
-                <SelectTrigger id="locale-select" className="w-[120px]">
+                <SelectTrigger id="locale-select" className="w-[120px] bg-white/70">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent position="popper">
@@ -93,10 +93,10 @@ export function DashboardHeader({
               </Select>
             </div>
             <div className="text-right">
-              <p className="text-sm leading-tight">{userName}</p>
-              {userEmail ? <p className="text-xs text-gray-600 leading-tight">{userEmail}</p> : null}
+              <p className="text-sm leading-tight text-slate-900">{userName}</p>
+              {userEmail ? <p className="text-xs text-slate-500 leading-tight">{userEmail}</p> : null}
             </div>
-            <Button variant="outline" onClick={onLogout} className="whitespace-nowrap">
+            <Button variant="outline" onClick={onLogout} className="whitespace-nowrap border-slate-200 bg-white/70">
               <LogOut className="w-4 h-4 mr-2" />
               Logout
             </Button>
@@ -131,8 +131,8 @@ export function DashboardHeader({
               >
                 <div className="px-3 pt-2">
                   <div className="flex items-center gap-2 mb-2">
-                    <Globe className="w-4 h-4 text-gray-500" />
-                    <span className="text-xs text-gray-500">Language</span>
+                    <Globe className="w-4 h-4 text-slate-500" />
+                    <span className="text-xs text-slate-500">Language</span>
                   </div>
                   <Select value={i18n.language} onValueChange={(val) => { handleLocaleChange(val); setMenuOpen(false); }}>
                     <SelectTrigger className="w-full">

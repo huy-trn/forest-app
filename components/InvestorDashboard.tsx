@@ -38,7 +38,7 @@ export function InvestorDashboard({ user, locale, onLogout }: InvestorDashboardP
   };
 
   return (
-    <>
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.12),_transparent_55%),linear-gradient(180deg,_#f8fafc,_#f1f5f9)]">
       <DashboardHeader
         title={t('investor.dashboard.title')}
         subtitle={t(`roles.${user.role || 'investor'}`)}
@@ -64,6 +64,6 @@ export function InvestorDashboard({ user, locale, onLogout }: InvestorDashboardP
           </TabsContent>
         </Tabs>
       </main>
-    </>
+    </div>
   );
 }

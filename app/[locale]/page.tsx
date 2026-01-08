@@ -29,7 +29,7 @@ export default async function LocaleHomePage({ params }: { params: { locale: str
           : null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.12),_transparent_55%),linear-gradient(180deg,_#f8fafc,_#f1f5f9)]">
       <div className="container mx-auto px-4 py-10 space-y-6">
         <ShowcaseClient
           locale={locale}
