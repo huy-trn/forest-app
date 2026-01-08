@@ -8,6 +8,7 @@ async function ensure() {
   const email = process.env.ROOT_ADMIN_EMAIL;
   const password = process.env.ROOT_ADMIN_PASSWORD;
   if (!email || !password) return;
+  if (!process.env.POSTGRES_URL) return;
 
   const name = process.env.ROOT_ADMIN_NAME || "Root";
 

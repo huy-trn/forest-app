@@ -85,11 +85,14 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "prisma generate && prisma migrate deploy && next start",
+    "start": "npx prisma generate && npx prisma migrate deploy && next start",
     "lint": "next lint",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate deploy",
-    "prisma:seed": "prisma db seed"
+    "prisma:generate": "npx prisma generate",
+    "prisma:migrate": "npx prisma migrate deploy",
+    "prisma:seed": "npx prisma db seed"
+  },
+  "prisma":{
+    "seed": "node prisma/seed.ts"
   },
   "config": {
     "nextauth_url": "http://localhost:3000"
