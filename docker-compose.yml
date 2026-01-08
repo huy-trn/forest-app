@@ -37,12 +37,13 @@ services:
       # Import Vietnam extract on first run; adjust as needed
       PBF_URL: https://download.geofabrik.de/asia/vietnam-latest.osm.pbf
       # Optional: enable address normalization
-      COMBINED_ADDRESS: "true"
+      # COMBINED_ADDRESS: "true"
     ports:
       - "8080:8080"
     volumes:
-      - nominatim-data:/var/lib/postgresql/data
+      - nominatim-data:/var/lib/postgresql/14/main
       - nominatim-nominatim:/var/lib/nominatim
+      - nominatim-project:/nominatim
     healthcheck:
       test: ["CMD", "wget", "-qO", "-", "http://localhost:8080/search?format=json&q=test&limit=1"]
       interval: 30s
@@ -54,3 +55,4 @@ volumes:
   db-data:
   nominatim-data:
   nominatim-nominatim:
+  nominatim-project:
