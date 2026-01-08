@@ -3,6 +3,8 @@ import { getShowcaseContent } from "@/lib/showcase-service";
 import { AuthLink } from "@/components/dashboard/AuthLink";
 import { ShowcaseClient } from "./ShowcaseClient";
 
+export const dynamic = "force-dynamic";
+
 const supportedLocales = ["en", "vi"] as const;
 const fallbackLocale = "en";
 

@@ -3,6 +3,8 @@ import "./globals.css";
 import { Providers } from "./providers";
 import { ensureRootAdmin } from "@/lib/init-root-admin";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Forest Management Web App",
   description: "Role-based dashboards for admins, partners, and investors.",
