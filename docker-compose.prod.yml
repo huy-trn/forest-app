@@ -14,11 +14,15 @@ services:
     environment:
       DOMAIN_NAME: ${DOMAIN_NAME:-${EC2_HOST:?EC2_HOST required}}
     volumes:
-      - ./deploy/nginx/app.conf.tmpl:/etc/nginx/templates/app.conf.template:ro
+      - ./deploy/nginx:/etc/nginx/templates:ro
       - certbot-web:/var/www/certbot
       - letsencrypt:/etc/letsencrypt
     command: >
-      sh -c "envsubst '$$DOMAIN_NAME' < /etc/nginx/templates/app.conf.template > /etc/nginx/conf.d/default.conf
+      sh -c "template=/etc/nginx/templates/app.conf.template;
+      if [ -f /etc/letsencrypt/live/$${DOMAIN_NAME}/fullchain.pem ]; then
+        template=/etc/nginx/templates/app.ssl.conf.template;
+      fi;
+      envsubst '$$DOMAIN_NAME' < $$template > /etc/nginx/conf.d/default.conf
       && nginx -g 'daemon off;'"
 
   certbot:
