@@ -83,7 +83,7 @@ export function ProjectManagement({ locale }: { locale: string }) {
   const usersQuery = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
-      const res = await fetch("/api/users");
+      const res = await fetch("/api/users?page=1&pageSize=1000");
       if (!res.ok) throw new Error("Failed to load users");
       return res.json();
     },
@@ -105,7 +105,8 @@ export function ProjectManagement({ locale }: { locale: string }) {
 
   useEffect(() => {
     if (usersQuery.data) {
-      setAllUsers(usersQuery.data as User[]);
+      const data = usersQuery.data as { items?: User[] };
+      setAllUsers(data.items ?? []);
     }
   }, [usersQuery.data]);
 
@@ -307,11 +308,7 @@ export function ProjectManagement({ locale }: { locale: string }) {
                         />
                         <Label htmlFor={`user-${user.id}`} className="flex-1 cursor-pointer">
                           {user.name} <Badge variant="outline" className="ml-2">
-                            {user.role === 'partner'
-                              ? t('admin.projectManagement.partner')
-                              : user.role === 'investor'
-                                ? t('admin.projectManagement.investor')
-                                : t('admin.projectManagement.admin')}</Badge>
+                            {t(`roles.${user.role === 'partner' || user.role === 'investor' ? user.role : 'admin'}`)}</Badge>
                         </Label>
                       </div>
                     ))}
@@ -432,7 +429,7 @@ export function ProjectManagement({ locale }: { locale: string }) {
                         }}
                       />
                       <label htmlFor={`edit-user-${user.id}`} className="flex-1 cursor-pointer">
-                        {user.name} <Badge variant="outline" className="ml-2">{user.role === 'partner' ? t('admin.projectManagement.partner') : t('admin.projectManagement.investor')}</Badge>
+                        {user.name} <Badge variant="outline" className="ml-2">{t(`roles.${user.role === 'partner' ? 'partner' : 'investor'}`)}</Badge>
                       </label>
                     </div>
                   ))}

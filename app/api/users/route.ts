@@ -6,11 +6,35 @@ import { sendEmail } from "@/lib/email";
 import { sendSms } from "@/lib/sms";
 import crypto from "node:crypto";
 
-export async function GET() {
-  const users = await prisma.user.findMany({
-    orderBy: { joinDate: "desc" },
-  });
-  return NextResponse.json(users);
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const page = Math.max(1, Number.parseInt(searchParams.get("page") ?? "1", 10));
+  const pageSize = Math.min(
+    100,
+    Math.max(1, Number.parseInt(searchParams.get("pageSize") ?? "10", 10))
+  );
+  const search = searchParams.get("search")?.trim();
+  const where = search
+    ? {
+        OR: [
+          { name: { contains: search, mode: "insensitive" as const } },
+          { email: { contains: search, mode: "insensitive" as const } },
+          { phone: { contains: search } },
+        ],
+      }
+    : undefined;
+
+  const [total, users] = await prisma.$transaction([
+    prisma.user.count({ where }),
+    prisma.user.findMany({
+      where,
+      orderBy: { joinDate: "desc" },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+  ]);
+
+  return NextResponse.json({ items: users, page, pageSize, total });
 }
 
 export async function POST(request: Request) {
@@ -103,6 +127,17 @@ export async function DELETE(request: Request) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
   if (!id) return NextResponse.json({ error: "Missing user id" }, { status: 400 });
+
+  const target = await prisma.user.findUnique({
+    where: { id },
+    select: { role: true },
+  });
+  if (!target) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+  if (target.role === Role.root) {
+    return NextResponse.json({ error: "Cannot delete root user" }, { status: 403 });
+  }
 
   await prisma.user.delete({ where: { id } });
   return NextResponse.json({ success: true });

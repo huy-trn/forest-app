@@ -46,7 +46,7 @@ export function PartnerDashboard({
     <>
       <DashboardHeader
         title={t('partner.dashboard.title')}
-        subtitle={t('partner.dashboard.role')}
+        subtitle={t(`roles.${user.role || 'partner'}`)}
         userName={user.name}
         userEmail={user.email}
         locale={locale}

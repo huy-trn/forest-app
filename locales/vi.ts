@@ -6,6 +6,12 @@ export const vi: TextMap = {
     language: {
         ...languages
     },
+    roles: {
+        admin: "Quản trị viên",
+        root: "Root",
+        partner: "Nông hộ",
+        investor: "Nhà đầu tư"
+    },
     projectDetail: {
         loading: "Đang tải dự án…",
         error: "Không thể tải dự án.",
@@ -29,7 +35,6 @@ export const vi: TextMap = {
     admin: {
         dashboard: {
             title: "Bảng điều khiển",
-            role: "Quản trị viên",
             logout: "Đăng xuất",
             tickets: "Công việc",
             projects: "Dự án",
@@ -71,8 +76,6 @@ export const vi: TextMap = {
             descLabel: "Mô tả",
             descPlaceholder: "Mô tả chi tiết công việc",
             assign: "Phân công thành viên",
-            partner: "Nông hộ",
-            investor: "Nhà đầu tư",
             users: "Người phụ trách",
             filters: {
                 all: "Tất cả",
@@ -117,11 +120,7 @@ export const vi: TextMap = {
             attachFiles: "Đính kèm tệp",
             removeFile: "Xóa",
             preview: "Xem trước (hỗ trợ Markdown)",
-            editorHint: "Hỗ trợ markdown. Dán hoặc đính kèm ảnh.",
-            roles: {
-                admin: "Quản trị",
-                partner: "Nông dân"
-            }
+            editorHint: "Hỗ trợ markdown. Dán hoặc đính kèm ảnh."
         },
         userManagement: {
             title: "Quản lý người dùng",
@@ -136,10 +135,7 @@ export const vi: TextMap = {
             sms: "SMS",
             phone: "Số điện thoại",
             role: "Vai trò",
-            admin: "Quản trị viên",
             adminShort: "Admin",
-            partner: "Nông hộ",
-            investor: "Nhà đầu tư",
             sendInvite: "Gửi lời mời",
             searchPlaceholder: "Tìm theo tên, email hoặc số điện thoại...",
             status: "Trạng thái",
@@ -170,11 +166,6 @@ export const vi: TextMap = {
             descPlaceholder: "Nhập mô tả dự án",
             descHint: "Hỗ trợ chèn ảnh và định dạng.",
             assignLabel: "Phân công thành viên",
-            partnerLabel: "Nông hộ",
-            investorLabel: "Nhà đầu tư",
-            admin: "Quản trị viên",
-            partner: "Nông hộ",
-            investor: "Nhà đầu tư",
             projects: "Dự án",
             createSuccess: "Tạo dự án thành công",
             editTitle: "Cập nhật dự án",
@@ -245,7 +236,6 @@ export const vi: TextMap = {
     investor: {
         dashboard: {
             title: "Bảng điều khiển",
-            role: "Nhà đầu tư",
             logout: "Đăng xuất",
             projects: "Dự án",
             requests: "Yêu cầu",
@@ -263,8 +253,6 @@ export const vi: TextMap = {
             trees: "cây",
             progress: "Tiến độ dự án",
             members: "Thành viên",
-            partner: "Nông hộ",
-            investor: "Nhà đầu tư",
             recent: "Hoạt động gần đây",
             detail: "Xem chi tiết dự án"
         },
@@ -329,7 +317,6 @@ export const vi: TextMap = {
     partner: {
         dashboard: {
             title: "Bảng điều khiển",
-            role: "Nông hộ",
             logout: "Đăng xuất",
             projects: "Dự án",
             tickets: "Công việc",

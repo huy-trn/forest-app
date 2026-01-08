@@ -6,6 +6,12 @@ export const en = {
     language: {
         ...languages
     },
+    roles: {
+        admin: "Admin",
+        root: "Root",
+        partner: "Farmer",
+        investor: "Investor"
+    },
     projectDetail: {
         loading: "Loading project…",
         error: "Unable to load project.",
@@ -29,7 +35,6 @@ export const en = {
     admin: {
         dashboard: {
             title: "Dashboard",
-            role: "Admin",
             logout: "Log out",
             tickets: "Tickets",
             projects: "Projects",
@@ -71,8 +76,6 @@ export const en = {
             descLabel: "Description",
             descPlaceholder: "Describe the task in detail",
             assign: "Assign Members",
-            partner: "Farmer",
-            investor: "Investor",
             users: "Assignees",
             filters: {
                 all: "All",
@@ -117,11 +120,7 @@ export const en = {
             attachFiles: "Attach files",
             removeFile: "Remove",
             preview: "Preview (Markdown supported)",
-            editorHint: "Supports markdown. Paste or attach images.",
-            roles: {
-                admin: "Admin",
-                partner: "Farmer"
-            }
+            editorHint: "Supports markdown. Paste or attach images."
         },
         userManagement: {
             title: "User Management",
@@ -136,10 +135,7 @@ export const en = {
             sms: "SMS",
             phone: "Phone Number",
             role: "Role",
-            admin: "Admin",
             adminShort: "Admin",
-            partner: "Farmer",
-            investor: "Investor",
             sendInvite: "Send Invite",
             searchPlaceholder: "Search by name, email or phone...",
             status: "Status",
@@ -170,11 +166,6 @@ export const en = {
             descPlaceholder: "Enter project description",
             descHint: "Supports images and formatting.",
             assignLabel: "Assign Members",
-            partnerLabel: "Farmer",
-            investorLabel: "Investor",
-            admin: "Admin",
-            partner: "Farmer",
-            investor: "Investor",
             projects: "Projects",
             createSuccess: "Project created successfully",
             editTitle: "Update Project",
@@ -245,7 +236,6 @@ export const en = {
     investor: {
         dashboard: {
             title: "Dashboard",
-            role: "Investor",
             logout: "Log out",
             projects: "Projects",
             requests: "Requests",
@@ -263,8 +253,6 @@ export const en = {
             trees: "trees",
             progress: "Project Progress",
             members: "Members",
-            partner: "Farmer",
-            investor: "Investor",
             recent: "Recent Activities",
             detail: "View Project Details"
         },
@@ -329,7 +317,6 @@ export const en = {
     partner: {
         dashboard: {
             title: "Dashboard",
-            role: "Farmer",
             logout: "Log out",
             projects: "Projects",
             tickets: "Tickets",

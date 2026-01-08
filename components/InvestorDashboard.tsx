@@ -41,7 +41,7 @@ export function InvestorDashboard({ user, locale, onLogout }: InvestorDashboardP
     <>
       <DashboardHeader
         title={t('investor.dashboard.title')}
-        subtitle={t('investor.dashboard.role')}
+        subtitle={t(`roles.${user.role || 'investor'}`)}
         userName={user.name}
         userEmail={user.email}
         locale={locale}

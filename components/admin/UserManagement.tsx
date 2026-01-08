@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "../ui/button";
@@ -27,6 +27,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "../ui/pagination";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import { Badge } from "../ui/badge";
 import { UserPlus, Search, Mail, MessageSquare, Pencil, Trash2 } from "lucide-react";
@@ -43,13 +51,21 @@ interface UserData {
   joinDate: string;
 }
 
+interface UsersResponse {
+  items: UserData[];
+  page: number;
+  pageSize: number;
+  total: number;
+}
+
 export function UserManagement() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const [users, setUsers] = useState<UserData[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [inviteMethod, setInviteMethod] = useState<'email' | 'sms'>('email');
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
   const [newUser, setNewUser] = useState({
     name: '',
     email: '',
@@ -57,37 +73,33 @@ export function UserManagement() {
     role: 'partner'
   });
 
-  const filteredUsers = users.filter(user =>
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.phone.includes(searchTerm)
-  );
-
   const usersQuery = useQuery({
-    queryKey: ["users"],
+    queryKey: ["users", page, pageSize, searchTerm],
     queryFn: async () => {
-      const res = await fetch("/api/users");
+      const params = new URLSearchParams({
+        page: String(page),
+        pageSize: String(pageSize),
+      });
+      if (searchTerm.trim()) {
+        params.set("search", searchTerm.trim());
+      }
+      const res = await fetch(`/api/users?${params.toString()}`);
       if (!res.ok) throw new Error("Failed to load users");
       return res.json();
     },
+    placeholderData: (prev) => prev,
   });
 
   useEffect(() => {
-    if (usersQuery.data) {
-      const data: any[] = usersQuery.data;
-      setUsers(
-        data.map((u) => ({
-          id: u.id,
-          name: u.name,
-          email: u.email ?? "",
-          phone: u.phone ?? "",
-          role: u.role,
-          status: u.status,
-          joinDate: u.joinDate,
-        }))
-      );
-    }
-  }, [usersQuery.data]);
+    setPage(1);
+  }, [searchTerm]);
+
+  const usersData: UsersResponse | undefined = usersQuery.data;
+  const users = usersData?.items ?? [];
+  const totalPages = useMemo(() => {
+    if (!usersData) return 1;
+    return Math.max(1, Math.ceil(usersData.total / usersData.pageSize));
+  }, [usersData]);
 
   const createUser = useMutation({
     mutationFn: async () => {
@@ -103,16 +115,6 @@ export function UserManagement() {
       return res.json();
     },
     onSuccess: (user: any) => {
-      const mapped: UserData = {
-        id: user.id,
-        name: user.name,
-        email: user.email ?? "",
-        phone: user.phone ?? "",
-        role: user.role,
-        status: user.status ?? "pending",
-        joinDate: user.joinDate,
-      };
-      setUsers((prev) => [...prev, mapped]);
       const method = inviteMethod === 'email' ? t('admin.userManagement.email') : t('admin.userManagement.sms');
       toast.success(t('admin.userManagement.inviteSent', { method, value: inviteMethod === 'email' ? newUser.email : newUser.phone }));
       setNewUser({ name: '', email: '', phone: '', role: 'partner' });
@@ -136,7 +138,6 @@ export function UserManagement() {
       return res.json();
     },
     onSuccess: (_data, userId) => {
-      setUsers((prev) => prev.filter((u) => u.id !== userId));
       queryClient.invalidateQueries({ queryKey: ["users"] });
       toast.success(t("admin.userManagement.deleted", { defaultValue: "User removed" }));
     },
@@ -228,9 +229,11 @@ export function UserManagement() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="admin">{t('admin.userManagement.admin')}</SelectItem>
-                      <SelectItem value="partner">{t('admin.userManagement.partner')}</SelectItem>
-                      <SelectItem value="investor">{t('admin.userManagement.investor')}</SelectItem>
+                    {["admin", "partner", "investor"].map((role) => (
+                      <SelectItem key={role} value={role}>
+                        {t(`roles.${role}`)}
+                      </SelectItem>
+                    ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -267,14 +270,16 @@ export function UserManagement() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredUsers.map((user) => (
+                {users.map((user) => (
                   <TableRow key={user.id}>
                     <TableCell>{user.name}</TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>{user.phone}</TableCell>
                     <TableCell>
                       <Badge variant="outline">
-                        {user.role === 'admin' ? t('admin.userManagement.adminShort') : user.role === 'partner' ? t('admin.userManagement.partner') : t('admin.userManagement.investor')}
+                        {user.role === 'admin'
+                          ? t('admin.userManagement.adminShort')
+                          : t(`roles.${user.role || 'partner'}`)}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -285,10 +290,10 @@ export function UserManagement() {
                   <TableCell>{user.joinDate}</TableCell>
                   <TableCell>
                     <div className="flex gap-2">
-                      <Button variant="ghost" size="sm" disabled>
+                      <Button disabled={user.role==='root'} variant="ghost" size="sm">
                         <Pencil className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="sm" onClick={() => deleteUser.mutate(user.id)}>
+                      <Button disabled={user.role==='root'} variant="ghost" size="sm" onClick={() => deleteUser.mutate(user.id)}>
                         <Trash2 className="w-4 h-4 text-red-600" />
                       </Button>
                     </div>
@@ -298,6 +303,33 @@ export function UserManagement() {
               </TableBody>
             </Table>
           </div>
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    setPage((current) => Math.max(1, current - 1));
+                  }}
+                />
+              </PaginationItem>
+              <PaginationItem>
+                <PaginationLink href="#" isActive>
+                  {page} / {totalPages}
+                </PaginationLink>
+              </PaginationItem>
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    setPage((current) => Math.min(totalPages, current + 1));
+                  }}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
         </div>
       </CardContent>
     </Card>

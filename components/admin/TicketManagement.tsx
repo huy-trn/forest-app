@@ -100,7 +100,7 @@ export function TicketManagement({ currentUser }: { currentUser?: { id: string; 
   const usersQuery = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
-      const res = await fetch("/api/users");
+      const res = await fetch("/api/users?page=1&pageSize=1000");
       if (!res.ok) throw new Error("Failed to load users");
       return res.json();
     },
@@ -125,7 +125,8 @@ export function TicketManagement({ currentUser }: { currentUser?: { id: string; 
 
   useEffect(() => {
     if (usersQuery.data) {
-      setUsers(usersQuery.data as UserOption[]);
+      const data = usersQuery.data as { items?: UserOption[] };
+      setUsers(data.items ?? []);
     }
   }, [usersQuery.data]);
 
@@ -278,7 +279,7 @@ export function TicketManagement({ currentUser }: { currentUser?: { id: string; 
                             }}
                           />
                           <label htmlFor={`assignee-${user.id}`} className="flex-1 cursor-pointer">
-                            {user.name} <Badge variant="outline" className="ml-2">{user.role === 'partner' ? t('admin.ticketManagement.partner') : t('admin.ticketManagement.investor')}</Badge>
+                            {user.name} <Badge variant="outline" className="ml-2">{t(`roles.${user.role === 'partner' || user.role === 'investor' ? user.role : 'partner'}`)}</Badge>
                           </label>
                         </div>
                       ))}

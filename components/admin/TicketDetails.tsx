@@ -418,7 +418,7 @@ export function TicketDetails({ ticket, onClose, userRole }: TicketDetailsProps)
                             <User className="w-4 h-4" />
                             <span>{comment.userName}</span>
                             <Badge variant="outline" className="text-xs">
-                              {comment.userRole === 'admin' ? t('admin.ticketDetails.roles.admin') : t('admin.ticketDetails.roles.partner')}
+                              {t(`roles.${comment.userRole === 'admin' || comment.userRole === 'root' ? comment.userRole : 'partner'}`)}
                             </Badge>
                           </div>
                           <span className="text-sm text-gray-600">{comment.date}</span>

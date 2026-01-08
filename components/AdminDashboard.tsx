@@ -48,7 +48,7 @@ export function AdminDashboard({
     <>
       <DashboardHeader
         title={t('admin.dashboard.title')}
-        subtitle={t('admin.dashboard.role')}
+        subtitle={t(`roles.${user.role || 'admin'}`)}
         userName={user.name}
         userEmail={user.email}
         locale={locale}

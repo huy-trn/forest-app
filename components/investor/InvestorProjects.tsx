@@ -148,7 +148,7 @@ export function InvestorProjects({ locale }: { locale: string }) {
                   <div className="flex flex-wrap gap-1">
                     {project.members?.map((member) => (
                       <Badge key={member.id} variant="outline" className="text-xs">
-                        {member.name} ({member.role === "partner" ? t("investor.projects.partner") : t("investor.projects.investor")})
+                        {member.name} ({t(`roles.${member.role === "partner" || member.role === "investor" ? member.role : "partner"}`)})
                       </Badge>
                     ))}
                   </div>
