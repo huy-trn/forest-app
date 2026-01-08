@@ -117,28 +117,28 @@ jobs:
 
             echo "Writing .env from GitHub secrets..."
             umask 077
-            cat > .env <<EOF
-POSTGRES_URL=${POSTGRES_URL}
-NODE_ENV=${NODE_ENV}
-NEXT_TELEMETRY_DISABLED=${NEXT_TELEMETRY_DISABLED}
-NEXTAUTH_URL=${NEXTAUTH_URL}
-EMAIL_SERVER=${EMAIL_SERVER}
-EMAIL_FROM=${EMAIL_FROM}
-SENDGRID_API_KEY=${SENDGRID_API_KEY}
-TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
-TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
-TWILIO_FROM=${TWILIO_FROM}
-AUTH_SECRET=${AUTH_SECRET}
-ROOT_ADMIN_EMAIL=${ROOT_ADMIN_EMAIL}
-ROOT_ADMIN_PASSWORD=${ROOT_ADMIN_PASSWORD}
-ROOT_ADMIN_NAME=${ROOT_ADMIN_NAME}
-AWS_REGION=${AWS_REGION}
-S3_BUCKET=${S3_BUCKET}
-AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-NOMINATIM_URL=${NOMINATIM_URL}
-NOMINATIM_EMAIL=${NOMINATIM_EMAIL}
-EOF
+            {
+              echo "POSTGRES_URL=${POSTGRES_URL}"
+              echo "NODE_ENV=${NODE_ENV}"
+              echo "NEXT_TELEMETRY_DISABLED=${NEXT_TELEMETRY_DISABLED}"
+              echo "NEXTAUTH_URL=${NEXTAUTH_URL}"
+              echo "EMAIL_SERVER=${EMAIL_SERVER}"
+              echo "EMAIL_FROM=${EMAIL_FROM}"
+              echo "SENDGRID_API_KEY=${SENDGRID_API_KEY}"
+              echo "TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}"
+              echo "TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}"
+              echo "TWILIO_FROM=${TWILIO_FROM}"
+              echo "AUTH_SECRET=${AUTH_SECRET}"
+              echo "ROOT_ADMIN_EMAIL=${ROOT_ADMIN_EMAIL}"
+              echo "ROOT_ADMIN_PASSWORD=${ROOT_ADMIN_PASSWORD}"
+              echo "ROOT_ADMIN_NAME=${ROOT_ADMIN_NAME}"
+              echo "AWS_REGION=${AWS_REGION}"
+              echo "S3_BUCKET=${S3_BUCKET}"
+              echo "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}"
+              echo "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}"
+              echo "NOMINATIM_URL=${NOMINATIM_URL}"
+              echo "NOMINATIM_EMAIL=${NOMINATIM_EMAIL}"
+            } > .env
 
             ensure_docker() {
               if command -v docker >/dev/null 2>&1; then return; fi
