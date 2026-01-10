@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { SearchBox } from "./project-map/SearchBox";
 import { ToolsPanel } from "./project-map/ToolsPanel";
 import { ProjectData } from "./project-map/types";
 import { useMapController } from "./project-map/useMapController";
 import { useProjectLocations } from "./project-map/useProjectLocations";
+import { useFrontendTool } from "@copilotkit/react-core";
 
 type ProjectMapProps = {
   toolsOpen: boolean;
@@ -16,6 +17,7 @@ type ProjectMapProps = {
 export function ProjectMap({ project, toolsOpen, heightClassName }: ProjectMapProps) {
   const { mapContainerRef, setMarker, removeMarker, setPolygon, removePolygon, getMarkerIds, getPolygonIds, fitBounds, invalidateSize, isReady } = useMapController();
   const { locations, isLoading } = useProjectLocations(project.id);
+  const lastBoundsRef = useRef<[number, number][] | null>(null);
 
   useEffect(() => {
     if (isLoading || !isReady) return;
@@ -46,7 +48,10 @@ export function ProjectMap({ project, toolsOpen, heightClassName }: ProjectMapPr
         removePolygon(id);
       }
     });
-    fitBounds(bounds);
+    if (bounds.length > 0) {
+      lastBoundsRef.current = bounds;
+      fitBounds(bounds);
+    }
   }, [fitBounds, getMarkerIds, getPolygonIds, isLoading, locations, removeMarker, removePolygon, setMarker, setPolygon]);
 
   useEffect(() => {
@@ -56,12 +61,23 @@ export function ProjectMap({ project, toolsOpen, heightClassName }: ProjectMapPr
     }, 50);
     return () => clearTimeout(timer);
   }, [invalidateSize, isReady, toolsOpen]);
+
+  useFrontendTool({
+    name: "focusProjectMap",
+    description: "Fit the map view to the latest project locations.",
+    parameters: [],
+    handler: async () => {
+      if (!lastBoundsRef.current || !lastBoundsRef.current.length) return;
+      fitBounds(lastBoundsRef.current);
+    },
+  });
+
   return (
     <div className="rounded-lg border overflow-hidden bg-white shadow-sm">
       <div className={`grid gap-4 p-4 ${toolsOpen ? "lg:grid-cols-[1.6fr_1fr]" : "grid-cols-1"}`}>
         <div className="space-y-3">
-          <div className={`relative overflow-visible ${heightClassName}`}>
-            <div ref={mapContainerRef} className="absolute inset-0 rounded-lg border" />
+          <div className={`relative isolate overflow-visible ${heightClassName}`}>
+            <div ref={mapContainerRef} className="absolute inset-0 z-0 rounded-lg border" />
             <div className="absolute left-4 right-4 top-4 z-[1000] pointer-events-none">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between pointer-events-auto">
                 <div className="flex-1 min-w-0 sm:max-w-[70%] ml-12 sm:ml-16 p-1 bg-background/80 rounded">

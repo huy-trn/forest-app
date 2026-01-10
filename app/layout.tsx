@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "@copilotkit/react-ui/styles.css";
 import { Providers } from "./providers";
 import { ensureRootAdmin } from "@/lib/init-root-admin";
+import { getUserFromCookies } from "@/lib/auth-helpers";
 
 export const dynamic = "force-dynamic";
 
@@ -16,11 +18,19 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   await ensureRootAdmin();
+  const user = await getUserFromCookies();
+  const copilotRuntimeUrl = process.env.COPILOTKIT_RUNTIME_URL ?? "/api/copilotkit";
 
   return (
     <html lang="en">
       <body>
-        <Providers>{children}</Providers>
+        <Providers
+          isAuthenticated={!!user}
+          userRole={user?.role ?? null}
+          copilotRuntimeUrl={copilotRuntimeUrl}
+        >
+          {children}
+        </Providers>
       </body>
     </html>
   );

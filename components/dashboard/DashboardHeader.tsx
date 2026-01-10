@@ -1,12 +1,12 @@
 "use client";
 
 import { ReactNode, useEffect, useRef, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { Button } from "../ui/button";
 import { LogOut, Home, Menu, Globe } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { SelectLng } from "../ui/select-lng";
 
 type Props = {
   title: ReactNode;
@@ -28,21 +28,9 @@ export function DashboardHeader({
   locales = ["en", "vi"],
 }: Props) {
   const router = useRouter();
-  const pathname = usePathname();
   const { i18n } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
-  const searchParams = useSearchParams();
-
-  const handleLocaleChange = (nextLocale: string) => {
-    if (!pathname) return;
-    const segments = pathname.split("/").filter(Boolean);
-    if (segments.length === 0) return;
-    // swap the locale segment (first segment)
-    segments[0] = nextLocale;
-    const search = searchParams.toString();
-    router.push(`/${segments.join("/")}${search ? `?${search}` : ""}`);
-  };
 
   useEffect(() => {
     if (i18n.language !== locale) {
@@ -78,25 +66,15 @@ export function DashboardHeader({
 
           {/* Desktop actions */}
           <div className="hidden md:flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <Globe className="w-4 h-4 text-slate-500" aria-hidden />
-              <label className="sr-only" htmlFor="locale-select">Language</label>
-              <Select value={i18n.language} onValueChange={(val) => handleLocaleChange(val)}>
-                <SelectTrigger id="locale-select" className="w-[120px] bg-white/70">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent position="popper">
-                  {locales.map((loc) => (
-                    <SelectItem key={loc} value={loc}>{loc.toUpperCase()}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
             <div className="text-right">
               <p className="text-sm leading-tight text-slate-900">{userName}</p>
               {userEmail ? <p className="text-xs text-slate-500 leading-tight">{userEmail}</p> : null}
             </div>
-            <Button variant="outline" onClick={onLogout} className="whitespace-nowrap border-slate-200 bg-white/70">
+            <div className="flex items-center gap-2">
+              <label className="sr-only" htmlFor="locale-select">Language</label>
+              <SelectLng />
+            </div>
+            <Button size="sm" variant="outline" onClick={onLogout} className="whitespace-nowrap border-slate-200 bg-white/70">
               <LogOut className="w-4 h-4 mr-2" />
               Logout
             </Button>
@@ -134,16 +112,12 @@ export function DashboardHeader({
                     <Globe className="w-4 h-4 text-slate-500" />
                     <span className="text-xs text-slate-500">Language</span>
                   </div>
-                  <Select value={i18n.language} onValueChange={(val) => { handleLocaleChange(val); setMenuOpen(false); }}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent position="popper">
-                      {locales.map((loc) => (
-                        <SelectItem key={loc} value={loc}>{loc.toUpperCase()}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <SelectLng
+                    value={i18n.language}
+                    onChange={() => setMenuOpen(false)}
+                    options={locales.map((loc) => ({ value: loc, label: loc.toUpperCase() }))}
+                    triggerClassName="w-full"
+                  />
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem

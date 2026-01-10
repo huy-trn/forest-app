@@ -3,11 +3,12 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, LayoutDashboard, LogIn } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { SelectLng } from "@/components/ui/select-lng";
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 import { ShowcaseContent } from "@/types/showcase";
 import { useRouter } from "next/navigation";
@@ -28,7 +29,6 @@ export function ShowcaseClient({ locale, content, isAuthenticated, dashboardPath
   const [page, setPage] = useState(1);
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
   const normalizeForestType = useCallback((type?: string | null): ForestType => (type === "artificial" ? "artificial" : "natural"), []);
-  const [forestTypeFilter, setForestTypeFilter] = useState<ForestType>("natural");
 
   const goTo = useCallback(
     (href?: string) => {
@@ -67,20 +67,8 @@ export function ShowcaseClient({ locale, content, isAuthenticated, dashboardPath
 
   const HEADLINE_COUNT = 3;
   const projects = data.projects ?? [];
-  useEffect(() => {
-    const types = projects.map((p) => normalizeForestType(p.forestType));
-    if (!types.length) return;
-    if (!types.includes(forestTypeFilter)) {
-      setForestTypeFilter(types.includes("natural") ? "natural" : "artificial");
-    }
-  }, [projects, forestTypeFilter, normalizeForestType]);
-
-  const filteredProjects = useMemo(
-    () => projects.filter((p) => normalizeForestType(p.forestType) === forestTypeFilter),
-    [projects, forestTypeFilter, normalizeForestType]
-  );
-  const featuredProjects = filteredProjects.slice(0, HEADLINE_COUNT);
-  const moreProjects = filteredProjects.slice(HEADLINE_COUNT);
+  const featuredProjects = projects.slice(0, HEADLINE_COUNT);
+  const moreProjects = projects.slice(HEADLINE_COUNT);
   const pageSize = 5;
   const totalPages = Math.max(1, Math.ceil(Math.max(moreProjects.length, 1) / pageSize));
   const pagedProjects = useMemo(() => {
@@ -94,14 +82,27 @@ export function ShowcaseClient({ locale, content, isAuthenticated, dashboardPath
 
   return (
     <div className="space-y-10">
-      <div className="flex justify-end">
+      <div className="flex items-center justify-end gap-2">
+        <SelectLng />
         {isAuthenticated && dashboardPath ? (
-          <Button size="sm" variant="outline" onClick={() => goTo(dashboardPath)}>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 border-slate-200 bg-white text-slate-900 hover:bg-slate-50"
+            onClick={() => goTo(dashboardPath)}
+          >
+            <LayoutDashboard className="mr-2 h-4 w-4" />
             {t("common.dashboard", { defaultValue: "Dashboard" })}
           </Button>
         ) : (
           loginPath && (
-            <Button size="sm" variant="default" onClick={() => goTo(loginPath)}>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 border-slate-200 bg-white text-slate-900 hover:bg-slate-50"
+              onClick={() => goTo(loginPath)}
+            >
+              <LogIn className="mr-2 h-4 w-4" />
               {t("login.signIn", { defaultValue: "Sign In" })}
             </Button>
           )
@@ -139,7 +140,7 @@ export function ShowcaseClient({ locale, content, isAuthenticated, dashboardPath
                 <button
                   type="button"
                   onClick={() => emblaApi?.scrollPrev()}
-                  className="p-2 rounded-md border hover:bg-gray-50"
+                  className="p-2 rounded-md border border-slate-200/70 bg-white text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md"
                   aria-label="Previous"
                 >
                   <ChevronLeft className="w-4 h-4" />
@@ -147,29 +148,13 @@ export function ShowcaseClient({ locale, content, isAuthenticated, dashboardPath
                 <button
                   type="button"
                   onClick={() => emblaApi?.scrollNext()}
-                  className="p-2 rounded-md border hover:bg-gray-50"
+                  className="p-2 rounded-md border border-slate-200/70 bg-white text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md"
                   aria-label="Next"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
             ) : null}
-          </div>
-          <div className="flex flex-wrap items-center gap-2 pt-3">
-            <p className="text-sm text-muted-foreground">{t("common.forestType", { defaultValue: "Forest type" })}</p>
-            {(["natural", "artificial"] as ForestType[]).map((type) => (
-              <Button
-                key={type}
-                size="sm"
-                variant={forestTypeFilter === type ? "default" : "outline"}
-                onClick={() => {
-                  setPage(1);
-                  setForestTypeFilter(type);
-                }}
-              >
-                {forestTypeLabels[type]}
-              </Button>
-            ))}
           </div>
         </CardHeader>
         <CardContent>
@@ -209,7 +194,7 @@ export function ShowcaseClient({ locale, content, isAuthenticated, dashboardPath
               <div className="flex items-center gap-2 text-sm">
                 <button
                   type="button"
-                  className="px-2 py-1 border rounded-full disabled:opacity-50"
+                  className="px-2 py-1 rounded-full border border-slate-200/70 bg-white text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md disabled:opacity-50"
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
                 >
@@ -220,7 +205,7 @@ export function ShowcaseClient({ locale, content, isAuthenticated, dashboardPath
                 </span>
                 <button
                   type="button"
-                  className="px-2 py-1 border rounded-full disabled:opacity-50"
+                  className="px-2 py-1 rounded-full border border-slate-200/70 bg-white text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md disabled:opacity-50"
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page >= totalPages}
                 >

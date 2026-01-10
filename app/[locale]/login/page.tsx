@@ -31,9 +31,9 @@ export default function LoginPage({ params }: { params: { locale: string } }) {
     }
 
     const data = await res.json().catch(() => ({} as any));
-    // backend should set role in token; fallback to locale root if missing
+    // backend should set role in token; fallback to investor dashboard if missing
     const role: string | undefined = data?.role;
-    let dest = localePrefix;
+    let dest = `${localePrefix}/investor`;
     if (role === "admin" || role === "root") dest = `${localePrefix}/admin`;
     else if (role === "partner") dest = `${localePrefix}/partner`;
     else if (role === "investor") dest = `${localePrefix}/investor`;
