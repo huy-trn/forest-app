@@ -17,10 +17,6 @@ type ProvidersProps = {
 export function Providers({ children, isAuthenticated, userRole, copilotRuntimeUrl }: ProvidersProps) {
   const [queryClient] = useState(() => new QueryClient());
 
-  if (!isAuthenticated || !copilotRuntimeUrl) {
-    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
-  }
-
   return (
     <CopilotKit runtimeUrl={copilotRuntimeUrl}>
       <QueryClientProvider client={queryClient}>
