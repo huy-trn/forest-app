@@ -4,15 +4,16 @@ import Groq from "groq-sdk";
 import { getUserFromRequest } from "@/lib/auth-helpers";
 import { getCopilotRuntime } from "@/lib/copilot-runtime";
 
-const client = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
-const serviceAdapter = new GroqAdapter({
-  model: "openai/gpt-oss-120b",
-  groq: client as any,
-});
-
 export const POST = async (req: NextRequest) => {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) {
+    return new Response("GROQ_API_KEY is not configured", { status: 500 });
+  }
+  const client = new Groq({ apiKey });
+  const serviceAdapter = new GroqAdapter({
+    model: "openai/gpt-oss-120b",
+    groq: client as any,
+  });
   const user = await getUserFromRequest(req);
   if (!user) {
     return new Response("Unauthorized", { status: 401 });
