@@ -1,34 +1,42 @@
-import { cookies, headers } from "next/headers";
-import { verifyToken, TokenPayload } from "./jwt";
+import { NextRequest } from "next/server";
+import { getServerSession } from "next-auth";
+import { getToken } from "next-auth/jwt";
+import { authOptions } from "./auth-options";
+import type { TokenPayload } from "./auth-types";
 
-export async function getAuthTokenFromRequest(req: Request): Promise<string | null> {
-  const authHeader = req.headers.get("authorization");
-  if (authHeader?.toLowerCase().startsWith("bearer ")) {
-    return authHeader.slice(7);
-  }
-  return null;
-}
+const authSecret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
 
-export async function getAuthTokenFromCookies(): Promise<string | null> {
-  const cookieStore = cookies();
-  return cookieStore.get("token")?.value ?? null;
-}
+const toPayload = (token: any): TokenPayload | null => {
+  if (!token?.sub) return null;
+  return {
+    sub: String(token.sub),
+    role: token.role ?? null,
+    email: token.email ?? null,
+    name: token.name ?? null,
+    phone: token.phone ?? null,
+  };
+};
 
 export async function getUserFromRequest(req: Request): Promise<TokenPayload | null> {
-  const headerToken = await getAuthTokenFromRequest(req);
-  if (headerToken) {
-    const verified = await verifyToken(headerToken);
-    if (verified) return verified;
+  if (!authSecret) return null;
+  let nextReq: NextRequest;
+  try {
+    nextReq = req instanceof NextRequest ? req : new NextRequest(req);
+  } catch {
+    nextReq = req as NextRequest;
   }
-  const cookieToken = await getAuthTokenFromCookies();
-  if (cookieToken) {
-    return verifyToken(cookieToken);
-  }
-  return null;
+  const token = await getToken({ req: nextReq, secret: authSecret });
+  return toPayload(token);
 }
 
 export async function getUserFromCookies(): Promise<TokenPayload | null> {
-  const token = await getAuthTokenFromCookies();
-  if (!token) return null;
-  return verifyToken(token);
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return null;
+  return {
+    sub: session.user.id,
+    role: session.user.role ?? null,
+    email: session.user.email ?? null,
+    name: session.user.name ?? null,
+    phone: session.user.phone ?? null,
+  };
 }

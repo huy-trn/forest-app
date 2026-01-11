@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { signIn, getSession } from "next-auth/react";
 import { useTranslation } from "react-i18next";
 import { Login } from "@/components/Login";
 import "@/i18n";
@@ -17,22 +18,21 @@ export default function LoginPage({ params }: { params: { locale: string } }) {
   const handleLogin = async (identifier: string, password: string) => {
     setLoading(true);
     setError(null);
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: identifier, password }),
+    const result = await signIn("credentials", {
+      identifier,
+      password,
+      redirect: false,
     });
-    setLoading(false);
-
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      setError(data.error || t("login.invalid", { defaultValue: "Invalid credentials" }));
+    if (result?.error) {
+      setLoading(false);
+      setError(t("login.invalid", { defaultValue: "Invalid credentials" }));
       return;
     }
 
-    const data = await res.json().catch(() => ({} as any));
-    // backend should set role in token; fallback to investor dashboard if missing
-    const role: string | undefined = data?.role;
+    const session = await getSession();
+    setLoading(false);
+
+    const role: string | undefined = session?.user?.role ?? undefined;
     let dest = `${localePrefix}/investor`;
     if (role === "admin" || role === "root") dest = `${localePrefix}/admin`;
     else if (role === "partner") dest = `${localePrefix}/partner`;

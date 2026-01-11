@@ -1,6 +1,6 @@
 import { CopilotRuntime } from "@copilotkit/runtime";
 import { prisma } from "@/lib/prisma";
-import type { TokenPayload } from "@/lib/jwt";
+import type { TokenPayload } from "@/lib/auth-types";
 
 type RuntimeOptions = {
   user: TokenPayload;

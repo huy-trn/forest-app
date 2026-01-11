@@ -10,8 +10,6 @@ const htmlBody = (paragraphs: string[], imageUrl?: string) => {
 
 async function resetDatabase() {
   await prisma.verificationToken.deleteMany();
-  await prisma.account.deleteMany();
-  await prisma.session.deleteMany();
   await prisma.ticketAttachment.deleteMany();
   await prisma.ticketComment.deleteMany();
   await prisma.ticketLog.deleteMany();
@@ -23,7 +21,6 @@ async function resetDatabase() {
   await prisma.investorRequest.deleteMany();
   await prisma.project.deleteMany();
   await prisma.user.deleteMany();
-  await prisma.post.deleteMany();
   await prisma.showcaseHero.deleteMany();
 }
 
@@ -323,65 +320,6 @@ async function seedShowcase() {
       },
     ],
   });
-
-  const posts = [
-    {
-      title: "Drone survey finished",
-      locale: "en",
-      body: htmlBody([
-        "A 40-minute drone flight mapped the new bamboo plots. NDVI layers show strong recovery after recent rain.",
-        "Soil moisture sensors will be compared with canopy data to fine-tune irrigation cycles.",
-      ]),
-      imageUrl: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80",
-    },
-    {
-      title: "Mangrove salinity alert",
-      locale: "en",
-      body: htmlBody([
-        "Two sensors reported salinity above 25‰ for 6 hours. Field teams closed sluice gates and deployed burlap shading.",
-        "Follow-up readings are back to safe levels; no seedling loss recorded.",
-      ]),
-      imageUrl: "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1200&q=80",
-    },
-    {
-      title: "Community patrol training",
-      locale: "en",
-      body: htmlBody([
-        "Twenty volunteers completed wildfire patrol drills. Each squad is equipped with radios and first aid kits.",
-        "Patrol routes are logged via the mobile app to keep incident response times under 15 minutes.",
-      ]),
-      imageUrl: "https://images.unsplash.com/photo-1523978591478-c753949ff840?auto=format&fit=crop&w=1200&q=80",
-    },
-    {
-      title: "Bay chụp đầm mặn",
-      locale: "vi",
-      body: htmlBody([
-        "Chuyến bay drone 35 phút đã chụp phủ kín các ô đước mới trồng, NDVI cho thấy tán đang hồi phục tốt.",
-        "Đội vận hành sẽ so sánh với cảm biến độ mặn để điều chỉnh lịch tưới và đóng mở cống.",
-      ]),
-      imageUrl: "https://images.unsplash.com/photo-1506765515384-028b60a970df?auto=format&fit=crop&w=1200&q=80",
-    },
-    {
-      title: "Lắp cảm biến độ ẩm đất",
-      locale: "vi",
-      body: htmlBody([
-        "6 cảm biến đã hoạt động tại lô thông thử nghiệm IoT, truyền dữ liệu mỗi 15 phút.",
-        "Bảng điều khiển hiển thị ngưỡng cảnh báo giúp đội hiện trường điều chỉnh tưới nhỏ giọt kịp thời.",
-      ]),
-      imageUrl: "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1200&q=80",
-    },
-    {
-      title: "Tập huấn cộng đồng",
-      locale: "vi",
-      body: htmlBody([
-        "30 hộ dân tham gia tập huấn về phòng cháy và phân loại rác hữu cơ tại khu rừng bản địa.",
-        "Nhóm nòng cốt được trang bị bộ đàm và kỹ năng sơ cứu để phản ứng nhanh trong mùa khô.",
-      ]),
-      imageUrl: "https://images.unsplash.com/photo-1523978591478-c753949ff840?auto=format&fit=crop&w=1200&q=80",
-    },
-  ];
-
-  await prisma.post.createMany({ data: posts });
 }
 
 async function main() {

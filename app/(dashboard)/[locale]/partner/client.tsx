@@ -2,6 +2,7 @@
 
 import { PartnerDashboard } from "@/components/PartnerDashboard";
 import type { User } from "@/types/user";
+import { signOut } from "next-auth/react";
 
 export function PartnerDashboardClient({ user, locale }: { user: User; locale: string }) {
   return (
@@ -9,7 +10,7 @@ export function PartnerDashboardClient({ user, locale }: { user: User; locale: s
       user={user}
       locale={locale}
       onLogout={async () => {
-        await fetch("/api/auth/logout", { method: "POST" });
+        await signOut({ redirect: false });
         window.location.href = `/${locale}/login`;
       }}
     />

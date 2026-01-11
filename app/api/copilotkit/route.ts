@@ -14,7 +14,7 @@ export const POST = async (req: NextRequest) => {
     model: "openai/gpt-oss-120b",
     groq: client as any,
   });
-  const user = await getUserFromRequest(req);
+  const user = await getUserFromRequest(req.clone());
   if (!user) {
     return new Response("Unauthorized", { status: 401 });
   }

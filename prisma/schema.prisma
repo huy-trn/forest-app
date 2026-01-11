@@ -53,8 +53,6 @@ model User {
   ticketLogs TicketLog[]
   ticketComments TicketComment[]
   investorRequests InvestorRequest[]
-  accounts   Account[]
-  sessions   Session[]
   locationVersions ProjectLocationVersion[]
 }
 
@@ -153,34 +151,6 @@ model InvestorRequest {
   investorId String?
 }
 
-model Account {
-  id                 String  @id @default(uuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String?
-  access_token       String?
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?
-  session_state      String?
-  oauth_token_secret String?
-  oauth_token        String?
-  user               User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
-}
-
-model Session {
-  id           String   @id @default(uuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
 model VerificationToken {
   identifier String
   token      String   @unique
@@ -189,29 +159,12 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-model Post {
-  id        String   @id @default(uuid())
-  title     String
-  body      String
-  imageUrl  String?
-  locale    String?
-  createdAt DateTime @default(now())
-}
-
 model ShowcaseHero {
   id          String   @id @default(uuid())
   locale      String   @unique
   title       String?
   description String?
   updatedAt   DateTime @updatedAt
-}
-
-model Showcase {
-  id        String   @id @default(uuid())
-  locale    String   @unique
-  content   Json
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 model ProjectLocation {
