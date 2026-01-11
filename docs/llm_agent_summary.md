@@ -38,8 +38,8 @@ This document provides a detailed summary of the project for LLM agent ingestion
 ## 3) All API Endpoints (App Router)
 
 ### Auth
-- `POST /api/auth/login` → `app/api/auth/login/route.ts`
-- `POST /api/auth/logout` → `app/api/auth/logout/route.ts`
+- `GET/POST /api/auth/[...nextauth]` → NextAuth credentials login/logout/session
+  - `app/api/auth/[...nextauth]/route.ts`
 
 ### Users & Onboarding
 - `GET /api/users` → list users (admin)
@@ -245,44 +245,17 @@ This document provides a detailed summary of the project for LLM agent ingestion
 - `projectId` (String?)
 - `investorId` (String?)
 
-#### Account (NextAuth style)
-- `id` (String, PK, uuid)
-- `userId` (String, FK → User)
-- `provider`, `providerAccountId`, `access_token`, `refresh_token`, etc.
-- Unique: `[provider, providerAccountId]`
-
-#### Session (NextAuth style)
-- `id` (String, PK, uuid)
-- `sessionToken` (String, unique)
-- `userId` (String, FK → User)
-- `expires` (DateTime)
-
 #### VerificationToken
 - `identifier` (String)
 - `token` (String, unique)
 - `expires` (DateTime)
 - Unique: `[identifier, token]`
 
-#### Post (Showcase posts)
-- `id` (String, PK, uuid)
-- `title` (String)
-- `body` (String)
-- `imageUrl` (String?)
-- `locale` (String?)
-- `createdAt` (DateTime, default now)
-
 #### ShowcaseHero
 - `id` (String, PK, uuid)
 - `locale` (String, unique)
 - `title` (String?)
 - `description` (String?)
-- `updatedAt` (DateTime, updatedAt)
-
-#### Showcase
-- `id` (String, PK, uuid)
-- `locale` (String, unique)
-- `content` (Json)
-- `createdAt` (DateTime, default now)
 - `updatedAt` (DateTime, updatedAt)
 
 #### ProjectLocation
@@ -319,3 +292,8 @@ This document provides a detailed summary of the project for LLM agent ingestion
 - Docker Compose services: web, db, nominatim.
 - Production override adds nginx + certbot.
 - GitHub Actions deploys to EC2 using SSH, writes `.env` from secrets.
+
+## 6) Auth Notes (NextAuth + Bearer JWT)
+- Credentials login via NextAuth; session strategy is JWT.
+- API guards accept Bearer tokens using NextAuth JWT (`getToken`) and also work with NextAuth session cookies.
+- Secret comes from `AUTH_SECRET` or `NEXTAUTH_SECRET`.
