@@ -9,7 +9,7 @@ const client = new Groq({
 });
 const serviceAdapter = new GroqAdapter({
   model: "openai/gpt-oss-120b",
-  groq: client,
+  groq: client as any,
 });
 
 export const POST = async (req: NextRequest) => {
