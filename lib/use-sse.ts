@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 type MessageHandler = (data: MessageEvent) => void;
 
@@ -7,6 +7,12 @@ type MessageHandler = (data: MessageEvent) => void;
  * Reconnects with a simple backoff on errors.
  */
 export function useSse(path: string, onMessage: MessageHandler, enabled = true) {
+  const handlerRef = useRef(onMessage);
+
+  useEffect(() => {
+    handlerRef.current = onMessage;
+  }, [onMessage]);
+
   useEffect(() => {
     if (!enabled) return;
     let es: EventSource | null = null;
@@ -18,7 +24,9 @@ export function useSse(path: string, onMessage: MessageHandler, enabled = true) 
         es = null;
       }
       es = new EventSource(path);
-      es.onmessage = onMessage;
+      es.onmessage = (event) => {
+        handlerRef.current(event);
+      };
       es.onerror = () => {
         es?.close();
         es = null;
@@ -32,5 +40,5 @@ export function useSse(path: string, onMessage: MessageHandler, enabled = true) 
       if (retry) clearTimeout(retry);
       es?.close();
     };
-  }, [path, onMessage, enabled]);
+  }, [path, enabled]);
 }
