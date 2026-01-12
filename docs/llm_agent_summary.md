@@ -73,7 +73,6 @@ This document provides a detailed summary of the project for LLM agent ingestion
 - `POST /api/projects/:id/locations/versions?versionId=...` → rollback to snapshot
   - `app/api/projects/[id]/locations/versions/route.ts`
 
-- `GET /api/projects/:id/locations/:locId/versions` → location-specific history
   - `app/api/projects/[id]/locations/[locId]/versions/route.ts`
 
 ### Tickets
