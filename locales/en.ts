@@ -494,5 +494,10 @@ export const en = {
         mismatch: "Passwords do not match",
         failed: "Failed to complete onboarding",
         loading: "Saving..."
+    },
+    copilot: {
+        title: "Smart Assistant",
+        initial: "Need any help?",
+        instructions: "You are the in-app assistant for forest project management. Help users navigate, understand projects and tickets, and summarize logs, comments, and attachments. Ask for missing context like project or ticket IDs, and keep answers concise and actionable."
     }
 };

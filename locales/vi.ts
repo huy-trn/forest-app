@@ -494,5 +494,10 @@ export const vi: TextMap = {
         mismatch: "Mật khẩu không khớp",
         failed: "Không thể hoàn tất",
         loading: "Đang lưu..."
+    },
+    copilot: {
+        title: "Trợ lý thông minh",
+        initial: "Bạn cần hỗ trợ gì?",
+        instructions: "Bạn là trợ lý trong ứng dụng quản lý dự án lâm nghiệp. Hỗ trợ người dùng điều hướng, hiểu dự án và công việc, tóm tắt nhật ký, bình luận và tệp đính kèm. Nếu thiếu ngữ cảnh (ví dụ mã dự án hoặc mã công việc), hãy hỏi lại và trả lời ngắn gọn, thực dụng."
     }
 };
