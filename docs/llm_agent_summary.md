@@ -130,10 +130,6 @@ This document provides a detailed summary of the project for LLM agent ingestion
 - `POST /api/copilotkit` → CopilotKit runtime endpoint
   - `app/api/copilotkit/route.ts`
 
-### Events
-- `GET /api/events` → SSE ticket list/detail updates
-  - `app/api/events/route.ts`
-
 ### Health
 - `GET /api/health` → health check
   - `app/api/health/route.ts`
