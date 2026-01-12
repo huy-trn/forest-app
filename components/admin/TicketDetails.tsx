@@ -30,6 +30,8 @@ export function TicketDetails({ ticket, onClose, userRole }: TicketDetailsProps)
   const [commentFiles, setCommentFiles] = useState<File[]>([]);
   const logListRef = useRef<HTMLDivElement | null>(null);
   const commentListRef = useRef<HTMLDivElement | null>(null);
+  const normalizeText = (html: string) =>
+    html.replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").trim();
 
   const { data, refetch } = useQuery({
     queryKey: ["ticket", ticket.id],
@@ -142,8 +144,12 @@ export function TicketDetails({ ticket, onClose, userRole }: TicketDetailsProps)
   };
 
   const handleAddComment = async () => {
-    const plain = newComment.replace(/<[^>]+>/g, '').trim();
-    if (!plain) return;
+    const plain = normalizeText(newComment);
+    const hasImage = /<img\b/i.test(newComment);
+    if (!plain && !hasImage && commentFiles.length === 0) {
+      toast.error(t('admin.ticketDetails.commentPlaceholder'));
+      return;
+    }
     
     let uploadedAttachments: Array<{ name: string; type: string; url: string }> = [];
     if (commentFiles.length) {
@@ -159,12 +165,17 @@ export function TicketDetails({ ticket, onClose, userRole }: TicketDetailsProps)
       }
     }
 
-    await commentMutation.mutateAsync({ message: newComment, attachments: uploadedAttachments });
+    const message = plain || hasImage ? newComment : "Attachment";
+    await commentMutation.mutateAsync({ message, attachments: uploadedAttachments });
   };
 
   const handleAddLog = async () => {
-    const plain = newLog.replace(/<[^>]+>/g, '').trim();
-    if (!plain) return;
+    const plain = normalizeText(newLog);
+    const hasImage = /<img\b/i.test(newLog);
+    if (!plain && !hasImage && logFiles.length === 0) {
+      toast.error(t('admin.ticketDetails.logPlaceholder'));
+      return;
+    }
     
     let uploadedAttachments: Array<{ name: string; type: string; url: string }> = [];
     if (logFiles.length) {
@@ -180,7 +191,8 @@ export function TicketDetails({ ticket, onClose, userRole }: TicketDetailsProps)
       }
     }
 
-    await logMutation.mutateAsync({ message: newLog, attachments: uploadedAttachments });
+    const message = plain || hasImage ? newLog : "Attachment";
+    await logMutation.mutateAsync({ message, attachments: uploadedAttachments });
   };
 
   const uploadToS3 = async (file: File) => {

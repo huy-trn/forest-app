@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { requireUser } from "@/lib/api-auth";
+import { requireUser, isAdminLike } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 
 const bucket = process.env.S3_BUCKET as string;
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
   }
 
   if (projectId === "public") {
-    if (user.role !== "admin" && user.role !== "root") {
+    if (!isAdminLike(user)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
   } else {
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
       where: { id: projectId },
       include: { members: { select: { userId: true } } },
     });
-    const isAdmin = user.role === "admin" || user.role === "root";
+    const isAdmin = isAdminLike(user);
     const isMember = project?.members.some((m) => m.userId === user.sub);
     if (!isAdmin && !isMember) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });

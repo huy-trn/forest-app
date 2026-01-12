@@ -1,25 +1,18 @@
 import { NextResponse } from "next/server";
 import { eventBus } from "@/lib/event-bus";
-import { getUserFromRequest } from "@/lib/auth-helpers";
+import { requireTicketAccess, isAdminLike } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
-  const user = await getUserFromRequest(request);
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { user, response } = await requireTicketAccess(request, params.id);
+  if (!user || response) return response!;
   const ticketId = params.id;
   if (!ticketId) return NextResponse.json({ error: "Missing ticket id" }, { status: 400 });
 
-  // authorize: admin can watch any, others must be assignees
-  if (user.role !== "admin") {
-    const isAssignee = await prisma.ticketAssignee.findFirst({
-      where: { ticketId, userId: user.sub },
-      select: { ticketId: true },
-    });
-    if (!isAssignee) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  // Access already checked by requireTicketAccess.
 
   const encoder = new TextEncoder();
   let closed = false;

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Role, ForestType } from "@prisma/client";
+import { requireUser, requireRole, ADMIN_ROLES, isAdminLike } from "@/lib/api-auth";
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   const isPublic = new URL(request.url).searchParams.get("public") === "true";
@@ -25,6 +26,14 @@ export async function GET(request: Request, { params }: { params: { id: string }
       updatedAt,
     });
   }
+  const { user, response } = await requireUser(request);
+  if (!user) return response!;
+  const isAdmin = isAdminLike(user);
+  const isMember = project.members.some((m) => m.userId === user.sub);
+  if (!isAdmin && !isMember) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   return NextResponse.json({
     ...project,
     members: project.members.map((m) => ({
@@ -36,6 +45,11 @@ export async function GET(request: Request, { params }: { params: { id: string }
 }
 
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
+  const { user, response } = await requireUser(request);
+  if (!user) return response!;
+  const forbidden = requireRole(user, ADMIN_ROLES);
+  if (forbidden) return forbidden;
+
   const body = await request.json();
   const { title, description, country, province, area, status, forestType, memberIds, memberRoles } = body as {
     title?: string;

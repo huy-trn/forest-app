@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { getUserFromRequest } from "@/lib/auth-helpers";
+import { requireUser } from "@/lib/api-auth";
 
 export async function GET(req: Request) {
-  const user = await getUserFromRequest(req);
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { user, response } = await requireUser(req);
+  if (!user) return response!;
 
   const { searchParams } = new URL(req.url);
   const q = searchParams.get("q")?.trim() ?? "";

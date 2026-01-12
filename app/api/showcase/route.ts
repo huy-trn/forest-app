@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getShowcaseContent } from "@/lib/showcase-service";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/api-auth";
+import { requireUser, requireRole, ADMIN_ROLES } from "@/lib/api-auth";
 
 export const runtime = "nodejs";
 
@@ -15,9 +15,8 @@ export async function GET(request: Request) {
 export async function PUT(request: Request) {
   const { user, response } = await requireUser(request);
   if (!user) return response!;
-  if (user.role !== "admin") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const forbidden = requireRole(user, ADMIN_ROLES);
+  if (forbidden) return forbidden;
 
   const payload = (await request.json()) as { locale?: string; heroTitle?: string; heroDescription?: string };
   const targetLocale = (payload.locale || "en").toLowerCase();

@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { serializeTicket, ticketDetailInclude, notifyTicketUpdated } from "../../shared";
-import { getUserFromRequest } from "@/lib/auth-helpers";
+import { requireTicketAccess } from "@/lib/api-auth";
 
 export async function POST(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const user = await getUserFromRequest(request);
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { response } = await requireTicketAccess(request, params.id);
+  if (response) return response;
 
   const { name, type, key, url } = await request.json().catch(() => ({}));
   if (!name || !type || (!key && !url)) {

@@ -2,13 +2,22 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { TicketStatus } from "@prisma/client";
 import { serializeTicket, ticketListInclude, notifyTicketUpdated } from "./shared";
-import { requireUser } from "@/lib/api-auth";
+import { requireUser, requireRole, ADMIN_ROLES, isAdminLike } from "@/lib/api-auth";
 
 export async function GET(request: Request) {
-  const { response } = await requireUser(request);
-  if (response) return response;
+  const { user, response } = await requireUser(request);
+  if (!user) return response!;
 
+  const isAdmin = isAdminLike(user);
   const tickets = await prisma.ticket.findMany({
+    where: isAdmin
+      ? {}
+      : {
+          OR: [
+            { assignees: { some: { userId: user.sub } } },
+            { project: { members: { some: { userId: user.sub } } } },
+          ],
+        },
     include: ticketListInclude,
     orderBy: { createdAt: "desc" },
   });
@@ -20,6 +29,8 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const { user, response } = await requireUser(request);
   if (!user || response) return response!;
+  const forbidden = requireRole(user, ADMIN_ROLES);
+  if (forbidden) return forbidden;
 
   const body = await request.json();
   const { title, description, projectId, assigneeIds } = body as {

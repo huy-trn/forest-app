@@ -21,7 +21,8 @@ export async function getUserFromRequest(req: Request): Promise<TokenPayload | n
   if (!authSecret) return null;
   let nextReq: NextRequest;
   try {
-    nextReq = req instanceof NextRequest ? req : new NextRequest(req);
+    const baseReq = req instanceof NextRequest ? req : req.clone();
+    nextReq = baseReq instanceof NextRequest ? baseReq : new NextRequest(baseReq);
   } catch {
     nextReq = req as NextRequest;
   }

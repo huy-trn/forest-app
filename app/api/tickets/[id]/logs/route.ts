@@ -1,27 +1,35 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { serializeTicket, ticketDetailInclude, notifyTicketUpdated } from "../../shared";
-import { getUserFromRequest } from "@/lib/auth-helpers";
+import { requireTicketAccess } from "@/lib/api-auth";
 
 export async function POST(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const user = await getUserFromRequest(request);
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const dbUser = await prisma.user.findUnique({ where: { id: user.sub } });
-  if (!dbUser) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { dbUser, response } = await requireTicketAccess(request, params.id, { createIfMissing: true });
+  if (!dbUser || response) return response!;
 
-  const { message, attachments } = await request.json().catch(() => ({}));
-  if (!message) return NextResponse.json({ error: "Message is required" }, { status: 400 });
+  const body = await request.json().catch(() => null);
+  const { message, attachments } = (body ?? {}) as { message?: unknown; attachments?: unknown };
   const attachmentItems = (attachments as Array<{ name: string; type: string; url?: string; key?: string }> | undefined) ?? [];
+  const rawMessage = typeof message === "string" ? message : String(message ?? "");
+  const plainMessage = rawMessage.replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").trim();
+  const hasImage = /<img\b/i.test(rawMessage);
+  if (!plainMessage && !hasImage && attachmentItems.length === 0) {
+    return NextResponse.json({ error: "Message is required" }, { status: 400 });
+  }
+  let messageText = rawMessage;
+  if (!plainMessage && !hasImage) {
+    messageText = "Attachment";
+  }
 
   const ticket = await prisma.ticket.update({
     where: { id: params.id },
     data: {
       logs: {
         create: {
-          message,
+          message: messageText,
           userId: dbUser.id,
         },
       },

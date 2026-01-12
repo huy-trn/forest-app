@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { requireUser } from "@/lib/api-auth";
+import { requireUser, isAdminLike } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 
 const bucket = process.env.S3_BUCKET as string;
@@ -20,18 +20,16 @@ export async function GET(request: Request) {
   if (!key) {
     return NextResponse.json({ error: "Missing key" }, { status: 400 });
   }
-  const { user } = await requireUser(request);
-
   const [projectKey] = key.split("/");
 
-  if (projectKey !== "public" && !user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  } else {
+  if (projectKey !== "public") {
+    const { user, response } = await requireUser(request);
+    if (!user) return response!;
     const project = await prisma.project.findUnique({
       where: { id: projectKey },
       include: { members: { select: { userId: true } } },
     });
-    const isAdmin = user.role === "admin" || user.role === "root";
+    const isAdmin = isAdminLike(user);
     const isMember = project?.members.some((m) => m.userId === user.sub);
     if (!isAdmin && !isMember) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });

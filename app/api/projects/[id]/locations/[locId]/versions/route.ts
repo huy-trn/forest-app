@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getUserFromRequest } from "@/lib/auth-helpers";
-import { Role } from "@prisma/client";
+import { requireUser, isAdminLike } from "@/lib/api-auth";
 
 async function isProjectMember(userId: string, projectId: string) {
   const member = await prisma.projectMember.findFirst({
@@ -12,11 +11,11 @@ async function isProjectMember(userId: string, projectId: string) {
 
 export async function GET(req: Request, { params }: { params: { id: string; locId: string } }) {
   const { id: projectId, locId } = params;
-  const user = await getUserFromRequest(req);
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { user, response } = await requireUser(req);
+  if (!user) return response!;
 
   const member = await isProjectMember(user.sub, projectId);
-  const isAdmin = user.role === Role.admin || user.role === Role.root;
+  const isAdmin = isAdminLike(user);
   if (!member && !isAdmin) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }

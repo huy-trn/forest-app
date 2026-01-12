@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { eventBus } from "@/lib/event-bus";
-import { getUserFromRequest } from "@/lib/auth-helpers";
+import { requireUser, isAdminLike } from "@/lib/api-auth";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
-  const user = await getUserFromRequest(request);
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { user, response } = await requireUser(request);
+  if (!user) return response!;
 
   const encoder = new TextEncoder();
   let closed = false;
@@ -40,7 +40,7 @@ export async function GET(request: Request) {
   };
 
   const onListUpdate = (payload: any) => {
-    if (user.role !== "admin") {
+    if (!isAdminLike(user)) {
       const allowedIds: string[] | undefined = payload?.userIds;
       if (allowedIds && !allowedIds.includes(user.sub)) {
         return;

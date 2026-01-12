@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Role, ForestType } from "@prisma/client";
-import { getUserFromRequest } from "@/lib/auth-helpers";
+import { requireUser, requireRole, ADMIN_ROLES, isAdminLike } from "@/lib/api-auth";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -31,10 +31,10 @@ export async function GET(request: Request) {
     );
   }
 
-  const user = await getUserFromRequest(request);
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { user, response } = await requireUser(request);
+  if (!user) return response!;
 
-  const isAdmin = user.role === Role.admin || user.role === Role.root;
+  const isAdmin = isAdminLike(user);
 
   const projects = await prisma.project.findMany({
     where: isAdmin ? {} : { members: { some: { userId: user.sub } } },
@@ -57,6 +57,11 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const { user, response } = await requireUser(request);
+  if (!user) return response!;
+  const forbidden = requireRole(user, ADMIN_ROLES);
+  if (forbidden) return forbidden;
+
   const body = await request.json();
   const { title, description, country, province, area, forestType, memberIds, memberRoles } = body as {
     title?: string;

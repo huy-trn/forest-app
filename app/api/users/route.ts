@@ -5,8 +5,14 @@ import { hash } from "bcryptjs";
 import { sendEmail } from "@/lib/email";
 import { sendSms } from "@/lib/sms";
 import crypto from "node:crypto";
+import { requireUser, requireRole, ADMIN_ROLES } from "@/lib/api-auth";
 
 export async function GET(request: Request) {
+  const { user, response } = await requireUser(request);
+  if (!user) return response!;
+  const forbidden = requireRole(user, ADMIN_ROLES);
+  if (forbidden) return forbidden;
+
   const { searchParams } = new URL(request.url);
   const page = Math.max(1, Number.parseInt(searchParams.get("page") ?? "1", 10));
   const pageSize = Math.min(
@@ -38,6 +44,11 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const { user: authUser, response: authResponse } = await requireUser(request);
+  if (!authUser) return authResponse!;
+  const forbidden = requireRole(authUser, ADMIN_ROLES);
+  if (forbidden) return forbidden;
+
   const body = await request.json();
   const { name, email, phone, role, password } = body as {
     name?: string;
@@ -73,9 +84,9 @@ export async function POST(request: Request) {
   const token = crypto.randomBytes(32).toString("hex");
   const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-  let user;
+  let createdUser;
   try {
-    user = await prisma.user.create({
+    createdUser = await prisma.user.create({
       data: {
         name,
         ...(emailValue ? { email: emailValue } : {}),
@@ -120,10 +131,15 @@ export async function POST(request: Request) {
     );
   }
 
-  return NextResponse.json(user, { status: 201 });
+  return NextResponse.json(createdUser, { status: 201 });
 }
 
 export async function DELETE(request: Request) {
+  const { user, response } = await requireUser(request);
+  if (!user) return response!;
+  const forbidden = requireRole(user, ADMIN_ROLES);
+  if (forbidden) return forbidden;
+
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
   if (!id) return NextResponse.json({ error: "Missing user id" }, { status: 400 });

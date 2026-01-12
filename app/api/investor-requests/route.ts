@@ -1,9 +1,17 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { RequestStatus } from "@prisma/client";
+import { requireUser, ADMIN_ROLES, isRole } from "@/lib/api-auth";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const { user, response } = await requireUser(request);
+  if (!user) return response!;
+
+  const isAdmin = isRole(user, ADMIN_ROLES);
+  const where = isAdmin ? {} : { investorId: user.sub };
+
   const requests = await prisma.investorRequest.findMany({
+    where,
     include: {
       investor: true,
     },
@@ -27,8 +35,15 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const { user, response } = await requireUser(request);
+  if (!user) return response!;
+  const isAdmin = isRole(user, ADMIN_ROLES);
+  if (!isAdmin && user.role !== "investor") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const body = await request.json();
-  const { content, fromName, fromEmail, status, response, investorId, projectId } = body as {
+  const { content, fromName, fromEmail, status, response: responseText, investorId, projectId } = body as {
     content?: string;
     fromName?: string;
     fromEmail?: string;
@@ -44,8 +59,8 @@ export async function POST(request: Request) {
       fromName,
       fromEmail,
       status: status ?? RequestStatus.pending,
-      response,
-      investorId,
+      response: responseText,
+      investorId: isAdmin ? investorId : user.sub,
       projectId,
     },
   });

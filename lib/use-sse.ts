@@ -6,8 +6,9 @@ type MessageHandler = (data: MessageEvent) => void;
  * Generic SSE hook. Provide the endpoint and a message handler.
  * Reconnects with a simple backoff on errors.
  */
-export function useSse(path: string, onMessage: MessageHandler) {
+export function useSse(path: string, onMessage: MessageHandler, enabled = true) {
   useEffect(() => {
+    if (!enabled) return;
     let es: EventSource | null = null;
     let retry: ReturnType<typeof setTimeout> | null = null;
 
@@ -31,5 +32,5 @@ export function useSse(path: string, onMessage: MessageHandler) {
       if (retry) clearTimeout(retry);
       es?.close();
     };
-  }, [path, onMessage]);
+  }, [path, onMessage, enabled]);
 }
