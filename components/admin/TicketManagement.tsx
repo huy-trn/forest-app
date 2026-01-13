@@ -49,6 +49,8 @@ export interface Ticket {
   logs: Array<{ id: string; message: string; date: string; userId: string; userName: string }>;
   comments: Array<{ id: string; message: string; date: string; userId: string; userName: string; userRole: string }>;
   attachments: Array<{ id: string; name: string; type: string; url: string }>;
+  logsCount?: number;
+  commentsCount?: number;
 }
 
 interface UserOption {
@@ -363,11 +365,11 @@ export function TicketManagement({ currentUser }: { currentUser?: { id: string; 
               <div className="flex gap-4 pt-2 border-t text-sm">
                 <div className="flex items-center gap-1">
                   <FileText className="w-4 h-4" />
-                  <span>{ticket.logs.length} {t('admin.ticketManagement.logs')}</span>
+                  <span>{(ticket.logsCount ?? ticket.logs.length)} {t('admin.ticketManagement.logs')}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <MessageSquare className="w-4 h-4" />
-                  <span>{ticket.comments.length} {t('admin.ticketManagement.comments')}</span>
+                  <span>{(ticket.commentsCount ?? ticket.comments.length)} {t('admin.ticketManagement.comments')}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Image className="w-4 h-4" />

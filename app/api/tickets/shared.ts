@@ -21,6 +21,7 @@ export const ticketListInclude = {
   project: true,
   assignees: { include: { user: true } },
   attachments: true,
+  _count: { select: { logs: true, comments: true } },
 };
 
 type PrismaTicket = Ticket & {
@@ -29,6 +30,7 @@ type PrismaTicket = Ticket & {
   logs?: Array<TicketLog & { user: User | null }>;
   comments?: Array<TicketComment & { user: User }>;
   attachments: TicketAttachment[];
+  _count?: { logs: number; comments: number };
 };
 
 async function signUrl(keyOrUrl: string) {
@@ -55,6 +57,28 @@ export async function serializeTicket(ticket: PrismaTicket, opts: { withThreads?
     }))
   );
 
+  const logs = withThreads
+    ? (ticket.logs ?? []).map((l) => ({
+        id: l.id,
+        message: l.message,
+        date: l.createdAt.toISOString(),
+        userId: l.userId ?? "",
+        userName: l.user?.name ?? "",
+      }))
+    : [];
+  const comments = withThreads
+    ? (ticket.comments ?? []).map((c) => ({
+        id: c.id,
+        message: c.message,
+        date: c.createdAt.toISOString(),
+        userId: c.userId,
+        userName: c.user.name,
+        userRole: c.userRole,
+      }))
+    : [];
+  const logsCount = withThreads ? logs.length : ticket._count?.logs ?? 0;
+  const commentsCount = withThreads ? comments.length : ticket._count?.comments ?? 0;
+
   return {
     id: ticket.id,
     title: ticket.title,
@@ -68,25 +92,10 @@ export async function serializeTicket(ticket: PrismaTicket, opts: { withThreads?
       name: a.user.name,
       role: a.user.role,
     })),
-    logs: withThreads
-      ? (ticket.logs ?? []).map((l) => ({
-          id: l.id,
-          message: l.message,
-          date: l.createdAt.toISOString(),
-          userId: l.userId ?? "",
-          userName: l.user?.name ?? "",
-        }))
-      : [],
-    comments: withThreads
-      ? (ticket.comments ?? []).map((c) => ({
-          id: c.id,
-          message: c.message,
-          date: c.createdAt.toISOString(),
-          userId: c.userId,
-          userName: c.user.name,
-          userRole: c.userRole,
-        }))
-      : [],
+    logs,
+    comments,
+    logsCount,
+    commentsCount,
     attachments,
   };
 }

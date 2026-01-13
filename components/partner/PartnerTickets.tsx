@@ -153,11 +153,11 @@ export function PartnerTickets({ user }: PartnerTicketsProps) {
               <div className="flex gap-4 pt-2 border-t text-sm">
                 <div className="flex items-center gap-1">
                   <FileText className="w-4 h-4" />
-                  <span>{ticket.logs.length} {t('partner.tickets.logs')}</span>
+                  <span>{(ticket.logsCount ?? ticket.logs.length)} {t('partner.tickets.logs')}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <MessageSquare className="w-4 h-4" />
-                  <span>{ticket.comments.length} {t('partner.tickets.comments')}</span>
+                  <span>{(ticket.commentsCount ?? ticket.comments.length)} {t('partner.tickets.comments')}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Image className="w-4 h-4" />
